@@ -79,17 +79,14 @@ class _InfoPageState extends State<InfoPage> {
 
     return Scaffold(
       appBar: new AppBar(
-        title: new Text('Characters'),
-        leading: new IconButton(
-            icon: new Icon(Icons.arrow_back),
-            onPressed: _closeInfoView
-            ),
-        // actions: <Widget>[
-        //   new IconButton(
-        //       icon: new Icon(Icons.info_outline),
-        //       tooltip: 'Info about this Quest.',
-        //       onPressed: _openInfoView)
-        // ],
+        title: new Text('Quest Info'),
+        leading: null,
+        actions: <Widget>[
+          new IconButton(
+              icon: new Icon(Icons.close),
+              tooltip: 'Close',
+              onPressed: _closeInfoView)
+        ],
       ),
       body: body,
     );
