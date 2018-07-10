@@ -1,28 +1,25 @@
 import 'package:flutter/material.dart';
 import 'data.dart';
-import 'pickQuest_page_item.dart';
+import 'pickGame_page_item.dart';
 import 'package:party_quest/components/page_transformer.dart';
 
-class PickQuestPage extends StatelessWidget {
+class PickGamePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Stack(children: [
       Scaffold(
         // color: Colors.white,
-        body: Column(children: <Widget>[
-          Container(
-              height: 108.0,
-              padding: const EdgeInsets.only(top: 50.0),
-              child: Text(
-                "Pick a Quest",
+        appBar: new AppBar(
+            elevation: -1.0,
+            title: new Text("Pick a Category",
                 style: new TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.w800,
                   fontFamily: 'Roboto',
                   letterSpacing: 0.5,
-                  fontSize: 26.0,
-                ),
-              )),
+                  fontSize: 22.0,
+                ))),
+        body: Column(children: <Widget>[
           Expanded(
             child: PageTransformer(
               pageViewBuilder: (context, visibilityResolver) {
@@ -47,21 +44,21 @@ class PickQuestPage extends StatelessWidget {
           ),
         ]),
       ),
-      Positioned(
-        left: 10.0,
-        top: 35.0,
-        width: 60.0,
-        height: 60.0,
-        child: new FlatButton(
-                key: null,
-                onPressed: () => Navigator.pop(context),
-                color: Colors.white,
-                child: new Icon(Icons.close))
-        // new IconButton(
-        //     icon: new Icon(Icons.close),
-        //     tooltip: 'Close.',
-        //     onPressed: () => Navigator.pop(context)),
-      ),
+      // Positioned(
+      //   left: 10.0,
+      //   top: 35.0,
+      //   width: 60.0,
+      //   height: 60.0,
+      //   child: new FlatButton(
+      //           key: null,
+      //           onPressed: () => Navigator.pop(context),
+      //           color: Colors.white,
+      //           child: new Icon(Icons.close))
+      //   // new IconButton(
+      //   //     icon: new Icon(Icons.close),
+      //   //     tooltip: 'Close.',
+      //   //     onPressed: () => Navigator.pop(context)),
+      // ),
     ]);
   }
 }

@@ -6,9 +6,20 @@ import 'routes.dart';
 import 'home_page.dart';
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:camera/camera.dart';
+import 'package:party_quest/globals.dart' as globals;
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
-void main() => runApp(new MyApp());
+
+Future<Null> main() async {
+  // Fetch the available cameras before initializing the app.
+  try {
+    globals.cameras = await availableCameras();
+  } on CameraException catch (e) {
+    print('Error: $e.code\nError Message: $e.description');
+  }
+  runApp(new MyApp());
+}
 
 class MyApp extends StatelessWidget {
 

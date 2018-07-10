@@ -8,9 +8,11 @@
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
 import 'home_page.dart';
-import 'info_page.dart';
-import 'quests/pickQuest_page.dart';
-import 'quests/joinQuest_page.dart';
+import 'games/info_page.dart';
+import 'games/pickGame_page.dart';
+import 'games/joinGame_page.dart';
+import 'games/userProfile_page.dart';
+import 'games/myGames_page.dart';
 
 class Routes {
 
@@ -19,8 +21,10 @@ class Routes {
       print("ROUTE WAS NOT FOUND !!!");
     });
     router.define('info', handler: infoPageHandler);
-    router.define('newQuest', handler: newQuestHandler);
-    router.define('joinQuest', handler: joinQuestHandler);
+    router.define('userProfile', handler: userProfilePageHandler);
+    router.define('newGame', handler: newGameHandler);
+    router.define('joinGame', handler: joinGameHandler);
+    router.define('myGames', handler: myGamesHandler);
     router.define('/', handler: homePageHandler);
   }
 
@@ -28,16 +32,24 @@ class Routes {
     return new HomePage();
   });
 
-  static var newQuestHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {
-    return new PickQuestPage();
+  static var newGameHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {
+    return new PickGamePage();
   });
 
-  static var joinQuestHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {
-    return new JoinQuestPage();
+  static var joinGameHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {
+    return new JoinGamePage();
   });
 
   static var infoPageHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {
     return new InfoPage();
+  }); 
+  
+  static var myGamesHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {
+    return new MyGamesPage();
+  });
+
+  static var userProfilePageHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {
+    return new UserProfilePage();
   });
 
 }

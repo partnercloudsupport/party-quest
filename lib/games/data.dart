@@ -15,3 +15,29 @@ final sampleItems = <IntroItem>[
   new IntroItem(title: 'Dragons, dwarves, goblins, and long white beards.', category: 'FANTASY QUEST', imageUrl: 'assets/images/fantasy_bg.jpg',),
   new IntroItem(title: 'The future never looked so bleak and full of opportunity.', category: 'CYBERPUNK QUEST', imageUrl: 'assets/images/cyberpunk_bg.jpg',),
 ];
+
+
+class Quest {
+  final String name;
+  final String roomCode;
+  final String playerNames;
+  final String icon;
+  final String background;
+
+  Quest(this.name, this.roomCode, this.playerNames, this.icon, this.background);
+
+  Quest.fromJson(Map<String, dynamic> json)
+      : name = json['name'],
+        roomCode = json['roomCode'],
+        playerNames = json['playerNames'],
+        icon = json['icon'],
+        background = json['background'];
+
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'roomCode': roomCode,
+        'playerNames': playerNames,
+        'icon': icon,
+        'background': background
+      };
+}

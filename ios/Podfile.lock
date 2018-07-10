@@ -5,6 +5,8 @@ PODS:
   - BoringSSL/Implementation (10.0.5):
     - BoringSSL/Interface (= 10.0.5)
   - BoringSSL/Interface (10.0.5)
+  - camera (0.0.1):
+    - Flutter
   - cloud_firestore (0.0.1):
     - Firebase/Auth
     - Firebase/Core
@@ -91,6 +93,7 @@ PODS:
   - Protobuf (3.6.0)
 
 DEPENDENCIES:
+  - camera (from `.symlinks/plugins/camera/ios`)
   - cloud_firestore (from `.symlinks/plugins/cloud_firestore/ios`)
   - firebase_auth (from `.symlinks/plugins/firebase_auth/ios`)
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
@@ -117,6 +120,8 @@ SPEC REPOS:
     - Protobuf
 
 EXTERNAL SOURCES:
+  camera:
+    :path: ".symlinks/plugins/camera/ios"
   cloud_firestore:
     :path: ".symlinks/plugins/cloud_firestore/ios"
   firebase_auth:
@@ -128,6 +133,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   BoringSSL: cf3f1793eb6e3c445c4d150456341f149c268a35
+  camera: be01db3b2193839f9af56a9db99b7fea444d35f3
   cloud_firestore: a2d49d9c7219fce31033eb1a2ee953d7733c91d6
   Firebase: 68afeeb05461db02d7c9e3215cda28068670f4aa
   firebase_auth: 27a5a77a032d557c18f8e223aaf8ec1368f6cdbc
