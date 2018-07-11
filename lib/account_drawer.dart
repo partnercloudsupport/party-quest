@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'application.dart';
 import 'package:fluro/fluro.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:gratzi_game/globals.dart' as globals;
 
 class AccountDrawer extends StatefulWidget {
   @override
@@ -116,12 +117,17 @@ class _AccountDrawerState extends State<AccountDrawer> {
             labelListTiles.add(new ListTile(
               title: Text(game['code']),
               subtitle: Text(game['type']),
-              // onTap: () => _onListTileTap(context, labelName),
+              onTap: () => _openGame(game.documentID, context),
             ));
           });
           return Column(children: labelListTiles);
         });
   }
+}
+
+void _openGame(String gameId, BuildContext context){
+  globals.gameState['gameId'] = gameId;
+  Navigator.pop(context);
 }
 
 class User {

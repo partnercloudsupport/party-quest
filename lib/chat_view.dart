@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:gratzi_game/globals.dart' as globals;
+import 'package:observable/observable.dart';
 
 class ChatView extends StatefulWidget {
   static String tag = 'info-page';
@@ -8,13 +11,35 @@ class ChatView extends StatefulWidget {
 }
 
 class _ChatViewState extends State<ChatView> {
-  CollectionReference get logs => Firestore.instance.collection('Logs');
+  _ChatViewState(){
+    globals.gameState.changes.listen((changes) {
+      print(changes);
+      setState(() {
+        _gameId = globals.gameState['gameId'];
+      });
+    });
+  }
+  final TextEditingController _textController = TextEditingController();
+  bool _isComposing = false;
+  // CollectionReference get logs => Firestore.instance.collection('Logs');
+  String _gameId;
 
   @override
   Widget build(BuildContext context) {
+    // CollectionReference get logs => 
+    return Column(children: <Widget>[
+          _buildChatLog(),
+          Divider(height: 1.0),
+          new Container(
+              decoration: new BoxDecoration(color: Theme.of(context).cardColor),
+              child: _buildTextComposer())
+        ]);
+  }
+
+  Widget _buildChatLog() {
     return Flexible(
         child: StreamBuilder<QuerySnapshot>(
-      stream: logs.orderBy('dts', descending: true).snapshots(),
+      stream: Firestore.instance.collection('Games/$_gameId/Logs').orderBy('dts', descending: true).snapshots(),
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (!snapshot.hasData) return const Text('Loading...');
         final int messageCount = snapshot.data.documents.length;
@@ -34,6 +59,46 @@ class _ChatViewState extends State<ChatView> {
     ));
   }
 
+  Widget _buildTextComposer() {
+    return IconTheme(
+      data: IconThemeData(color: Theme.of(context).accentColor),
+      child: Container(
+          margin: const EdgeInsets.only(left: 20.0, right: 10.0, bottom: 10.0),
+          child: Row(children: <Widget>[
+            Flexible(
+              child: TextField(
+                maxLines: null,
+                keyboardType: TextInputType.multiline,
+                controller: _textController,
+                onChanged: _handleMessageChanged,
+                onSubmitted: _handleSubmitted,
+                decoration:
+                    InputDecoration.collapsed(hintText: "Send a message"),
+              ),
+            ),
+            Container(
+                margin: EdgeInsets.only(left: 4.0),
+                child: Theme.of(context).platform == TargetPlatform.iOS
+                    ? CupertinoButton(
+                        child: Text("Send"),
+                        onPressed: _isComposing
+                            ? () => _handleSubmitted(_textController.text)
+                            : null,
+                      )
+                    : IconButton(
+                        icon: Icon(Icons.send),
+                        onPressed: _isComposing
+                            ? () => _handleSubmitted(_textController.text)
+                            : null,
+                      )),
+          ]),
+          decoration: Theme.of(context).platform == TargetPlatform.iOS
+              ? BoxDecoration(
+                  border: Border(top: BorderSide(color: Colors.grey[200])))
+              : null),
+    );
+  }
+
   Widget _buildTitleBox(String text) {
     return Container(
         margin: const EdgeInsets.all(14.0),
@@ -48,6 +113,31 @@ class _ChatViewState extends State<ChatView> {
             fontSize: 22.0,
           ),
         ));
+  }
+
+
+  void _handleMessageChanged(String text) {
+    setState(() {
+      _isComposing = text.length > 0;
+    });
+  }
+
+  void _handleSubmitted(String text) {
+    _textController.clear();
+    // setState(() {
+    //   _isComposing = false;
+    // });
+    // await _ensureLoggedIn();
+    if (text.length > 0) {
+      final DocumentReference document = Firestore.instance.collection('Games/$_gameId/Logs').document();
+      document.setData(<String, dynamic>{
+        'text': text,
+        'dts': DateTime.now(),
+        'profileUrl':
+            'https://lh3.googleusercontent.com/-DsBDODH3QXk/AAAAAAAAAAI/AAAAAAAAAAA/AAnnY7q3aaQQkR02rDq6Csf-UX4bg1c_-A/s192-c-mo/photo.jpg',
+        'userName': 'Augustin Bralley'
+      });
+    }
   }
 
   Widget _buildTextBox(String text) {
@@ -177,7 +267,7 @@ class ChatMessageListItem extends StatelessWidget {
                 CircleAvatar(backgroundImage: NetworkImage(message.profileUrl)),
           ),
           Flexible(
-            child: Column(
+              child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(message.userName,
