@@ -42,13 +42,13 @@ class _InfoPageState extends State<InfoPage> {
       backgroundColor: Colors.white,
       appBar: new AppBar(
         elevation: -1.0,
-        title: new Text("Quest Info",
+        title: new Text("Game Info",
               style: new TextStyle(
                 color: Colors.black,
-                fontWeight: FontWeight.w800,
+                // fontWeight: FontWeight.w800,
                 fontFamily: 'Roboto',
-                letterSpacing: 0.5,
-                fontSize: 22.0,
+                // letterSpacing: 0.5,
+                // fontSize: 22.0,
               )),
         // leading: null,
         // actions: <Widget>[

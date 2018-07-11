@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
-import 'package:party_quest/globals.dart' as globals;
+import 'package:gratzi_game/globals.dart' as globals;
 
 class UserProfilePage extends StatefulWidget {
   @override
@@ -67,7 +67,7 @@ class UserProfileState extends State<UserProfilePage> {
             ),
           ));
     } else {
-      new AspectRatio(
+      return AspectRatio(
           aspectRatio: controller.value.aspectRatio,
           child: new CameraPreview(controller));
     }

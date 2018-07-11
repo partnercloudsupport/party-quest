@@ -1,4 +1,4 @@
-# party_quest
+# gratzi_game
 
 A new Flutter project.
 

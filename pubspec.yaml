@@ -1,4 +1,4 @@
-name: party_quest
+name: gratzi_game
 description: A new Flutter project.
 
 dependencies:
@@ -8,6 +8,7 @@ dependencies:
   cloud_firestore: ^0.7.3
   firebase_auth: "^0.5.12"
   camera: "^0.2.1"
+  random_string: "^0.0.1"
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

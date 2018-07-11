@@ -7,7 +7,7 @@ import 'home_page.dart';
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:camera/camera.dart';
-import 'package:party_quest/globals.dart' as globals;
+import 'package:gratzi_game/globals.dart' as globals;
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -63,7 +63,7 @@ class MyApp extends StatelessWidget {
 
     final FirebaseUser currentUser = await _auth.currentUser();
     assert(user.uid == currentUser.uid);
-
+    globals.userId = user.uid;
     return 'signInAnonymously succeeded: $user';
   }
 }
