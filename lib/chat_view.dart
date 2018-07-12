@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gratzi_game/globals.dart' as globals;
-import 'package:observable/observable.dart';
 
 class ChatView extends StatefulWidget {
   static String tag = 'info-page';
@@ -11,9 +10,9 @@ class ChatView extends StatefulWidget {
 }
 
 class _ChatViewState extends State<ChatView> {
-  _ChatViewState(){
+  _ChatViewState() {
     globals.gameState.changes.listen((changes) {
-      print(changes);
+      // print(changes);
       setState(() {
         _gameId = globals.gameState['gameId'];
       });
@@ -26,20 +25,23 @@ class _ChatViewState extends State<ChatView> {
 
   @override
   Widget build(BuildContext context) {
-    // CollectionReference get logs => 
+    // CollectionReference get logs =>
     return Column(children: <Widget>[
-          _buildChatLog(),
-          Divider(height: 1.0),
-          new Container(
-              decoration: new BoxDecoration(color: Theme.of(context).cardColor),
-              child: _buildTextComposer())
-        ]);
+      _buildChatLog(),
+      Divider(height: 1.0),
+      new Container(
+          decoration: new BoxDecoration(color: Theme.of(context).cardColor),
+          child: _buildTextComposer())
+    ]);
   }
 
   Widget _buildChatLog() {
     return Flexible(
         child: StreamBuilder<QuerySnapshot>(
-      stream: Firestore.instance.collection('Games/$_gameId/Logs').orderBy('dts', descending: true).snapshots(),
+      stream: Firestore.instance
+          .collection('Games/$_gameId/Logs')
+          .orderBy('dts', descending: true)
+          .snapshots(),
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (!snapshot.hasData) return const Text('Loading...');
         final int messageCount = snapshot.data.documents.length;
@@ -48,11 +50,25 @@ class _ChatViewState extends State<ChatView> {
           itemCount: messageCount,
           itemBuilder: (_, int index) {
             final DocumentSnapshot document = snapshot.data.documents[index];
+            DocumentSnapshot nextDocument;
+            if(index + 1 < messageCount){
+              nextDocument = snapshot.data.documents[index+1];
+            } else {
+              nextDocument = snapshot.data.documents[index];
+            }
             var message = new ChatMessage(
                 userName: document['userName'],
                 text: document['text'],
                 profileUrl: document['profileUrl']);
-            return ChatMessageListItem(message);
+            if (message.userName != nextDocument['userName'] ||
+                index == messageCount - 1) {
+              return Column(children: <Widget>[
+                _buildLabel(message.userName),
+                ChatMessageListItem(message)
+              ]);
+            } else {
+              return ChatMessageListItem(message);
+            }
           },
         );
       },
@@ -115,7 +131,6 @@ class _ChatViewState extends State<ChatView> {
         ));
   }
 
-
   void _handleMessageChanged(String text) {
     setState(() {
       _isComposing = text.length > 0;
@@ -129,7 +144,8 @@ class _ChatViewState extends State<ChatView> {
     // });
     // await _ensureLoggedIn();
     if (text.length > 0) {
-      final DocumentReference document = Firestore.instance.collection('Games/$_gameId/Logs').document();
+      final DocumentReference document =
+          Firestore.instance.collection('Games/$_gameId/Logs').document();
       document.setData(<String, dynamic>{
         'text': text,
         'dts': DateTime.now(),
@@ -140,13 +156,31 @@ class _ChatViewState extends State<ChatView> {
     }
   }
 
+  Widget _buildLabel(String text) {
+    return Row(
+        // margin: const EdgeInsets.all(10.0),
+        children: <Widget>[
+          Expanded(
+              child: Padding(
+                  padding: EdgeInsets.only(left: 15.0, top: 10.0),
+                  child: Text(
+                    text,
+                    style: TextStyle(
+                      color: Colors.black45,
+                      letterSpacing: 0.5,
+                      fontSize: 12.0,
+                    ),
+                  )))
+        ]);
+  }
+
   Widget _buildTextBox(String text) {
     return Container(
         margin: const EdgeInsets.all(10.0),
         child: Text(
           text,
           style: TextStyle(
-            color: Colors.white,
+            color: Colors.black,
             // fontWeight: FontWeight.w800,
             // fontFamily: 'Roboto',
             letterSpacing: 0.5,
@@ -270,8 +304,8 @@ class ChatMessageListItem extends StatelessWidget {
               child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(message.userName,
-                  style: Theme.of(context).textTheme.subhead),
+              // Text(message.userName,
+              //     style: Theme.of(context).textTheme.subhead),
               Container(
                   margin: const EdgeInsets.only(top: 5.0),
                   child: Text(message.text, maxLines: null)),

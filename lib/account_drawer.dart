@@ -16,7 +16,7 @@ class _AccountDrawerState extends State<AccountDrawer> {
       'Augustin Bralley',
       'augman@gmail.com',
       'https://lh3.googleusercontent.com/-DsBDODH3QXk/AAAAAAAAAAI/AAAAAAAAAAA/AAnnY7q3aaQQkR02rDq6Csf-UX4bg1c_-A/s192-c-mo/photo.jpg',
-      'assets/images/city_bg.jpg');
+      'assets/images/bubbles_bg.jpeg');
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +55,11 @@ class _AccountDrawerState extends State<AccountDrawer> {
       ListTile(
           title: Text("Join Game"),
           leading: Icon(Icons.contacts),
+          onTap: () => Application.router.navigateTo(context, 'joinGame',
+              transition: TransitionType.fadeIn)),
+      ListTile(
+          title: Text("Top Charts"),
+          leading: Icon(Icons.show_chart),
           onTap: () => Application.router.navigateTo(context, 'joinGame',
               transition: TransitionType.fadeIn))
     ];
@@ -117,7 +122,7 @@ class _AccountDrawerState extends State<AccountDrawer> {
             labelListTiles.add(new ListTile(
               title: Text(game['code']),
               subtitle: Text(game['type']),
-              onTap: () => _openGame(game.documentID, context),
+              onTap: () => _openGame(game.documentID, game['type'], context),
             ));
           });
           return Column(children: labelListTiles);
@@ -125,8 +130,9 @@ class _AccountDrawerState extends State<AccountDrawer> {
   }
 }
 
-void _openGame(String gameId, BuildContext context){
+void _openGame(String gameId, String gameName, BuildContext context){
   globals.gameState['gameId'] = gameId;
+  globals.gameState['gameName'] = gameName;
   Navigator.pop(context);
 }
 

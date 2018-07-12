@@ -1,10 +1,10 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'application.dart';
 import 'package:fluro/fluro.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'chat_view.dart';
 import 'account_drawer.dart';
+import 'package:gratzi_game/globals.dart' as globals;
+
 
 class HomePage extends StatefulWidget {
   static String tag = 'home-page';
@@ -14,6 +14,15 @@ class HomePage extends StatefulWidget {
 }
 
 class HomePageState extends State<HomePage> {
+  HomePageState() {
+    globals.gameState.changes.listen((changes) {
+      // print(changes);
+      setState(() {
+        _gameName = globals.gameState['gameName'];
+      });
+    });
+  }
+  String _gameName;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
@@ -24,7 +33,7 @@ class HomePageState extends State<HomePage> {
         drawer: AccountDrawer(), // left side
         // endDrawer: CharactersDrawer(), // right side
         appBar: AppBar(
-          title: Text('Pegg Party'),
+          title: Text(_gameName == null ? 'Gratzi Game' : _gameName),
           elevation: -1.0,
           // leading: IconButton(
           //     icon: Icon(Icons.explore),
