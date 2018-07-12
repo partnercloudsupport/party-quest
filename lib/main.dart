@@ -3,11 +3,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:fluro/fluro.dart';
 import 'routes.dart';
-import 'home_page.dart';
+import 'splash_pages.dart';
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:camera/camera.dart';
 import 'package:gratzi_game/globals.dart' as globals;
+import 'home_page.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -18,28 +19,45 @@ Future<Null> main() async {
   } on CameraException catch (e) {
     print('Error: $e.code\nError Message: $e.description');
   }
-  runApp(new MyApp());
+  runApp(new GratziGame());
 }
 
-class MyApp extends StatelessWidget {
+class GratziGame extends StatefulWidget {
+  @override
+  createState() => GratziGameState();
+}
 
-  MyApp() {
+class GratziGameState extends State<GratziGame> {
+  GratziGameState() {
     final router = new Router();
     Routes.configureRoutes(router);
     Application.router = router;
     _signInAnonymously();
+    globals.userState.changes.listen((changes) {
+      setState(() {
+        _userName = globals.userState['userName'];
+      });
+    });
   }
+  String _userName;
 
   @override
   Widget build(BuildContext context) {
+    Widget startPage;
+    if (_userName.length > 0) {
+      startPage = HomePage();
+    } else {
+      startPage = SplashPages();
+    }
     return new MaterialApp(
       title: 'Party Quest',
       theme: new ThemeData(
         primaryColor: Colors.white,
       ),
       onGenerateRoute: Application.router.generator,
-      home: new HomePage(),
+      home: startPage,
     );
+    
   }
 
   Future<String> _signInAnonymously() async {
@@ -63,7 +81,7 @@ class MyApp extends StatelessWidget {
 
     final FirebaseUser currentUser = await _auth.currentUser();
     assert(user.uid == currentUser.uid);
-    globals.userId = user.uid;
+    globals.userState['userId'] = user.uid;
     return 'signInAnonymously succeeded: $user';
   }
 }

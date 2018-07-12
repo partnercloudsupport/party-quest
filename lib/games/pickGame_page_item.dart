@@ -103,7 +103,7 @@ class IntroPageItem extends StatelessWidget {
         .setData(<String, dynamic>{
           'type': item.category,
           'code': randomAlpha(5).toUpperCase(),
-          'creator': globals.userId, 
+          'creator': globals.userState['userId'], 
           'dts': DateTime.now()});
     Navigator.pop(context);
   }

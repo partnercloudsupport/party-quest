@@ -4,5 +4,6 @@ import 'package:observable/observable.dart';
 
 bool isLoggedIn = false;
 String userId;
-ObservableMap gameState = toObservable({'gameId': '-LH9WTMC4xnb07J0WArC', 'gameName': 'City Quest'});
+ObservableMap userState = toObservable({'userId': '', 'userName': ''});
+ObservableMap gameState = toObservable({'gameId': '', 'gameName': ''});
 List<CameraDescription> cameras;
