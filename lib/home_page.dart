@@ -7,7 +7,6 @@ import 'package:gratzi_game/globals.dart' as globals;
 
 
 class HomePage extends StatefulWidget {
-  static String tag = 'home-page';
 
   @override
   createState() => HomePageState();
@@ -16,32 +15,30 @@ class HomePage extends StatefulWidget {
 class HomePageState extends State<HomePage> {
   HomePageState() {
     globals.gameState.changes.listen((changes) {
-      // print(changes);
       setState(() {
-        _gameName = globals.gameState['gameName'];
+        _type = globals.gameState['type'];
       });
     });
   }
-  String _gameName;
+  String _type;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         key: _scaffoldKey,
-        backgroundColor: Colors.white,
+        // backgroundColor: Colors.white,
         drawer: AccountDrawer(), // left side
-        // endDrawer: CharactersDrawer(), // right side
         appBar: AppBar(
-          title: Text(_gameName == null ? 'Gratzi Game' : _gameName),
+          // toolbarOpacity: 0.0,
+          leading: new IconButton(icon: new Icon(Icons.settings, color: Colors.white),
+            onPressed: () => _scaffoldKey.currentState.openDrawer()),
+          backgroundColor: const Color(0xFF00073F),
+          title: Text(_type == null ? 'Pegg Party' : _type, style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
           elevation: -1.0,
-          // leading: IconButton(
-          //     icon: Icon(Icons.explore),
-          //     onPressed: _scaffoldKey.currentState.openDrawer
-          //     ),
           actions: <Widget>[
             IconButton(
-                icon: Icon(Icons.info_outline),
+                icon: Icon(Icons.info_outline, color: Colors.white,),
                 tooltip: 'Info about this Quest.',
                 onPressed: _openInfoView)
           ],

@@ -7,7 +7,6 @@ import 'package:random_string/random_string.dart';
 import 'package:gratzi_game/globals.dart' as globals;
 
 class IntroPageItem extends StatelessWidget {
-  CollectionReference get games => Firestore.instance.collection('Games');
   IntroPageItem({
     @required this.item,
     @required this.pageVisibility,
@@ -66,20 +65,19 @@ class IntroPageItem extends StatelessWidget {
     );
 
     var nextButton = Padding(
-    padding: const EdgeInsets.only(top: 20.0),
-    child: new FlatButton(
-        key: null,
-        onPressed: () => _createGame(context),
-        color: const Color(0xFFBA5536),
-        child: new Text(
-          "Create Game",
-          style: new TextStyle(
-              fontSize: 16.0,
-              color: Colors.white,
-              fontWeight: FontWeight.w800,
-              fontFamily: "Roboto"),
-        )));
-
+        padding: const EdgeInsets.only(top: 20.0),
+        child: new FlatButton(
+            key: null,
+            onPressed: () => _createGame(context),
+            color: const Color(0xFFBA5536),
+            child: new Text(
+              "Create Game",
+              style: new TextStyle(
+                  fontSize: 16.0,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                  ),
+            )));
 
     return Positioned(
       bottom: 56.0,
@@ -87,27 +85,35 @@ class IntroPageItem extends StatelessWidget {
       right: 32.0,
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        children: [
-          categoryText,
-          titleText,
-          nextButton
-        ],
+        children: [categoryText, titleText, nextButton],
       ),
     );
   }
 
-
   void _createGame(context) {
-    final DocumentReference document = games.document();
-    document
-        .setData(<String, dynamic>{
-          'type': item.category,
-          'code': randomAlpha(5).toUpperCase(),
-          'creator': globals.userState['userId'], 
-          'dts': DateTime.now()});
+    var userId = globals.userState['userId'];
+    // var gameId = globals.userState['userId'];
+
+    final DocumentReference game = Firestore.instance.collection('Games').document();
+    game.setData(<String, dynamic>{
+      'type': item.category,
+      'code': randomAlpha(5).toUpperCase(),
+      'creator': globals.userState['userId'],
+      'players': {userId: true},
+      'dts': DateTime.now()
+    });
+    
+    // .then((thing){
+    //   final DocumentReference user = Firestore.instance.collection('User').document(userId);
+    //   user.updateData(<String, dynamic>{
+    //     'games': {game.documentID: true},
+    //     'dts': DateTime.now()
+    //   });
+    // });
+
     Navigator.pop(context);
   }
-  
+
   @override
   Widget build(BuildContext context) {
     var image = Image.asset(

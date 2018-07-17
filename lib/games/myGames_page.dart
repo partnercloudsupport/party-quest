@@ -32,7 +32,6 @@ class _MyGamesPageState extends State<MyGamesPage> {
               style: new TextStyle(
                 color: Colors.black,
                 fontWeight: FontWeight.w800,
-                fontFamily: 'Roboto',
                 letterSpacing: 0.5,
                 fontSize: 22.0,
               )),

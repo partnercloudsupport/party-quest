@@ -1,9 +1,8 @@
 library gratzi_game.globals;
-import 'package:camera/camera.dart';
+// import 'package:camera/camera.dart';
 import 'package:observable/observable.dart';
 
 bool isLoggedIn = false;
-String userId;
-ObservableMap userState = toObservable({'userId': '', 'userName': ''});
-ObservableMap gameState = toObservable({'gameId': '', 'gameName': ''});
-List<CameraDescription> cameras;
+ObservableMap userState = toObservable({'userId': '', 'name': '', 'profilePic': ''});
+ObservableMap gameState = toObservable({'id': '', 'type': ''});
+// List<CameraDescription> cameras;
