@@ -9,7 +9,7 @@ import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
 import 'home_page.dart';
 import 'games/info_page.dart';
-import 'games/pickGame_page.dart';
+import 'games/createGame_pages.dart';
 import 'games/joinGame_page.dart';
 import 'games/userProfile_page.dart';
 import 'games/myGames_page.dart';
@@ -22,7 +22,7 @@ class Routes {
     });
     router.define('info', handler: infoPageHandler);
     router.define('userProfile', handler: userProfilePageHandler);
-    router.define('newGame', handler: newGameHandler);
+    router.define('createGame', handler: createGameHandler);
     router.define('joinGame', handler: joinGameHandler);
     router.define('myGames', handler: myGamesHandler);
     router.define('/', handler: homePageHandler);
@@ -32,8 +32,8 @@ class Routes {
     return new HomePage();
   });
 
-  static var newGameHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {
-    return new PickGamePage();
+  static var createGameHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {
+    return new CreateGamePages();
   });
 
   static var joinGameHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {

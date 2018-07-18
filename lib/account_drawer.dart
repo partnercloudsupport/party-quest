@@ -72,7 +72,7 @@ class _AccountDrawerState extends State<AccountDrawer> {
       ListTile(
           title: Text("Create Game", style: TextStyle(color: Colors.white)),
           leading: Icon(Icons.create, color: Colors.white),
-          onTap: () => Application.router.navigateTo(context, 'newGame',
+          onTap: () => Application.router.navigateTo(context, 'createGame',
               transition: TransitionType.fadeIn)),
       ListTile(
           title: Text("Join Game", style: TextStyle(color: Colors.white)),
