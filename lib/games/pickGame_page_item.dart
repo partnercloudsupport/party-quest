@@ -3,7 +3,6 @@ import 'package:meta/meta.dart';
 import 'data.dart';
 import 'package:gratzi_game/components/page_transformer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:random_string/random_string.dart';
 import 'package:gratzi_game/globals.dart' as globals;
 
 class IntroPageItem extends StatelessWidget {
@@ -97,7 +96,7 @@ class IntroPageItem extends StatelessWidget {
     final DocumentReference game = Firestore.instance.collection('Games').document();
     game.setData(<String, dynamic>{
       'type': item.category,
-      'code': randomAlpha(5).toUpperCase(),
+      // 'code': randomAlpha(5).toUpperCase(),
       'creator': globals.userState['userId'],
       'players': {userId: true},
       'dts': DateTime.now()

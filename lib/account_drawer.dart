@@ -4,6 +4,7 @@ import 'package:fluro/fluro.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:observable/observable.dart';
 import 'package:gratzi_game/globals.dart' as globals;
+import 'package:cached_network_image/cached_network_image.dart';
 
 class AccountDrawer extends StatefulWidget {
   @override
@@ -72,19 +73,29 @@ class _AccountDrawerState extends State<AccountDrawer> {
       ListTile(
           title: Text("Create Game", style: TextStyle(color: Colors.white)),
           leading: Icon(Icons.create, color: Colors.white),
-          onTap: () => Application.router.navigateTo(context, 'createGame',
-              transition: TransitionType.fadeIn)),
+          onTap: () => _openCreateGame()),
       ListTile(
           title: Text("Join Game", style: TextStyle(color: Colors.white)),
           leading: Icon(Icons.contacts, color: Colors.white),
-          onTap: () => Application.router.navigateTo(context, 'joinGame',
-              transition: TransitionType.fadeIn)),
+          onTap: () => _openJoinGame()),
       // ListTile(
       //     title: Text("Top Charts"),
       //     leading: Icon(Icons.show_chart),
       //     onTap: () => Application.router.navigateTo(context, 'joinGame',
       //         transition: TransitionType.fadeIn))
     ];
+  }
+
+  void _openCreateGame(){
+    Navigator.pop(context);
+    Application.router.navigateTo(context, 'createGame',
+              transition: TransitionType.fadeIn);
+  }
+
+  void _openJoinGame(){
+    Navigator.pop(context);
+    Application.router.navigateTo(context, 'createGame',
+              transition: TransitionType.fadeIn);
   }
 
   List<Widget> _buildUserAccount(BuildContext context) {
@@ -98,6 +109,13 @@ class _AccountDrawerState extends State<AccountDrawer> {
                   child: Container(
                       width: 150.0,
                       height: 150.0,
+                      // child: CachedNetworkImage(
+                      //     placeholder: CircularProgressIndicator(),
+                      //     imageUrl: currentUser.profilePic,
+                      //     height: 150.0,
+                      //     width: 150.0,
+                      //     fit: BoxFit.contain,
+                      //     ),
                       decoration: new BoxDecoration(
                           shape: BoxShape.circle,
                           image: new DecorationImage(
@@ -172,7 +190,8 @@ class _AccountDrawerState extends State<AccountDrawer> {
   //   return Column(children: labelListTiles);
 
   Widget _buildMyGamesWidgets(BuildContext context) {
-    // When performing a rules check on a query, Cloud Firestore Security Rules will check to ensure that the user has access to all results before executing the query. If a query could return results a user doesn't have access to, the entire query fails and Firestore returns an error.
+    // When performing a rules check on a query, Cloud Firestore Security Rules will check to ensure that the user has access to all results before executing the query.
+    // If a query could return results a user doesn't have access to, the entire query fails and Firestore returns an error.
     return StreamBuilder<QuerySnapshot>(
         stream: Firestore.instance
             .collection('Games')
@@ -184,9 +203,17 @@ class _AccountDrawerState extends State<AccountDrawer> {
           // final int messageCount = snapshot.data.documents.length;
           snapshot.data.documents.forEach((game) {
             labelListTiles.add(new ListTile(
-              title: Text(game['code'], style: TextStyle(color: Colors.white)),
-              subtitle:
-                  Text(game['type'], style: TextStyle(color: Colors.white)),
+              leading: CachedNetworkImage(
+                  placeholder: CircularProgressIndicator(),
+                  imageUrl: game['imageUrl'],
+                  height: 45.0,
+                  width: 45.0),
+              title: Text(game['title'],
+                  style: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.w800)),
+              subtitle: Text(game['name'],
+                  style: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.w100)),
               onTap: () => _openGame(game, context),
             ));
           });
@@ -198,7 +225,12 @@ class _AccountDrawerState extends State<AccountDrawer> {
 void _openGame(DocumentSnapshot game, BuildContext context) {
   globals.gameState['id'] = game.documentID;
   globals.gameState['type'] = game['type'];
-  // globals.gameState['players'] = game['players'];
+  globals.gameState['name'] = game['name'];
+  globals.gameState['title'] = game['title'];
+  globals.gameState['isPublic'] = 'false';
+  globals.gameState['code'] = game['code'];
+  globals.gameState['creator'] = game['creator'];
+  globals.gameState['players'] = game['players'].toString();
   Navigator.pop(context);
 }
 

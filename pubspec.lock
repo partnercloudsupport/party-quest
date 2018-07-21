@@ -50,6 +50,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.7.3"
+  cloud_functions:
+    dependency: "direct main"
+    description:
+      name: cloud_functions
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.0.1"
   collection:
     dependency: transitive
     description:
@@ -199,7 +206,7 @@ packages:
       name: intl
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.15.6"
+    version: "0.15.7"
   io:
     dependency: transitive
     description:
@@ -326,13 +333,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.29.0+1"
-  random_string:
-    dependency: "direct main"
-    description:
-      name: random_string
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.0.1"
   shared_preferences:
     dependency: transitive
     description:

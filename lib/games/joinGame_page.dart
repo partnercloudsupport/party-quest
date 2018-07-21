@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:gratzi_game/globals.dart' as globals;
 import 'package:flutter/services.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:async';
 
 class UpperCaseTextFormatter extends TextInputFormatter {
   @override
@@ -26,6 +30,10 @@ class JoinGamePage extends StatelessWidget {
       // color: Colors.white,
       appBar: new AppBar(
         elevation: -1.0,
+        automaticallyImplyLeading: false,
+        leading: new IconButton(
+            icon: new Icon(Icons.close, color: Colors.white),
+            onPressed: () => Navigator.pop(context)),
         backgroundColor: const Color(0xFF00073F),
         title: new Text("Join Game",
             style: new TextStyle(
@@ -36,41 +44,59 @@ class JoinGamePage extends StatelessWidget {
             )),
       ),
       body: Container(
+          width: 500.0,
           decoration: BoxDecoration(
               image: DecorationImage(
                   image: AssetImage("assets/images/background-gradient.png"),
                   fit: BoxFit.fill)),
           child: Column(children: <Widget>[
+            Row(children: <Widget>[
+              Expanded(
+                  child: Padding(
+                      padding: EdgeInsets.only(left: 15.0),
+                      child: Text("Private Game",
+                          style:
+                              TextStyle(color: Colors.white70, fontSize: 12.0),
+                          textAlign: TextAlign.left)))
+            ]),
             Padding(
                 padding: EdgeInsets.all(20.0),
                 child: Container(
                     height: 60.0,
-                    padding: EdgeInsets.symmetric(vertical: 6.0, horizontal: 10.0),
+                    width: 300.0,
+                    padding:
+                        EdgeInsets.symmetric(vertical: 6.0, horizontal: 10.0),
                     child: Row(children: <Widget>[
                       Flexible(
                           child: TextFormField(
                         maxLines: 1,
                         maxLength: 5,
                         textAlign: TextAlign.start,
-                        style: TextStyle(fontSize: 25.0, fontWeight: FontWeight.w400, color: Colors.black,letterSpacing: 8.0),
+                        style: TextStyle(
+                            fontSize: 25.0,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.black,
+                            letterSpacing: 8.0),
                         controller: _textController,
                         inputFormatters: <TextInputFormatter>[
                           upperCaseTextFormatter
                         ],
                         keyboardType: TextInputType.text,
-                        decoration: InputDecoration.collapsed(
-                            hintText: "Enter a room code"),
+                        decoration:
+                            InputDecoration.collapsed(hintText: "Room code"),
                       ))
                     ]),
                     decoration: BoxDecoration(
-                        color: const Color(0xFFFFFFFF),
-                        border:
-                            Border(top: BorderSide(color: Colors.grey[200]))))),
+                      color: const Color(0xFFFFFFFF),
+                      borderRadius: BorderRadius.circular(8.0),
+                      // border:
+                      //     Border(top: BorderSide(color: Colors.grey[200]))
+                    ))),
             Padding(
-                padding: const EdgeInsets.only(top: 20.0),
+                padding: const EdgeInsets.only(top: 10.0, bottom: 30.0),
                 child: new FlatButton(
                     key: null,
-                    onPressed: () => _handleSubmitted(_textController.text),
+                    onPressed: () => _handleCodeSubmitted(_textController.text),
                     color: const Color(0xFF00b0ff),
                     child: new Text(
                       "Send Request",
@@ -80,12 +106,140 @@ class JoinGamePage extends StatelessWidget {
                         fontWeight: FontWeight.w800,
                       ),
                     ))),
-            Padding(
-              padding: const EdgeInsets.all(65.0),
-            ),
+            Row(children: <Widget>[
+              Expanded(
+                  child: Padding(
+                      padding: EdgeInsets.only(left: 15.0),
+                      child: Text("Public Games",
+                          style:
+                              TextStyle(color: Colors.white70, fontSize: 12.0),
+                          textAlign: TextAlign.left)))
+            ]),
+            _buildPublicGamesList(),
           ])),
     );
   }
 
-  static void _handleSubmitted(String text) {}
+  Widget _buildPublicGamesList() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: Firestore.instance
+          .collection('Games')
+          .where('isPublic', isEqualTo: true)
+          .snapshots(),
+      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+        if (!snapshot.hasData) return const Text('Loading...');
+        List<Widget> labelListTiles = [];
+        snapshot.data.documents.forEach((game) {
+          if (game['players'][globals.userState['userId']] == null) {
+            labelListTiles.add(GestureDetector(
+                child: ListTile(
+                  leading: CachedNetworkImage(
+                      placeholder: CircularProgressIndicator(),
+                      imageUrl: game['imageUrl'],
+                      height: 45.0,
+                      width: 45.0),
+                  title: Text(game['title'],
+                      style: TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.w800)),
+                  subtitle: Text(game['name'],
+                      style: TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.w100)),
+                ),
+                onTap: () => _handleGameSelected(context, game)));
+          }
+        });
+        return Column(children: labelListTiles);
+      },
+    );
+  }
+
+  void _handleGameSelected(BuildContext context, DocumentSnapshot game) {
+    globals.gameState['id'] = game.documentID;
+    globals.gameState['type'] = game['type'];
+    globals.gameState['name'] = game['name'];
+    globals.gameState['title'] = game['title'];
+    globals.gameState['code'] = game['code'];
+    globals.gameState['creator'] = game['creator'];
+    globals.gameState['players'] = game['players'].toString();
+    Navigator.pop(context);
+  }
+
+  void _handleCodeSubmitted(String code) async {
+    // QuerySnapshot snapshot = await Firestore.instance.collection('Games').where('code', isEqualTo: code).getDocuments();
+    // var channelName = snapshot.documents;
+    var userRef = Firestore.instance.collection('Users').document(globals.userState['userId']);
+    userRef.get().then((snapshot) {
+      Map userRequests = snapshot.data['requests'];
+      userRequests[code] = true;
+      userRef.updateData(<String, dynamic>{
+        'requests': userRequests,
+      });
+    });
+
+  }
 }
+
+// return ListView.builder(
+//   itemCount: messageCount,
+//   itemBuilder: (_, int index) {
+//     final DocumentSnapshot document = snapshot.data.documents[index];
+//     return Container(child: );
+// return GestureDetector(
+//   child: Container(
+//       margin: const EdgeInsets.symmetric(
+//           vertical: 16.0, horizontal: 24.0),
+//       child: Stack(
+//         children: <Widget>[
+//           Container(
+//               height: 124.0,
+//               width: 300.0,
+//               margin: EdgeInsets.only(left: 46.0),
+//               padding: EdgeInsets.only(
+//                   top: 20.0, left: 65.0, right: 20.0),
+//               decoration: BoxDecoration(
+//                 color: Color(0xFF333366),
+//                 shape: BoxShape.rectangle,
+//                 borderRadius: BorderRadius.circular(8.0),
+//                 boxShadow: <BoxShadow>[
+//                   BoxShadow(
+//                     color: Colors.black12,
+//                     blurRadius: 10.0,
+//                     offset: Offset(0.0, 10.0),
+//                   ),
+//                 ],
+//               ),
+//               child: Column(
+//                   crossAxisAlignment: CrossAxisAlignment.start,
+//                   children: <Widget>[
+//                     Text(
+//                         document['title'] != null
+//                             ? document['title']
+//                             : 'no title.',
+//                         style: TextStyle(
+//                             color: Colors.white,
+//                             fontWeight: FontWeight.w800,
+//                             fontSize: 24.0)),
+//                     Text(
+//                         document['name'] != null
+//                             ? document['name']
+//                             : 'no name.',
+//                         textAlign: TextAlign.left,
+//                         style: TextStyle(
+//                             color: Colors.white70,
+//                             fontWeight: FontWeight.w100,
+//                             fontSize: 16.0)),
+//                   ])),
+//           Container(
+//             margin: EdgeInsets.symmetric(vertical: 16.0),
+//             alignment: FractionalOffset.centerLeft,
+//             child: CachedNetworkImage(
+//               placeholder: CircularProgressIndicator(),
+//               imageUrl: document['imageUrl'],
+//               height: 92.0,
+//               width: 92.0,
+//             ),
+//           ),
+//         ],
+//       )),
+//   onTap: () => _handleGameSelected(document),
+// );

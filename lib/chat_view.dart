@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
+// import 'package:flutter/cupertino.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gratzi_game/globals.dart' as globals;
 import 'package:flutter/services.dart';
 import 'package:timeago/timeago.dart';
 
 class ChatView extends StatefulWidget {
-  static String tag = 'info-page';
   @override
   _ChatViewState createState() => new _ChatViewState();
 }
@@ -15,9 +14,11 @@ class _ChatViewState extends State<ChatView> {
   _ChatViewState() {
     globals.gameState.changes.listen((changes) {
       // print(changes);
+      // TODO only call setState once... not for every change of gameState
       setState(() {
         _gameId = globals.gameState['id'];
         _gameType = globals.gameState['type'];
+        _gamePlayers = globals.gameState['players'];
       });
     });
   }
@@ -25,38 +26,26 @@ class _ChatViewState extends State<ChatView> {
   bool _isComposing = false;
   // CollectionReference get logs => Firestore.instance.collection('Logs');
   String _gameId;
+  String _gamePlayers = "";
   String _gameType = 'bubbles_bg';
 
   @override
   Widget build(BuildContext context) {
     // CollectionReference get logs =>
-    return Container(
-        decoration: BoxDecoration(
-            image: DecorationImage(
-          // image: AssetImage("assets/images/$_gameType.jpg"),
-          image: AssetImage("assets/images/background-cosmos.png"),
-          fit: BoxFit.cover,
-          // colorFilter: ColorFilter.mode(
-          //     Colors.black.withOpacity(0.9), BlendMode.dstATop)
-        )),
-        child: GestureDetector(
+    return GestureDetector(
             child: Column(children: <Widget>[
               _buildChatLog(),
-              Divider(height: 1.0),
-              new Container(
-                  decoration:
-                      new BoxDecoration(color: Theme.of(context).cardColor),
-                  child: _buildTextComposer())
+              globals.gameState['players']?.contains(globals.userState['userId']) == true ? _buildTextComposer() : _buildJoinButton()
             ]),
-            onVerticalDragUpdate: (DragUpdateDetails d) => closeKeyboard(d)));
+            onVerticalDragDown: (DragDownDetails d) => closeKeyboard(d));
   }
 
-  // TODO: this isnt working??!
-  void closeKeyboard(DragUpdateDetails d) {
-    if (d.delta.distance > 20) {
-      FocusScope.of(context).requestFocus(new FocusNode());
-      SystemChannels.textInput.invokeMethod('TextInput.hide');
-    }
+  // TODO: optimize this...
+  void closeKeyboard(DragDownDetails d) {
+    // if (d.delta.distance > 20) {
+    FocusScope.of(context).requestFocus(new FocusNode());
+    SystemChannels.textInput.invokeMethod('TextInput.hide');
+    // }
   }
 
   Widget _buildChatLog() {
@@ -87,8 +76,7 @@ class _ChatViewState extends State<ChatView> {
                 profileUrl: document['profileUrl'],
                 dts: document['dts']);
             if ((message.userName != nextDocument['userName'] &&
-                    message.userId != globals.userState['userId']) ||
-                index == messageCount - 1) {
+                    message.userId != globals.userState['userId'])) { // || index == messageCount - 1
               return Column(children: <Widget>[
                 _buildLabel(message.userName),
                 ChatMessageListItem(message)
@@ -102,45 +90,99 @@ class _ChatViewState extends State<ChatView> {
     ));
   }
 
+  Widget _buildJoinButton() {
+    return Container(
+        decoration: BoxDecoration(color: Theme.of(context).cardColor),
+        child: Row(children: <Widget>[
+          Expanded(
+              child: GestureDetector(
+            child: Container(
+                height: 60.0,
+                padding: EdgeInsets.symmetric(vertical: 10.0),
+                decoration: BoxDecoration(
+                  color: Color(0xFF00b0ff),
+                  boxShadow: <BoxShadow>[
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 10.0,
+                      offset: Offset(0.0, -10.0),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  "Request to Join",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      fontSize: 24.0,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white),
+                )),
+            onTap: _handleJoinButtonPressed,
+          ))
+        ]));
+  }
+
+  void _handleJoinButtonPressed() {
+    var userRef = Firestore.instance
+        .collection('Users')
+        .document(globals.userState['userId']);
+    userRef.get().then((snapshot) {
+      Map userRequests = snapshot.data['requests'];
+      userRequests[globals.gameState['code']] = true;
+      userRef.updateData(<String, dynamic>{
+        'requests': userRequests,
+      });
+    });
+  }
+
   Widget _buildTextComposer() {
-    return IconTheme(
-      data: IconThemeData(color: Theme.of(context).accentColor),
-      child: Container(
-          margin: const EdgeInsets.only(left: 20.0, right: 10.0, bottom: 10.0),
-          child: Row(children: <Widget>[
-            Flexible(
-              child: TextField(
-                maxLines: null,
-                keyboardType: TextInputType.multiline,
-                controller: _textController,
-                onChanged: _handleMessageChanged,
-                onSubmitted: _handleSubmitted,
-                decoration:
-                    InputDecoration.collapsed(hintText: "Send a message"),
-              ),
-            ),
-            Container(
-                margin: EdgeInsets.only(left: 4.0),
-                child: Theme.of(context).platform == TargetPlatform.iOS
-                    ? CupertinoButton(
-                        child: Text("Send"),
-                        onPressed: _isComposing
-                            ? () => _handleSubmitted(_textController.text)
-                            : null,
-                      )
-                    : IconButton(
-                        icon: Icon(Icons.send),
-                        onPressed: _isComposing
-                            ? () => _handleSubmitted(_textController.text)
-                            : null,
-                      )),
-          ]),
-          decoration: Theme.of(context).platform == TargetPlatform.iOS
-              ? BoxDecoration(
-                  color: const Color(0x00FFFFFF),
-                  border: Border(top: BorderSide(color: Colors.grey[200])))
-              : null),
-    );
+    return Container(
+        decoration: BoxDecoration(color: Colors.white),
+        child: IconTheme(
+          data: IconThemeData(color: Theme.of(context).accentColor),
+          child: Container(
+              padding:
+                  const EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+              child: Row(children: <Widget>[
+                Flexible(
+                  child: TextField(
+                    style: TextStyle(color: Colors.white, fontSize: 18.0),
+                    maxLines: null,
+                    keyboardType: TextInputType.multiline,
+                    controller: _textController,
+                    onChanged: _handleMessageChanged,
+                    onSubmitted: _handleSubmitted,
+                    decoration: 
+                        InputDecoration.collapsed(hintText: "Send a message", hintStyle: TextStyle(color: Colors.white)),
+                  ),
+                ),
+                Container(
+                    margin: EdgeInsets.only(left: 4.0),
+                    child: 
+                    // Theme.of(context).platform == TargetPlatform.iOS
+                    //     ? CupertinoButton(
+                    //         child: Text("Send"),
+                    //         onPressed: _isComposing
+                    //             ? () => _handleSubmitted(_textController.text)
+                    //             : null,
+                    //       )
+                    //     : 
+                        IconButton(
+                            icon: Icon(Icons.send, color: Colors.white, size: 30.0,),
+                            onPressed: _isComposing
+                                ? () => _handleSubmitted(_textController.text)
+                                : null,
+                          )),
+              ]),
+              decoration: 
+              // Theme.of(context).platform == TargetPlatform.iOS
+              //     ? 
+                  BoxDecoration(
+                      color: const Color(0xFF4C6296),
+                      // border: Border(top: BorderSide(color: Colors.grey[200]))
+                      ))
+                  // : null),
+        ));
   }
 
   Widget _buildTitleBox(String text) {
@@ -189,9 +231,10 @@ class _ChatViewState extends State<ChatView> {
         children: <Widget>[
           Expanded(
               child: Padding(
-                  padding: EdgeInsets.only(left: 15.0, top: 10.0),
+                  padding: EdgeInsets.only(right: 15.0, top: 10.0),
                   child: Text(
                     text,
+                    textAlign: TextAlign.right,
                     style: TextStyle(
                       color: Colors.white,
                       letterSpacing: 0.5,
@@ -219,7 +262,7 @@ class ChatMessageListItem extends StatelessWidget {
 
   Widget build(BuildContext context) {
     var chatItem;
-    if (message.userId == globals.userState['userId']) {
+    if (message.userId != globals.userState['userId']) {
       chatItem = Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -282,9 +325,9 @@ class Bubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bg =
-        isMe ? Colors.white.withOpacity(.8) : Colors.white.withOpacity(.8);
+        isMe ? Colors.white.withOpacity(.2) : Colors.white.withOpacity(.2);
     final align = isMe ? CrossAxisAlignment.start : CrossAxisAlignment.end;
-    final icon = delivered ? Icons.done_all : Icons.done;
+    // final icon = delivered ? Icons.done_all : Icons.done;
     final radius = isMe
         ? BorderRadius.only(
             topLeft: Radius.circular(5.0),
@@ -318,7 +361,8 @@ class Bubble extends StatelessWidget {
                 padding: EdgeInsets.only(bottom: 18.0),
                 child: Text(message,
                     style: TextStyle(
-                      fontSize: 15.0,
+                      fontSize: 17.0,
+                      color: Colors.white
                     )),
               ),
               Positioned(
@@ -328,7 +372,7 @@ class Bubble extends StatelessWidget {
                   children: <Widget>[
                     Text(time,
                         style: TextStyle(
-                          color: Colors.black38,
+                          color: Colors.white70,
                           fontSize: 10.0,
                         )),
                     SizedBox(width: 3.0),
@@ -385,49 +429,49 @@ class Bubble extends StatelessWidget {
 //       ));
 // }
 
-// Widget _buildTurnBox(String title, String subtitle, String image) {
-//   return Container(
-//       margin: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 0.0),
-//       color: Colors.white,
-//       child: Row(children: <Widget>[
-//         Container(
-//           width: 100.0,
-//           height: 100.0,
-//           decoration: BoxDecoration(
-//             //  color: Colors.black,
-//             image: DecorationImage(
-//               image: AssetImage(image),
-//               // fit: BoxFit.cover,
-//             ),
-//           ),
-//         ),
-//         Expanded(
-//           child: Column(
-//             children: <Widget>[
-//               Text(
-//                 title,
-//                 textAlign: TextAlign.left,
-//                 style: TextStyle(
-//                   color: Colors.black,
-//                   fontWeight: FontWeight.w800,
-//                   letterSpacing: 0.5,
-//                   fontSize: 18.0,
-//                 ),
-//               ),
-//               Text(
-//                 subtitle,
-//                 style: TextStyle(
-//                   color: Colors.black,
-//                   // fontWeight: FontWeight.w800,
-//                   letterSpacing: 0.5,
-//                   fontSize: 14.0,
-//                 ),
-//               ),
-//             ],
-//           ),
-//         )
-//       ]));
-// }
+Widget _buildTurnBox(String title, String subtitle, String image) {
+  return Container(
+      margin: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 0.0),
+      color: Colors.white,
+      child: Row(children: <Widget>[
+        Container(
+          width: 100.0,
+          height: 100.0,
+          decoration: BoxDecoration(
+            //  color: Colors.black,
+            image: DecorationImage(
+              image: AssetImage(image),
+              // fit: BoxFit.cover,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Column(
+            children: <Widget>[
+              Text(
+                title,
+                textAlign: TextAlign.left,
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
+                  fontSize: 18.0,
+                ),
+              ),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  color: Colors.black,
+                  // fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
+                  fontSize: 14.0,
+                ),
+              ),
+            ],
+          ),
+        )
+      ]));
+}
 
 // Widget _buildActionBox() {
 //   return Container(
