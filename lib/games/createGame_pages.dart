@@ -126,7 +126,7 @@ class CreateGamePagesState extends State<CreateGamePages> {
     final DocumentReference game =
         Firestore.instance.collection('Games').document();
     game.setData(<String, dynamic>{
-      'type': _selectedCategory.documentID,
+      'category': _selectedCategory.documentID,
       'name': _selectedCategory['name'],
       'title': text,
       'imageUrl': _selectedCategory['imageUrl'],

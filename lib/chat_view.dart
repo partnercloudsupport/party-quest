@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-// import 'package:flutter/cupertino.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gratzi_game/globals.dart' as globals;
 import 'package:flutter/services.dart';
 import 'package:timeago/timeago.dart';
+import 'application.dart';
+import 'package:fluro/fluro.dart';
 
 class ChatView extends StatefulWidget {
   @override
@@ -33,11 +34,14 @@ class _ChatViewState extends State<ChatView> {
   Widget build(BuildContext context) {
     // CollectionReference get logs =>
     return GestureDetector(
-            child: Column(children: <Widget>[
-              _buildChatLog(),
-              globals.gameState['players']?.contains(globals.userState['userId']) == true ? _buildTextComposer() : _buildJoinButton()
-            ]),
-            onVerticalDragDown: (DragDownDetails d) => closeKeyboard(d));
+        child: Column(children: <Widget>[
+          _buildChatLog(),
+          globals.gameState['players']?.contains(globals.userState['userId']) ==
+                  true
+              ? _buildTextComposer()
+              : _buildJoinButton()
+        ]),
+        onVerticalDragDown: (DragDownDetails d) => closeKeyboard(d));
   }
 
   // TODO: optimize this...
@@ -75,8 +79,11 @@ class _ChatViewState extends State<ChatView> {
                 text: document['text'],
                 profileUrl: document['profileUrl'],
                 dts: document['dts']);
-            if ((message.userName != nextDocument['userName'] &&
-                    message.userId != globals.userState['userId'])) { // || index == messageCount - 1
+            if (document['turnId'] != null) {
+              return _buildTurnBox(context, "Your Turn!", "Pick a question and answer it...", document['profileUrl']);
+            } else if ((message.userName != nextDocument['userName'] &&
+                message.userId != globals.userState['userId'])) {
+              // || index == messageCount - 1
               return Column(children: <Widget>[
                 _buildLabel(message.userName),
                 ChatMessageListItem(message)
@@ -139,50 +146,55 @@ class _ChatViewState extends State<ChatView> {
     return Container(
         decoration: BoxDecoration(color: Colors.white),
         child: IconTheme(
-          data: IconThemeData(color: Theme.of(context).accentColor),
-          child: Container(
-              padding:
-                  const EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
-              child: Row(children: <Widget>[
-                Flexible(
-                  child: TextField(
-                    style: TextStyle(color: Colors.white, fontSize: 18.0),
-                    maxLines: null,
-                    keyboardType: TextInputType.multiline,
-                    controller: _textController,
-                    onChanged: _handleMessageChanged,
-                    onSubmitted: _handleSubmitted,
-                    decoration: 
-                        InputDecoration.collapsed(hintText: "Send a message", hintStyle: TextStyle(color: Colors.white)),
+            data: IconThemeData(color: Theme.of(context).accentColor),
+            child: Container(
+                padding: const EdgeInsets.symmetric(
+                    vertical: 10.0, horizontal: 20.0),
+                child: Row(children: <Widget>[
+                  Flexible(
+                    child: TextField(
+                      style: TextStyle(color: Colors.white, fontSize: 18.0),
+                      maxLines: null,
+                      keyboardType: TextInputType.multiline,
+                      controller: _textController,
+                      onChanged: _handleMessageChanged,
+                      onSubmitted: _handleSubmitted,
+                      decoration: InputDecoration.collapsed(
+                          hintText: "Send a message",
+                          hintStyle: TextStyle(color: Colors.white)),
+                    ),
                   ),
-                ),
-                Container(
-                    margin: EdgeInsets.only(left: 4.0),
-                    child: 
+                  Container(
+                      margin: EdgeInsets.only(left: 4.0),
+                      child:
+                          // Theme.of(context).platform == TargetPlatform.iOS
+                          //     ? CupertinoButton(
+                          //         child: Text("Send"),
+                          //         onPressed: _isComposing
+                          //             ? () => _handleSubmitted(_textController.text)
+                          //             : null,
+                          //       )
+                          //     :
+                          IconButton(
+                        icon: Icon(
+                          Icons.send,
+                          color: Colors.white,
+                          size: 30.0,
+                        ),
+                        onPressed: _isComposing
+                            ? () => _handleSubmitted(_textController.text)
+                            : null,
+                      )),
+                ]),
+                decoration:
                     // Theme.of(context).platform == TargetPlatform.iOS
-                    //     ? CupertinoButton(
-                    //         child: Text("Send"),
-                    //         onPressed: _isComposing
-                    //             ? () => _handleSubmitted(_textController.text)
-                    //             : null,
-                    //       )
-                    //     : 
-                        IconButton(
-                            icon: Icon(Icons.send, color: Colors.white, size: 30.0,),
-                            onPressed: _isComposing
-                                ? () => _handleSubmitted(_textController.text)
-                                : null,
-                          )),
-              ]),
-              decoration: 
-              // Theme.of(context).platform == TargetPlatform.iOS
-              //     ? 
-                  BoxDecoration(
-                      color: const Color(0xFF4C6296),
-                      // border: Border(top: BorderSide(color: Colors.grey[200]))
-                      ))
-                  // : null),
-        ));
+                    //     ?
+                    BoxDecoration(
+                  color: const Color(0xFF4C6296),
+                  // border: Border(top: BorderSide(color: Colors.grey[200]))
+                ))
+            // : null),
+            ));
   }
 
   Widget _buildTitleBox(String text) {
@@ -360,10 +372,7 @@ class Bubble extends StatelessWidget {
               Padding(
                 padding: EdgeInsets.only(bottom: 18.0),
                 child: Text(message,
-                    style: TextStyle(
-                      fontSize: 17.0,
-                      color: Colors.white
-                    )),
+                    style: TextStyle(fontSize: 17.0, color: Colors.white)),
               ),
               Positioned(
                 bottom: 0.0,
@@ -429,7 +438,7 @@ class Bubble extends StatelessWidget {
 //       ));
 // }
 
-Widget _buildTurnBox(String title, String subtitle, String image) {
+Widget _buildTurnBox(BuildContext context, String title, String subtitle, String image) {
   return Container(
       margin: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 0.0),
       color: Colors.white,
@@ -440,7 +449,7 @@ Widget _buildTurnBox(String title, String subtitle, String image) {
           decoration: BoxDecoration(
             //  color: Colors.black,
             image: DecorationImage(
-              image: AssetImage(image),
+              image: NetworkImage(image),
               // fit: BoxFit.cover,
             ),
           ),
@@ -464,9 +473,23 @@ Widget _buildTurnBox(String title, String subtitle, String image) {
                   color: Colors.black,
                   // fontWeight: FontWeight.w800,
                   letterSpacing: 0.5,
-                  fontSize: 14.0,
+                  fontSize: 12.0,
                 ),
               ),
+              Padding(padding: EdgeInsets.all(10.0), child: 
+              FlatButton(
+                key: null,
+                onPressed: () => Application.router.navigateTo(context, 'peggYourself',
+                      transition: TransitionType.fadeIn),
+                color: const Color(0xFF00B0FF),
+                child: Text(
+                  "Pegg Yourself",
+                  style: TextStyle(
+                      fontSize: 16.0,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                ))))
+              
             ],
           ),
         )

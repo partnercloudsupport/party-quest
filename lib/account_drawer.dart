@@ -94,7 +94,7 @@ class _AccountDrawerState extends State<AccountDrawer> {
 
   void _openJoinGame(){
     Navigator.pop(context);
-    Application.router.navigateTo(context, 'createGame',
+    Application.router.navigateTo(context, 'joinGame',
               transition: TransitionType.fadeIn);
   }
 
@@ -224,7 +224,7 @@ class _AccountDrawerState extends State<AccountDrawer> {
 
 void _openGame(DocumentSnapshot game, BuildContext context) {
   globals.gameState['id'] = game.documentID;
-  globals.gameState['type'] = game['type'];
+  globals.gameState['category'] = game['category'];
   globals.gameState['name'] = game['name'];
   globals.gameState['title'] = game['title'];
   globals.gameState['isPublic'] = 'false';

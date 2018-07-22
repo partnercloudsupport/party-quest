@@ -43,7 +43,7 @@ class HomePageState extends State<HomePage> {
                   Icons.info_outline,
                   color: Colors.white,
                 ),
-                tooltip: 'Info about this Quest.',
+                tooltip: 'Info about this Game.',
                 onPressed: _openInfoView)
           ],
         ),

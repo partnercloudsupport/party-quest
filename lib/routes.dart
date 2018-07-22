@@ -13,6 +13,7 @@ import 'games/createGame_pages.dart';
 import 'games/joinGame_page.dart';
 import 'games/userProfile_page.dart';
 import 'games/myGames_page.dart';
+import 'games/peggYourself_pages.dart';
 
 class Routes {
 
@@ -24,6 +25,7 @@ class Routes {
     router.define('userProfile', handler: userProfilePageHandler);
     router.define('createGame', handler: createGameHandler);
     router.define('joinGame', handler: joinGameHandler);
+    router.define('peggYourself', handler: peggYourselfHandler);
     router.define('myGames', handler: myGamesHandler);
     router.define('/', handler: homePageHandler);
   }
@@ -38,6 +40,10 @@ class Routes {
 
   static var joinGameHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {
     return new JoinGamePage();
+  });
+
+  static var peggYourselfHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {
+    return new PeggYourselfPages();
   });
 
   static var infoPageHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {
