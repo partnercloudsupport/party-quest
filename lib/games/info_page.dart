@@ -15,9 +15,7 @@ class _InfoPageState extends State<InfoPage> {
     if (globals.gameState['id'].length == 0) {
       children = [Container()];
     } else {
-      children
-        ..add(_buildPlayersList())
-        ..add(_buildUserRequestsList());
+      children..add(_buildPlayersList())..add(_buildUserRequestsList());
     }
 
     return Scaffold(
@@ -31,13 +29,20 @@ class _InfoPageState extends State<InfoPage> {
                 fontWeight: FontWeight.w800,
               )),
         ),
-        body: Container(
-            width: 400.0,
-            decoration: BoxDecoration(
-                image: DecorationImage(
-                    image: AssetImage("assets/images/background-gradient.png"),
-                    fit: BoxFit.fill)),
-            child: ListView(padding: EdgeInsets.zero, children: children)));
+        body: Column(
+            // crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Expanded(
+                  child: Container(
+                      // width: 400.0,
+                      decoration: BoxDecoration(
+                          image: DecorationImage(
+                              image: AssetImage(
+                                  "assets/images/background-gradient.png"),
+                              fit: BoxFit.fill)),
+                      child: ListView(
+                          padding: EdgeInsets.zero, children: children)))
+            ]));
   }
 
   Widget _buildLabel(String labelName) {
@@ -61,7 +66,7 @@ class _InfoPageState extends State<InfoPage> {
           if (!snapshot.hasData) return const Text('Loading...');
           List<Widget> labelListTiles = [];
           // final int messageCount = snapshot.data.documents.length;
-          if(snapshot.data.documents.length > 0){
+          if (snapshot.data.documents.length > 0) {
             labelListTiles.add(_buildLabel('Requests to Join'));
           }
           snapshot.data.documents.forEach((user) {
@@ -70,18 +75,21 @@ class _InfoPageState extends State<InfoPage> {
                   backgroundImage: NetworkImage(user['profilePic'])),
               title:
                   new Text(user['name'], style: TextStyle(color: Colors.white)),
-              trailing: globals.gameState['creator'] == globals.userState['userId'] ? FlatButton(
-                  key: null,
-                  onPressed: () => _handleRequestApproved(user.documentID),
-                  color: const Color(0xFF00b0ff),
-                  child: new Text(
-                    "Approve",
-                    style: new TextStyle(
-                      fontSize: 16.0,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  )) : null,
+              trailing: globals.gameState['creator'] ==
+                      globals.userState['userId']
+                  ? FlatButton(
+                      key: null,
+                      onPressed: () => _handleRequestApproved(user.documentID),
+                      color: const Color(0xFF00b0ff),
+                      child: new Text(
+                        "Approve",
+                        style: new TextStyle(
+                          fontSize: 16.0,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ))
+                  : null,
               // subtitle: new Text("Level 1 - Played by Bobby")
             ));
           });
@@ -109,7 +117,7 @@ class _InfoPageState extends State<InfoPage> {
           if (!snapshot.hasData) return const Text('Loading...');
           List<Widget> labelListTiles = [];
           final int messageCount = snapshot.data.documents.length;
-          if(messageCount > 0){
+          if (messageCount > 0) {
             labelListTiles.add(_buildLabel('Players'));
           }
           snapshot.data.documents.forEach((user) {

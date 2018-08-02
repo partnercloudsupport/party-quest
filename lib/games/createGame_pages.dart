@@ -76,17 +76,17 @@ class CreateGamePagesState extends State<CreateGamePages> {
                 maxLines: null,
                 autofocus: true,
                 maxLength: 20,
-                style: TextStyle(fontSize: 20.0, color: Colors.black),
+                style: TextStyle(fontSize: 20.0, color: Colors.white),
                 keyboardType: TextInputType.text,
                 controller: _textController,
                 // onChanged: _handleMessageChanged,
                 onSubmitted: _handleSubmitted,
                 decoration: InputDecoration.collapsed(
                     hintText: "Give your game a title...",
-                    hintStyle: TextStyle(fontSize: 20.0)),
+                    hintStyle: TextStyle(fontSize: 20.0, color: Colors.white)),
               ),
               decoration: BoxDecoration(
-                  color: const Color(0xFFFFFFFF),
+                  color: const Color(0x33FFFFFF),
                   borderRadius: BorderRadius.circular(8.0)),
             ),
             Container(child: Row(children: <Widget>[
@@ -123,6 +123,7 @@ class CreateGamePagesState extends State<CreateGamePages> {
     _textController.clear();
     var userId = globals.userState['userId'];
 
+    //CREATE Game
     final DocumentReference game =
         Firestore.instance.collection('Games').document();
     game.setData(<String, dynamic>{
@@ -134,9 +135,11 @@ class CreateGamePagesState extends State<CreateGamePages> {
       'creator': userId,
       'players': {userId: true},
       'isPublic': _isPublic,
-      'dts': DateTime.now()
+      'dts': DateTime.now(),
+      'turn': {'dts': DateTime.now()}
     });
 
+    //UPDATE User.games
     var userRef = Firestore.instance.collection('Users').document(globals.userState['userId']);
     userRef.get().then((snapshot) {
       Map userGames = snapshot.data['games'] == null ? new Map() : snapshot.data['games'];

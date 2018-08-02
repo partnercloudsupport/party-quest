@@ -14,6 +14,8 @@ import 'games/joinGame_page.dart';
 import 'games/userProfile_page.dart';
 import 'games/myGames_page.dart';
 import 'games/peggYourself_pages.dart';
+import 'games/inviteFriends_page.dart';
+import 'games/peggFriend_page.dart';
 
 class Routes {
 
@@ -26,6 +28,8 @@ class Routes {
     router.define('createGame', handler: createGameHandler);
     router.define('joinGame', handler: joinGameHandler);
     router.define('peggYourself', handler: peggYourselfHandler);
+    router.define('inviteFriends', handler: inviteFriendsHandler);
+    router.define('peggFriend', handler: peggFriendHandler);
     router.define('myGames', handler: myGamesHandler);
     router.define('/', handler: homePageHandler);
   }
@@ -44,6 +48,16 @@ class Routes {
 
   static var peggYourselfHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {
     return new PeggYourselfPages();
+  });
+
+  static var peggFriendHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {
+    String answerId = params["answerId"]?.first;
+    return new PeggFriendPage(answerId);
+  });
+
+  static var inviteFriendsHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {
+    String code = params["code"]?.first;
+    return new InviteFriendsPage(code);
   });
 
   static var infoPageHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {

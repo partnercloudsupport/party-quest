@@ -4,6 +4,7 @@ import 'package:gratzi_game/globals.dart' as globals;
 import 'package:flutter/services.dart';
 import 'package:timeago/timeago.dart';
 import 'application.dart';
+// import 'package:sticky_header_list/sticky_header_list.dart';
 import 'package:fluro/fluro.dart';
 
 class ChatView extends StatefulWidget {
@@ -12,23 +13,18 @@ class ChatView extends StatefulWidget {
 }
 
 class _ChatViewState extends State<ChatView> {
+  String _gameId;
+
   _ChatViewState() {
     globals.gameState.changes.listen((changes) {
       // print(changes);
       // TODO only call setState once... not for every change of gameState
       setState(() {
         _gameId = globals.gameState['id'];
-        _gameType = globals.gameState['type'];
-        _gamePlayers = globals.gameState['players'];
       });
     });
   }
   final TextEditingController _textController = TextEditingController();
-  bool _isComposing = false;
-  // CollectionReference get logs => Firestore.instance.collection('Logs');
-  String _gameId;
-  String _gamePlayers = "";
-  String _gameType = 'bubbles_bg';
 
   @override
   Widget build(BuildContext context) {
@@ -36,10 +32,11 @@ class _ChatViewState extends State<ChatView> {
     return GestureDetector(
         child: Column(children: <Widget>[
           _buildChatLog(),
+          _buildActionButton(),
           globals.gameState['players']?.contains(globals.userState['userId']) ==
                   true
               ? _buildTextComposer()
-              : _buildJoinButton()
+              : _buildReactionComposer()
         ]),
         onVerticalDragDown: (DragDownDetails d) => closeKeyboard(d));
   }
@@ -52,49 +49,164 @@ class _ChatViewState extends State<ChatView> {
     // }
   }
 
+  Widget _buildActionButton() {
+    var _gameId = globals.gameState['id'];
+    if (_gameId != null) {
+      return StreamBuilder<DocumentSnapshot>(
+          stream: Firestore.instance
+              .collection('Games')
+              .document(_gameId)
+              .snapshots(),
+          builder:
+              (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+            if (!snapshot.hasData) return new Text("Loading");
+            var document = snapshot.data;
+            if (globals.gameState['players']
+                    ?.contains(globals.userState['userId']) ==
+                true) {
+              if (document['players'].length == 1) {
+                return _buildInviteFriendsBox(context, document);
+              }
+              var turn = document['turn'];
+              if (turn == null || turn['peggeeId'] == null) {
+                return _buildPeggYourselfBox(context, document);
+              }
+              if (turn['peggeeId'] == globals.userState['userId']) {
+                return _buildWaitingBox(context, document);
+              }
+              if(turn['guessers'] == null || turn['guessers'][globals.userState['userId']] == null) {
+                return _buildPeggFriendBox(context, document);
+              }
+              if(turn['guessers'][globals.userState['userId']] == true) {
+                return _buildWaitingBox(context, document);
+              }
+            } else {
+              return Container();
+              // _buildJoinButton();
+            }
+          });
+    } else {
+      return Expanded(child: Container());
+    }
+  }
+
+  Widget _buildReactionComposer() {
+    return Container(
+        decoration: BoxDecoration(
+          color: Color(0x22FFFFFF),
+          // boxShadow: <BoxShadow>[
+          //   BoxShadow(
+          //     color: Colors.black12,
+          //     blurRadius: 10.0,
+          //     offset: Offset(0.0, -10.0),
+          //   ),
+          // ],
+        ),
+        height: 80.0,
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          children: <Widget>[
+            Padding(
+                padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 10.0),
+                child: Image.asset('assets/images/1f60d.png')),
+            Padding(
+                padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 10.0),
+                child: Image.asset('assets/images/1f60e.png')),
+            Padding(
+                padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 10.0),
+                child: Image.asset('assets/images/1f92b.png')),
+            Padding(
+                padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 10.0),
+                child: Image.asset('assets/images/1f602.png')),
+            Padding(
+                padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 10.0),
+                child: Image.asset('assets/images/1f612.png')),
+            Padding(
+                padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 10.0),
+                child: Image.asset('assets/images/1f632.png')),
+            Padding(
+                padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 10.0),
+                child: Image.asset('assets/images/1f634.png')),
+          ],
+        ));
+  }
+
+  Widget _buildInviteFriendsBox(
+      BuildContext context, DocumentSnapshot document) {
+    return Row(children: <Widget>[
+      Expanded(
+          child: Container(
+              height: 70.0,
+              decoration: BoxDecoration(
+                color: Color(0xFF00b0ff),
+                boxShadow: <BoxShadow>[
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 10.0,
+                    offset: Offset(0.0, -10.0),
+                  ),
+                ],
+              ),
+              child: RaisedButton.icon(
+                  icon: const Icon(Icons.add, size: 25.0, color: Colors.white),
+                  shape: new RoundedRectangleBorder(
+                      borderRadius: new BorderRadius.circular(0.0)),
+                  onPressed: () => Application.router.navigateTo(
+                      context, 'inviteFriends?code=' + document['code'],
+                      transition: TransitionType.fadeIn),
+                  color: const Color(0xFF00B0FF),
+                  label: Text("Invite Friends", //+ document['peggeeName'],
+                      style: TextStyle(
+                        fontSize: 25.0,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                      )))))
+    ]);
+  }
+
   Widget _buildChatLog() {
-    return Flexible(
-        child: StreamBuilder<QuerySnapshot>(
-      stream: Firestore.instance
-          .collection('Games/$_gameId/Logs')
-          .orderBy('dts', descending: true)
-          .snapshots(),
-      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-        if (!snapshot.hasData) return const Text('Loading...');
-        final int messageCount = snapshot.data.documents.length;
-        return new ListView.builder(
-          reverse: true,
-          itemCount: messageCount,
-          itemBuilder: (_, int index) {
-            final DocumentSnapshot document = snapshot.data.documents[index];
-            DocumentSnapshot nextDocument;
-            if (index + 1 < messageCount) {
-              nextDocument = snapshot.data.documents[index + 1];
-            } else {
-              nextDocument = snapshot.data.documents[index];
-            }
-            var message = new ChatMessage(
-                userId: document['userId'],
-                userName: document['userName'],
-                text: document['text'],
-                profileUrl: document['profileUrl'],
-                dts: document['dts']);
-            if (document['turnId'] != null) {
-              return _buildTurnBox(context, "Your Turn!", "Pick a question and answer it...", document['profileUrl']);
-            } else if ((message.userName != nextDocument['userName'] &&
-                message.userId != globals.userState['userId'])) {
-              // || index == messageCount - 1
-              return Column(children: <Widget>[
-                _buildLabel(message.userName),
-                ChatMessageListItem(message)
-              ]);
-            } else {
-              return ChatMessageListItem(message);
-            }
-          },
-        );
-      },
-    ));
+    var _gameId = globals.gameState['id'];
+    final now = DateTime.now();
+    final monthAgo = new DateTime(now.year, now.month, now.day - 30);
+    if (_gameId != null) {
+      return Flexible(
+          child: StreamBuilder<QuerySnapshot>(
+              stream: Firestore.instance
+                  .collection('Games/$_gameId/Logs')
+                  .where('dts', isGreaterThan: monthAgo)
+                  .orderBy('dts', descending: true)
+                  .snapshots(),
+              builder: (BuildContext context,
+                  AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (!snapshot.hasData) return const Text('Loading...');
+                List<Widget> rows = [];
+                snapshot.data.documents.forEach((document) {
+                  rows.add(_buildMessage(document));
+                });
+                return ListView(reverse: true, children: rows);
+              }));
+    } else {
+      return Expanded(child: Container());
+    }
+  }
+
+  Widget _buildMessage(DocumentSnapshot document) {
+    var message = new ChatMessage(
+        type: document['type'],
+        userId: document['userId'],
+        userName: document['userName'],
+        text: document['text'],
+        profileUrl: document['profileUrl'],
+        dts: document['dts']);
+    if ((message.userName != null &&
+        message.userId != globals.userState['userId'])) {
+      return Column(children: <Widget>[
+        _buildLabel(message.userName),
+        ChatMessageListItem(message)
+      ]);
+    } else {
+      return ChatMessageListItem(message);
+    }
   }
 
   Widget _buildJoinButton() {
@@ -104,8 +216,8 @@ class _ChatViewState extends State<ChatView> {
           Expanded(
               child: GestureDetector(
             child: Container(
-                height: 60.0,
-                padding: EdgeInsets.symmetric(vertical: 10.0),
+                height: 70.0,
+                padding: EdgeInsets.only(top: 15.0),
                 decoration: BoxDecoration(
                   color: Color(0xFF00b0ff),
                   boxShadow: <BoxShadow>[
@@ -134,7 +246,9 @@ class _ChatViewState extends State<ChatView> {
         .collection('Users')
         .document(globals.userState['userId']);
     userRef.get().then((snapshot) {
-      Map userRequests = snapshot.data['requests'];
+      Map userRequests = snapshot.data['requests'] == null
+          ? new Map()
+          : snapshot.data['requests'];
       userRequests[globals.gameState['code']] = true;
       userRef.updateData(<String, dynamic>{
         'requests': userRequests,
@@ -157,7 +271,6 @@ class _ChatViewState extends State<ChatView> {
                       maxLines: null,
                       keyboardType: TextInputType.multiline,
                       controller: _textController,
-                      onChanged: _handleMessageChanged,
                       onSubmitted: _handleSubmitted,
                       decoration: InputDecoration.collapsed(
                           hintText: "Send a message",
@@ -166,25 +279,14 @@ class _ChatViewState extends State<ChatView> {
                   ),
                   Container(
                       margin: EdgeInsets.only(left: 4.0),
-                      child:
-                          // Theme.of(context).platform == TargetPlatform.iOS
-                          //     ? CupertinoButton(
-                          //         child: Text("Send"),
-                          //         onPressed: _isComposing
-                          //             ? () => _handleSubmitted(_textController.text)
-                          //             : null,
-                          //       )
-                          //     :
-                          IconButton(
-                        icon: Icon(
-                          Icons.send,
-                          color: Colors.white,
-                          size: 30.0,
-                        ),
-                        onPressed: _isComposing
-                            ? () => _handleSubmitted(_textController.text)
-                            : null,
-                      )),
+                      child: IconButton(
+                          icon: Icon(
+                            Icons.send,
+                            color: Colors.white,
+                            size: 30.0,
+                          ),
+                          onPressed: () =>
+                              _handleSubmitted(_textController.text))),
                 ]),
                 decoration:
                     // Theme.of(context).platform == TargetPlatform.iOS
@@ -197,33 +299,9 @@ class _ChatViewState extends State<ChatView> {
             ));
   }
 
-  Widget _buildTitleBox(String text) {
-    return Container(
-        margin: const EdgeInsets.all(14.0),
-        alignment: Alignment.center,
-        child: Text(
-          text,
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 0.5,
-            fontSize: 22.0,
-          ),
-        ));
-  }
-
-  void _handleMessageChanged(String text) {
-    setState(() {
-      _isComposing = text.length > 0;
-    });
-  }
-
   void _handleSubmitted(String text) {
+    var _gameId = globals.gameState['id'];
     _textController.clear();
-    // setState(() {
-    //   _isComposing = false;
-    // });
-    // await _ensureLoggedIn();
     if (text.length > 0) {
       final DocumentReference document =
           Firestore.instance.collection('Games/$_gameId/Logs').document();
@@ -255,11 +333,195 @@ class _ChatViewState extends State<ChatView> {
                   )))
         ]);
   }
+
+  Widget _buildWaitingBox(BuildContext context, DocumentSnapshot document) {
+    return Container(
+        margin: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 0.0),
+        color: const Color(0xFF00B0FF),
+        child: Row(children: <Widget>[
+          Expanded(
+            child: Column(
+              children: <Widget>[
+                Text(
+                  "Waiting on...",
+                  textAlign: TextAlign.left,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
+                    fontSize: 22.0,
+                  ),
+                ),
+                Text(
+                  "your friends to pegg " + document['turn']['peggeeName'] + ".",
+                  style: TextStyle(
+                    color: Colors.white,
+                    // fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
+                    fontSize: 14.0,
+                  ),
+                ),
+                //TODO: NUDGE BUTTON
+                // Padding(
+                //     padding: EdgeInsets.all(10.0),
+                //     child: FlatButton(
+                //         key: null,
+                //         onPressed: () => Application.router.navigateTo(context,
+                //             'peggFriend?answerId=' + document['answerId'],
+                //             transition: TransitionType.fadeIn),
+                //         color: const Color(0xFF00B0FF),
+                //         child: Text("Pegg " + document['peggeeName'],
+                //             style: TextStyle(
+                //               fontSize: 16.0,
+                //               color: Colors.white,
+                //               fontWeight: FontWeight.w800,
+                //             )))),
+              ],
+            ),
+          ),
+          Container(
+            width: 70.0,
+            height: 70.0,
+            decoration: BoxDecoration(
+              //  color: Colors.black,
+              image: DecorationImage(
+                image: NetworkImage(document['turn']['peggeeProfileUrl']),
+                // fit: BoxFit.cover,
+              ),
+            ),
+          ),
+        ]));
+  }
+
+  Widget _buildPeggFriendBox(BuildContext context, DocumentSnapshot document) {
+    return Container(
+        margin: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 0.0),
+        color: const Color(0xFF00B0FF),
+        child: Row(children: <Widget>[
+          Expanded(
+            child: Column(
+              children: <Widget>[
+                Text(
+                  "Your Turn!",
+                  textAlign: TextAlign.left,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
+                    fontSize: 18.0,
+                  ),
+                ),
+                Text(
+                  "Guess which answer " + document['turn']['peggeeName'] + " picked.",
+                  style: TextStyle(
+                    color: Colors.white,
+                    // fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
+                    fontSize: 12.0,
+                  ),
+                ),
+                Padding(
+                    padding: EdgeInsets.all(10.0),
+                    child: FlatButton(
+                        key: null,
+                        onPressed: () => Application.router.navigateTo(context,
+                            'peggFriend?answerId=' + document['turn']['answerId'],
+                            transition: TransitionType.fadeIn),
+                        color: const Color(0x99FFFFFF),
+                        child: Text("Pegg " + document['turn']['peggeeName'],
+                            style: TextStyle(
+                              fontSize: 16.0,
+                              color: Colors.black,
+                              fontWeight: FontWeight.w800,
+                            )))),
+              ],
+            ),
+          ),
+          Container(
+            width: 100.0,
+            height: 100.0,
+            decoration: BoxDecoration(
+              //  color: Colors.black,
+              image: DecorationImage(
+                image: NetworkImage(document['turn']['peggeeProfileUrl']),
+                // fit: BoxFit.cover,
+              ),
+            ),
+          ),
+        ]));
+  }
+
+  Widget _buildPeggYourselfBox(
+      BuildContext context, DocumentSnapshot document) {
+    return Container(
+        margin: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 0.0),
+        color: const Color(0xFF00B0FF),
+        child: Row(children: <Widget>[
+          Container(
+            width: 100.0,
+            height: 100.0,
+            // child: CircleAvatar(
+            //       backgroundImage: NetworkImage(globals.userState['profilePic']))
+            decoration: BoxDecoration(
+              //  color: Colors.black,
+              image: DecorationImage(
+                image: NetworkImage(globals.userState['profilePic']),
+                // fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Column(
+              children: <Widget>[
+                Text(
+                  "Your Turn!",
+                  textAlign: TextAlign.left,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
+                    fontSize: 18.0,
+                  ),
+                ),
+                Text(
+                  "Pick a question and answer it...",
+                  style: TextStyle(
+                    color: Colors.white,
+                    // fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
+                    fontSize: 12.0,
+                  ),
+                ),
+                Padding(
+                    padding: EdgeInsets.all(10.0),
+                    child: FlatButton(
+                        key: null,
+                        onPressed: () => Application.router.navigateTo(
+                            context, 'peggYourself',
+                            transition: TransitionType.fadeIn),
+                        color: const Color(0x99FFFFFF),
+                        child: Text("Pegg Yourself",
+                            style: TextStyle(
+                              fontSize: 16.0,
+                              color: Colors.black,
+                              fontWeight: FontWeight.w800,
+                            ))))
+              ],
+            ),
+          )
+        ]));
+  }
 }
 
 class ChatMessage {
   ChatMessage(
-      {this.userId, this.userName, this.text, this.profileUrl, this.dts});
+      {this.type,
+      this.userId,
+      this.userName,
+      this.text,
+      this.profileUrl,
+      this.dts});
+  final String type;
   final String userId;
   final String text;
   final String profileUrl;
@@ -283,11 +545,11 @@ class ChatMessageListItem extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Bubble(
-                message: message.text,
-                time: timeAgo(message.dts.toLocal()),
-                delivered: true,
-                isMe: true,
-              ),
+                  message: message.text,
+                  time: timeAgo(message.dts.toLocal()),
+                  delivered: true,
+                  isMe: true,
+                  type: message.type),
             ],
           )),
           Container(
@@ -311,11 +573,11 @@ class ChatMessageListItem extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Bubble(
-                message: message.text,
-                time: timeAgo(message.dts.toLocal()),
-                delivered: true,
-                isMe: false,
-              ),
+                  message: message.text,
+                  time: timeAgo(message.dts.toLocal()),
+                  delivered: true,
+                  isMe: false,
+                  type: message.type),
             ],
           )),
         ],
@@ -329,15 +591,18 @@ class ChatMessageListItem extends StatelessWidget {
 }
 
 class Bubble extends StatelessWidget {
-  Bubble({this.message, this.time, this.delivered, this.isMe});
+  Bubble({this.message, this.time, this.delivered, this.isMe, this.type});
 
-  final String message, time;
+  final String message, time, type;
   final delivered, isMe;
 
   @override
   Widget build(BuildContext context) {
-    final bg =
-        isMe ? Colors.white.withOpacity(.2) : Colors.white.withOpacity(.2);
+    final bg = type == 'question' || type == 'guess'
+        ? Colors.white.withOpacity(.9)
+        : Colors.white.withOpacity(.2);
+    final fontColor =
+        type == 'question' || type == 'guess' ? Colors.black : Colors.white;
     final align = isMe ? CrossAxisAlignment.start : CrossAxisAlignment.end;
     // final icon = delivered ? Icons.done_all : Icons.done;
     final radius = isMe
@@ -372,7 +637,7 @@ class Bubble extends StatelessWidget {
               Padding(
                 padding: EdgeInsets.only(bottom: 18.0),
                 child: Text(message,
-                    style: TextStyle(fontSize: 17.0, color: Colors.white)),
+                    style: TextStyle(fontSize: 17.0, color: fontColor)),
               ),
               Positioned(
                 bottom: 0.0,
@@ -381,7 +646,7 @@ class Bubble extends StatelessWidget {
                   children: <Widget>[
                     Text(time,
                         style: TextStyle(
-                          color: Colors.white70,
+                          color: fontColor.withOpacity(.8),
                           fontSize: 10.0,
                         )),
                     SizedBox(width: 3.0),
@@ -400,138 +665,3 @@ class Bubble extends StatelessWidget {
     );
   }
 }
-//     ListView(
-//   reverse: true,
-//   children: <Widget>[
-//     // IconButton(
-//     //   icon: Icon(Icons.explore),
-//     //   color: Colors.white,
-//     //   onPressed: _scaffoldKey.currentState.openDrawer
-//     // ),
-//     _buildActionBox(),
-//     _buildTurnBox(
-//         'Slipp the Dogger',
-//         "Gives zero fucks. Great at detecting bullshit.",
-//         "assets/images/hipster.jpg"),
-//     _buildTextBox("Do you attempt something like look around for another exit? Or do you attack someone?"),
-//     _buildTextBox("What do you do?"),
-//     _buildTextBox(
-//         "You and your friends are on your way to an underground dance party when you get lost. You know you’ve made a mistake when the door of an abandoned factory locks shut behind you, trapping you inside…"),
-//     _buildTextBox(
-//         "A disgruntled former employee wants to wreak mechanized terror on those who wronged him."),
-//     _buildTextBox("In a run-down car factory in Detroit."),
-//     _buildTitleBox("Chapter One")
-//   ],
-// )
-
-// Widget _buildTextBox(String text) {
-//   return Container(
-//       margin: const EdgeInsets.all(10.0),
-//       child: Text(
-//         text,
-//         style: TextStyle(
-//           color: Colors.black,
-//           // fontWeight: FontWeight.w800,
-//           letterSpacing: 0.5,
-//           fontSize: 16.0,
-//         ),
-//       ));
-// }
-
-Widget _buildTurnBox(BuildContext context, String title, String subtitle, String image) {
-  return Container(
-      margin: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 0.0),
-      color: Colors.white,
-      child: Row(children: <Widget>[
-        Container(
-          width: 100.0,
-          height: 100.0,
-          decoration: BoxDecoration(
-            //  color: Colors.black,
-            image: DecorationImage(
-              image: NetworkImage(image),
-              // fit: BoxFit.cover,
-            ),
-          ),
-        ),
-        Expanded(
-          child: Column(
-            children: <Widget>[
-              Text(
-                title,
-                textAlign: TextAlign.left,
-                style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.5,
-                  fontSize: 18.0,
-                ),
-              ),
-              Text(
-                subtitle,
-                style: TextStyle(
-                  color: Colors.black,
-                  // fontWeight: FontWeight.w800,
-                  letterSpacing: 0.5,
-                  fontSize: 12.0,
-                ),
-              ),
-              Padding(padding: EdgeInsets.all(10.0), child: 
-              FlatButton(
-                key: null,
-                onPressed: () => Application.router.navigateTo(context, 'peggYourself',
-                      transition: TransitionType.fadeIn),
-                color: const Color(0xFF00B0FF),
-                child: Text(
-                  "Pegg Yourself",
-                  style: TextStyle(
-                      fontSize: 16.0,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                ))))
-              
-            ],
-          ),
-        )
-      ]));
-}
-
-// Widget _buildActionBox() {
-//   return Container(
-//       margin: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 0.0),
-//       color: Colors.white,
-//       child: Row(
-//         children: <Widget>[
-//           Expanded(
-//             child: Padding(
-//                 padding: const EdgeInsets.all(15.0),
-//                 child: FlatButton(
-//                     key: null,
-//                     onPressed: () => {},
-//                     color: const Color(0xFFBA5536),
-//                     child: Text(
-//                       "Attempt",
-//                       style: TextStyle(
-//                           fontSize: 16.0,
-//                           color: Colors.white,
-//                           fontWeight: FontWeight.w800,
-//                     ))),
-//           ),
-//           Expanded(
-//               child: Padding(
-//             padding: const EdgeInsets.all(15.0),
-//             child: FlatButton(
-//                 key: null,
-//                 onPressed: () => {},
-//                 color: const Color(0xFFA43820),
-//                 child: Text(
-//                   "Attack",
-//                   style: TextStyle(
-//                       fontSize: 16.0,
-//                       color: Colors.white,
-//                       fontWeight: FontWeight.w800,
-//                 )),
-//           )),
-//         ],
-//       ));
-// }

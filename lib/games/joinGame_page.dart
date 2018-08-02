@@ -75,7 +75,7 @@ class JoinGamePage extends StatelessWidget {
                         style: TextStyle(
                             fontSize: 25.0,
                             fontWeight: FontWeight.w800,
-                            color: Colors.black,
+                            color: Colors.white,
                             letterSpacing: 8.0),
                         controller: _textController,
                         inputFormatters: <TextInputFormatter>[
@@ -83,11 +83,11 @@ class JoinGamePage extends StatelessWidget {
                         ],
                         keyboardType: TextInputType.text,
                         decoration:
-                            InputDecoration.collapsed(hintText: "Room code"),
+                            InputDecoration.collapsed(hintText: "Room code", hintStyle: TextStyle(color: Colors.white)),
                       ))
                     ]),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFFFFFF),
+                      color: const Color(0x33FFFFFF),
                       borderRadius: BorderRadius.circular(8.0),
                       // border:
                       //     Border(top: BorderSide(color: Colors.grey[200]))

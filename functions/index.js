@@ -18,21 +18,44 @@ admin.initializeApp();
 //     console.log(gameId);
 //   });
 
+// exports.turnChange = functions.firestore.document('Games/{gameId}/Logs/{logId}').onCreate((snap, context) => {
+//   const newLog = snap.data();
+//   if (newLog.type == 'guess' || newLog.type == 'question') {
+//     var turnRef = admin.firestore().collection('Games/' + context.params.gameId + '/Logs').doc('Turn');
+//     return turnRef.get().then((turnResult) => {
+//       var turnData = turnResult.data()
+//       // console.log(turnData);
+//       if (newLog.type == 'guess') {
+//         // Add user to guessers
+//         var guessers = turnData['guessers'] == null ? {} : turnData['guessers'];
+//         guessers[newLog.userId] = true;
+//         return turnRef.update({ 'guessers': guessers });
+//       } else if (newLog.type == 'question') {
+//         // Reset guessers to empty
+//         return turnRef.update({ 'guessers': {}, 'type': 'peggFriend' });
+//       }
+//     });
+//   } else {
+//     return null;
+//   }
+// });
+
+
 exports.acceptRequest = functions.https.onCall((data, context) => {
   // console.log("uid: " + context.auth.uid);
   console.log(data);
   var gameRef = admin.firestore().collection('Games').doc(data.gameId);
   var userRef = admin.firestore().collection('Users').doc(data.userId);
-  return gameRef.get().then( (gameResult) => {
+  return gameRef.get().then((gameResult) => {
     var gameData = gameResult.data()
     console.log("creator: " + gameData['creator']);
     // Only the game creator can approve requests
-    if(gameData['creator'] == context.auth.uid) {
+    if (gameData['creator'] == context.auth.uid) {
       // Add user to Game.players
       var players = gameData['players']
       players[data.userId] = true;
       // console.log("players: " + players);
-      return gameRef.update({'players': players}).then(() => {
+      return gameRef.update({ 'players': players }).then(() => {
         // Add game to User.games
         return userRef.get().then(userResult => {
           var userData = userResult.data()
@@ -42,7 +65,7 @@ exports.acceptRequest = functions.https.onCall((data, context) => {
           var requests = userData['requests'];
           requests[data.code] = null;
           // console.log("requests: " + requests);
-          return userRef.update({'games': games, 'requests': requests});    
+          return userRef.update({ 'games': games, 'requests': requests });
         });
       });
     } else {

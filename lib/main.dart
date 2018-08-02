@@ -38,9 +38,7 @@ class GratziGameState extends State<GratziGame> {
   @override
   Widget build(BuildContext context) {
 
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark.copyWith(
-      statusBarColor: Colors.white, //choose your pref. color
-    ));
+    SystemChrome.setEnabledSystemUIOverlays([SystemUiOverlay.bottom]);
 
     SystemChrome.setApplicationSwitcherDescription(
       new ApplicationSwitcherDescription(
