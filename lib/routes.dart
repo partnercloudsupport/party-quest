@@ -7,15 +7,15 @@
  */
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
-import 'home_page.dart';
-import 'games/info_page.dart';
-import 'games/createGame_pages.dart';
-import 'games/joinGame_page.dart';
-import 'games/userProfile_page.dart';
-import 'games/myGames_page.dart';
-import 'games/peggYourself_pages.dart';
-import 'games/inviteFriends_page.dart';
-import 'games/peggFriend_page.dart';
+import 'pages/home_page.dart';
+import 'pages/info_page.dart';
+import 'pages/createGame_pages.dart';
+import 'pages/joinGame_page.dart';
+import 'pages/userProfile_page.dart';
+import 'pages/myGames_page.dart';
+import 'pages/peggYourself_pages.dart';
+import 'pages/inviteFriends_page.dart';
+import 'pages/peggFriend_page.dart';
 
 class Routes {
 

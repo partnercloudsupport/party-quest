@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'application.dart';
+import '../application.dart';
 import 'package:fluro/fluro.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:observable/observable.dart';
 import 'package:gratzi_game/globals.dart' as globals;
 import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:convert';
 
 class AccountDrawer extends StatefulWidget {
   @override
@@ -71,12 +72,14 @@ class _AccountDrawerState extends State<AccountDrawer> {
   List<Widget> _buildMainMenu(BuildContext context) {
     return [
       ListTile(
-          title: Text("Create Game", style: TextStyle(color: Colors.white)),
-          leading: Icon(Icons.create, color: Colors.white),
+          title: Text("Create Game",
+              style: TextStyle(color: Colors.white, fontSize: 16.0)),
+          leading: Icon(Icons.create, color: Colors.white, size: 30.0),
           onTap: () => _openCreateGame()),
       ListTile(
-          title: Text("Join Game", style: TextStyle(color: Colors.white)),
-          leading: Icon(Icons.contacts, color: Colors.white),
+          title: Text("Join Game",
+              style: TextStyle(color: Colors.white, fontSize: 16.0)),
+          leading: Icon(Icons.contacts, color: Colors.white, size: 30.0),
           onTap: () => _openJoinGame()),
       // ListTile(
       //     title: Text("Top Charts"),
@@ -86,16 +89,16 @@ class _AccountDrawerState extends State<AccountDrawer> {
     ];
   }
 
-  void _openCreateGame(){
+  void _openCreateGame() {
     Navigator.pop(context);
-    Application.router.navigateTo(context, 'createGame',
-              transition: TransitionType.fadeIn);
+    Application.router
+        .navigateTo(context, 'createGame', transition: TransitionType.fadeIn);
   }
 
-  void _openJoinGame(){
+  void _openJoinGame() {
     Navigator.pop(context);
-    Application.router.navigateTo(context, 'joinGame',
-              transition: TransitionType.fadeIn);
+    Application.router
+        .navigateTo(context, 'joinGame', transition: TransitionType.fadeIn);
   }
 
   List<Widget> _buildUserAccount(BuildContext context) {
@@ -116,12 +119,12 @@ class _AccountDrawerState extends State<AccountDrawer> {
                       //     width: 150.0,
                       //     fit: BoxFit.contain,
                       //     ),
-                      decoration: new BoxDecoration(
+                      decoration: BoxDecoration(
+                          border: Border.all(color: Colors.white, width: 3.0),
                           shape: BoxShape.circle,
-                          image: new DecorationImage(
+                          image: DecorationImage(
                               fit: BoxFit.cover,
-                              image:
-                                  new NetworkImage(currentUser.profilePic)))),
+                              image: NetworkImage(currentUser.profilePic)))),
                 ),
                 Text(currentUser.name,
                     style: new TextStyle(
@@ -210,7 +213,9 @@ class _AccountDrawerState extends State<AccountDrawer> {
                   width: 45.0),
               title: Text(game['title'],
                   style: TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.w800)),
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 15.0)),
               subtitle: Text(game['name'],
                   style: TextStyle(
                       color: Colors.white, fontWeight: FontWeight.w100)),
@@ -227,10 +232,10 @@ void _openGame(DocumentSnapshot game, BuildContext context) {
   globals.gameState['category'] = game['category'];
   globals.gameState['name'] = game['name'];
   globals.gameState['title'] = game['title'];
-  globals.gameState['isPublic'] = 'false';
-  globals.gameState['code'] = game['code'];
-  globals.gameState['creator'] = game['creator'];
-  globals.gameState['players'] = game['players'].toString();
+  // globals.gameState['isPublic'] = game['isPublic'];
+  // globals.gameState['code'] = game['code'];
+  // globals.gameState['creator'] = game['creator'];
+  globals.gameState['players'] = json.encode(game['players']);
   Navigator.pop(context);
 }
 

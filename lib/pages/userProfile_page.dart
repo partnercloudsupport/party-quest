@@ -99,7 +99,7 @@ class UserProfileState extends State<UserProfilePage> {
     var imageFile = await ImagePicker.pickImage(
         source: ImageSource.gallery, maxHeight: 300.0, maxWidth: 300.0);
     var userId = globals.userState['userId'];
-    var ref = FirebaseStorage.instance.ref().child('$userId.jpg');
+    var ref = FirebaseStorage.instance.ref().child('profilePics/$userId.jpg');
     var uploadTask = ref.put(imageFile);
     var downloadUrl = (await uploadTask.future).downloadUrl;
     setState(() {
@@ -110,17 +110,16 @@ class UserProfileState extends State<UserProfilePage> {
   void _handleSubmitted(String text) {
     _textController.clear();
     if (text.length > 0) {
-      final DocumentReference document = Firestore.instance
+      final DocumentReference userRef = Firestore.instance
           .collection('Users')
           .document(globals.userState['userId']);
-      document.setData(<String, dynamic>{
-        'name': text,
-        'dts': DateTime.now(),
-        'profilePic': _downloadUrl
-        // 'userId': globals.userState['userId']
-      }).then((onValue) {
-        globals.userState['name'] = text;
-        globals.userState['profilePic'] = _downloadUrl;
+      userRef.get().then((userResult) {
+        userResult.data['name'] = text;
+        if(_downloadUrl.length > 0) userResult.data['profilePic'] = _downloadUrl;
+        userRef.updateData(userResult.data).then((onValue) {
+          globals.userState['name'] = text;
+          if(_downloadUrl.length > 0) globals.userState['profilePic'] = _downloadUrl;
+        });
       });
     }
   }

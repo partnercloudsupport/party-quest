@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:gratzi_game/globals.dart' as globals;
 import 'dart:math';
+import 'dart:convert';
 
 class CreateGamePages extends StatefulWidget {
   @override
@@ -146,9 +147,19 @@ class CreateGamePagesState extends State<CreateGamePages> {
       userGames[game.documentID] = true;
       userRef.updateData(<String, dynamic>{
         'games': userGames,
+      }).then((value) {
+        globals.gameState['id'] = game.documentID;
+        globals.gameState['category'] = _selectedCategory.documentID;
+        globals.gameState['name'] = _selectedCategory['name'];
+        globals.gameState['title'] = text;
+        // globals.gameState['isPublic'] = _isPublic;
+        Navigator.pop(context);
+        // globals.gameState['code'] = game['code'];
+        // globals.gameState['creator'] = game['creator'];
+        globals.gameState['players'] = json.encode({userId: true});
       });
     });
-    Navigator.pop(context);
+
   }
 
   /// Generates a random string of [length] with characters

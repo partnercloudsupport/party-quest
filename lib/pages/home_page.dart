@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'application.dart';
+import '../application.dart';
 import 'package:fluro/fluro.dart';
-import 'chat_view.dart';
-import 'account_drawer.dart';
+import '../components/chat_view.dart';
+import '../components/account_drawer.dart';
 import 'package:gratzi_game/globals.dart' as globals;
 
 class HomePage extends StatefulWidget {

@@ -3,11 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:fluro/fluro.dart';
 import 'routes.dart';
-import 'splash_pages.dart';
+import 'pages/splash_pages.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gratzi_game/globals.dart' as globals;
-import 'home_page.dart';
+import 'pages/home_page.dart';
 import 'package:flutter/services.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -37,13 +37,12 @@ class GratziGameState extends State<GratziGame> {
 
   @override
   Widget build(BuildContext context) {
-
     SystemChrome.setEnabledSystemUIOverlays([SystemUiOverlay.bottom]);
 
-    SystemChrome.setApplicationSwitcherDescription(
-      new ApplicationSwitcherDescription(
-        primaryColor: 0xFF,
-      ));
+    SystemChrome
+        .setApplicationSwitcherDescription(new ApplicationSwitcherDescription(
+      primaryColor: 0xFF,
+    ));
 
     Widget startPage;
     if (_userName != null && _userName.length > 0) {
@@ -53,14 +52,11 @@ class GratziGameState extends State<GratziGame> {
     }
     return new MaterialApp(
       title: 'Pegg Party',
-      theme: new ThemeData(
-        primaryColor: Colors.white,
-        fontFamily: 'Montserrat'
-      ),
+      theme:
+          new ThemeData(primaryColor: Colors.white, fontFamily: 'Montserrat'),
       onGenerateRoute: Application.router.generator,
       home: startPage,
     );
-    
   }
 
   Future<String> _signInAnonymously() async {
@@ -87,8 +83,10 @@ class GratziGameState extends State<GratziGame> {
     globals.userState['userId'] = user.uid;
     var userRef = Firestore.instance.collection('Users').document(user.uid);
     userRef.get().then((snapshot) {
-      if (snapshot.data != null){
-        globals.userState['profilePic'] = snapshot.data['profilePic'];
+      if (snapshot.data != null) {
+        if (snapshot.data['profilePic'] != null) {
+          globals.userState['profilePic'] = snapshot.data['profilePic'];
+        }
         globals.userState['name'] = snapshot.data['name'];
       }
     });

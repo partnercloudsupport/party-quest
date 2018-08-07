@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gratzi_game/globals.dart' as globals;
+import 'dart:convert';
 
 class PeggFriendPage extends StatefulWidget {
   PeggFriendPage(String answerId) : this.answerId = answerId;
@@ -59,8 +60,7 @@ class PeggFriendPageState extends State<PeggFriendPage> {
                                 BorderRadius.all(Radius.circular(100.0)),
                             //  color: Colors.black,
                             image: DecorationImage(
-                              image:
-                                  NetworkImage(globals.userState['profilePic']),
+                              image: NetworkImage(_answerData['profileUrl']),
                               // fit: BoxFit.cover,
                             ),
                           ),
@@ -93,7 +93,7 @@ class PeggFriendPageState extends State<PeggFriendPage> {
                 padding: EdgeInsets.symmetric(vertical: 10.0),
                 child: RaisedButton(
                     padding: EdgeInsets.all(10.0),
-                    onPressed: () => _selectGuess(context, value),
+                    onPressed: () => _selectGuess(context, key, value),
                     color: const Color(0x55FFFFFF),
                     shape: new RoundedRectangleBorder(
                         borderRadius: new BorderRadius.circular(5.0)),
@@ -101,14 +101,15 @@ class PeggFriendPageState extends State<PeggFriendPage> {
                         style: TextStyle(
                             color: Colors.white,
                             fontSize: 20.0,
-                            fontWeight: FontWeight.w200)))))
+                            fontWeight: FontWeight.w400)))))
       ]));
       // child: Text(value['text'], style: TextStyle(color: Colors.white))));
     });
     return Column(children: answerListTiles);
   }
 
-  void _selectGuess(BuildContext context, dynamic selectedGuess) {
+  void _selectGuess(
+      BuildContext context, String selectedGuessId, dynamic selectedGuess) {
     if (selectedGuess['text'].length > 0) {
       final DocumentReference newAnswer =
           Firestore.instance.collection('Guesses').document();
@@ -121,39 +122,101 @@ class PeggFriendPageState extends State<PeggFriendPage> {
       }).then((onValue) {
         Navigator.pop(context);
         var _gameId = globals.gameState['id'];
-        // ADD Question to Chat Logs
-        final DocumentReference newChat =
-            Firestore.instance.collection('Games/$_gameId/Logs').document();
-        newChat.setData(<String, dynamic>{
-          'text': selectedGuess['text'],
-          'type': 'guess',
-          'dts': DateTime.now(),
-          'profileUrl': globals.userState['profilePic'],
-          'userName': globals.userState['name'],
-          'userId': globals.userState['userId']
-        });
         // UPDATE Game.turn
-        final DocumentReference game =
+        final DocumentReference gameRef =
             Firestore.instance.collection('Games').document(_gameId);
-        game.get().then((gameResult) {
-          var guessers = gameResult.data['guessers'] == null
-              ? {}
-              : gameResult.data['guessers'];
+        gameRef.get().then((gameResult) {
+          var turn = gameResult['turn'];
+          var guessers = turn['guessers'] == null ? {} : turn['guessers'];
           guessers[globals.userState['userId']] = true;
-          // Merge new turn data into old turn Map
-          var newTurn = {
-              'type': 'peggFriend',
+          Map playersMap = json.decode(globals.gameState['players']);
+          if (guessers.length + 1 == playersMap.length) {
+            _showAnswers(_gameId, gameRef, selectedGuess, turn);
+            var newTurn = {
               'dts': DateTime.now(),
-              'guessers': guessers
+              'guessers': {},
+              'peggeeId': null
             };
-          var turns = [gameResult.data['turn'], newTurn];
-          var combinedTurns = turns.reduce( (map1, map2) => map1..addAll(map2) );
-          game.updateData(<String, dynamic>{
-            // TODO: needs to be a transaction to prevent race condition overwrites
-            'turn': combinedTurns
-          });
+            _updateTurn(gameRef, newTurn, turn);
+          } else {
+            // Someone still needs to guess, update turn
+            _addGuess(_gameId, selectedGuess);
+            var newTurn = {'dts': DateTime.now(), 'guessers': guessers};
+            _updateTurn(gameRef, newTurn, turn);
+          }
         });
       });
     }
+  }
+
+  void _addGuess(String gameId, dynamic selectedGuess) {
+    // ADD win/fail chat
+    final DocumentReference newChat =
+        Firestore.instance.collection('Games/$gameId/Logs').document();
+    newChat.setData(<String, dynamic>{
+      'text': selectedGuess['text'],
+      'type': 'guess',
+      'dts': DateTime.now(),
+      'profileUrl': globals.userState['profilePic'],
+      'userName': globals.userState['name'],
+      'userId': globals.userState['userId']
+    });
+  }
+
+  void _showAnswers(String gameId, DocumentReference gameRef,
+      dynamic selectedGuess, dynamic turn) {
+    var winners = turn['winners'] == null ? {} : turn['winners'];
+    if (selectedGuess['text'] == _answerData['correctAnswer']['text']) {
+      // Add this user to winner list
+      winners[globals.userState['userId']] = globals.userState;
+    }
+    // ADD win/fail chat
+    final DocumentReference newChat =
+        Firestore.instance.collection('Games/$gameId/Logs').document();
+    newChat.setData(<String, dynamic>{
+      'text': selectedGuess['text'],
+      'type': selectedGuess['text'] == _answerData['correctAnswer']['text']
+          ? 'win'
+          : 'fail',
+      'dts': DateTime.now(),
+      'profileUrl': globals.userState['profilePic'],
+      'userName': globals.userState['name'],
+      'userId': globals.userState['userId']
+    });
+    //UPDATE other players guesses to win/fail
+    var guesses = Firestore.instance
+        .collection('Games/$gameId/Logs')
+        .where('type', isEqualTo: 'guess');
+    guesses.getDocuments().then((snapshots) {
+      snapshots.documents.forEach((guess) {
+        guess.data['type'] =
+            guess.data['text'] == _answerData['correctAnswer']['text']
+                ? 'win'
+                : 'fail';
+        guess.reference.updateData(guess.data);
+      });
+    });
+    final DocumentReference newChatAnswer =
+        Firestore.instance.collection('Games/$gameId/Logs').document();
+    newChatAnswer.setData(<String, dynamic>{
+      'text': turn['answerText'],
+      'gif': turn['answerGif'],
+      'type': 'answer',
+      'dts': DateTime.now(),
+      'profileUrl': turn['peggeeProfileUrl'],
+      'userName': turn['peggeeName'],
+      'userId': turn['peggeeId'],
+      'winners': winners
+    });
+  }
+
+  void _updateTurn(DocumentReference gameRef, Map newTurn, Map oldTurn) {
+    // Merge new turn data into old turn Map
+    var turns = [oldTurn, newTurn];
+    var combinedTurns = turns.reduce((map1, map2) => map1..addAll(map2));
+    gameRef.updateData(<String, dynamic>{
+      // TODO: needs to be a transaction to prevent race condition overwrites
+      'turn': combinedTurns
+    });
   }
 }

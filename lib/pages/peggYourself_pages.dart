@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 // import 'package:cached_network_image/cached_network_image.dart';
 import 'package:gratzi_game/globals.dart' as globals;
-// import 'package:video_player/video_player.dart';
 // import 'dart:math';
 
 class PeggYourselfPages extends StatefulWidget {
@@ -143,7 +142,7 @@ class PeggYourselfPagesState extends State<PeggYourselfPages> {
                 padding: EdgeInsets.symmetric(vertical: 10.0),
                 child: RaisedButton(
                     padding: EdgeInsets.all(10.0),
-                    onPressed: () => _selectAnswer(context, value),
+                    onPressed: () => _selectAnswer(context, key, value),
                     color: const Color(0x55FFFFFF),
                     shape: new RoundedRectangleBorder(
                         borderRadius: new BorderRadius.circular(5.0)),
@@ -158,7 +157,7 @@ class PeggYourselfPagesState extends State<PeggYourselfPages> {
     return Column(children: answerListTiles);
   }
 
-  void _selectAnswer(BuildContext context, dynamic selectedAnswer) {
+  void _selectAnswer(BuildContext context, String selectedAnswerId, dynamic selectedAnswer) {
     if (selectedAnswer['text'].length > 0) {
       final DocumentReference newAnswer =
           Firestore.instance.collection('Answers').document();
@@ -167,7 +166,7 @@ class PeggYourselfPagesState extends State<PeggYourselfPages> {
         'dts': DateTime.now(),
         'question': _selectedQuestion.data,
         'questionId': _selectedQuestion.documentID,
-        'answer': selectedAnswer,
+        'correctAnswer': selectedAnswer,
         'userId': globals.userState['userId'],
         'profileUrl': globals.userState['profilePic']
       }).then((onValue) {
@@ -189,10 +188,11 @@ class PeggYourselfPagesState extends State<PeggYourselfPages> {
             Firestore.instance.collection('Games').document(_gameId);
         turn.updateData(<String, dynamic>{
           'turn': {
-            'type': 'peggFriend',
             'question': _selectedQuestion.data['text'],
             'dts': DateTime.now(),
             'answerId': newAnswer.documentID,
+            'answerText': selectedAnswer['text'],
+            'answerGif': selectedAnswer['gif'],
             'peggeeName': globals.userState['name'],
             'peggeeId': globals.userState['userId'],
             'peggeeProfileUrl': globals.userState['profilePic'],
