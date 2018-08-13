@@ -3,7 +3,7 @@ import '../application.dart';
 import 'package:fluro/fluro.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:observable/observable.dart';
-import 'package:gratzi_game/globals.dart' as globals;
+import 'package:pegg_party/globals.dart' as globals;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:convert';
 
@@ -233,8 +233,8 @@ void _openGame(DocumentSnapshot game, BuildContext context) {
   globals.gameState['name'] = game['name'];
   globals.gameState['title'] = game['title'];
   // globals.gameState['isPublic'] = game['isPublic'];
-  // globals.gameState['code'] = game['code'];
-  // globals.gameState['creator'] = game['creator'];
+  globals.gameState['code'] = game['code'];
+  globals.gameState['creator'] = game['creator'];
   globals.gameState['players'] = json.encode(game['players']);
   Navigator.pop(context);
 }

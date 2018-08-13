@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:gratzi_game/globals.dart' as globals;
+import 'package:pegg_party/globals.dart' as globals;
 import 'package:flutter/services.dart';
 import 'package:timeago/timeago.dart';
 import '../application.dart';
 import 'package:fluro/fluro.dart';
+import 'video_player.dart';
 
 class ChatView extends StatefulWidget {
   @override
@@ -20,6 +21,8 @@ class _ChatViewState extends State<ChatView> {
   }
 
   String _gameId;
+  bool _showGifOverlay = false;
+  String _activeGifUrl;
 
   _ChatViewState() {
     globals.gameState.changes.listen((changes) {
@@ -27,6 +30,7 @@ class _ChatViewState extends State<ChatView> {
       // TODO only call setState once... not for every change of gameState
       setState(() {
         _gameId = globals.gameState['id'];
+        _showGifOverlay = false;
       });
     });
   }
@@ -36,13 +40,17 @@ class _ChatViewState extends State<ChatView> {
   Widget build(BuildContext context) {
     // CollectionReference get logs =>
     return GestureDetector(
-        child: Column(children: <Widget>[
-          _buildChatLog(),
-          _buildActionButton(),
-          globals.gameState['players']?.contains(globals.userState['userId']) ==
-                  true
-              ? _buildTextComposer()
-              : _buildReactionComposer()
+        child: Stack(children: <Widget>[
+          Column(children: <Widget>[
+            _buildChatLog(),
+            _buildActionButton(),
+            globals.gameState['players']
+                        ?.contains(globals.userState['userId']) ==
+                    true
+                ? _buildTextComposer()
+                : _buildReactionComposer()
+          ]),
+          _showGifOverlay == true ? _buildGifOverlay() : Container()
         ]),
         onVerticalDragDown: (DragDownDetails d) => closeKeyboard(d));
   }
@@ -53,6 +61,29 @@ class _ChatViewState extends State<ChatView> {
     FocusScope.of(context).requestFocus(new FocusNode());
     SystemChannels.textInput.invokeMethod('TextInput.hide');
     // }
+  }
+
+  Widget _buildGifOverlay() {
+    MediaQueryData queryData;
+    queryData = MediaQuery.of(context);
+    return GestureDetector(
+        child: Center(
+          child: Container(
+              width: queryData.size.width,
+              height: queryData.size.height,
+              child: PeggVideoPlayer(_activeGifUrl),
+              decoration: BoxDecoration(
+                shape: BoxShape.rectangle,
+                color: Colors.black.withOpacity(.4),
+              )),
+        ),
+        onTap: _closeOverlay);
+  }
+
+  void _closeOverlay() {
+    setState(() {
+      _showGifOverlay = false;
+    });
   }
 
   Widget _buildActionButton() {
@@ -74,36 +105,42 @@ class _ChatViewState extends State<ChatView> {
                 Function inviteFriends = () => Application.router.navigateTo(
                     context, 'inviteFriends?code=' + document['code'],
                     transition: TransitionType.fadeIn);
-                return _buildButton(document['imageUrl'], inviteFriends, 'Invite friends...',
-                    'to get this Pegg Party started!');
+                return _buildButton(document['imageUrl'], inviteFriends,
+                    'Invite friends...', 'to get this Pegg Party started!');
               }
               var turn = document['turn'];
               if (turn == null || turn['peggeeId'] == null) {
                 Function onPressed = () => Application.router.navigateTo(
                     context, 'peggYourself',
                     transition: TransitionType.fadeIn);
-                return _buildButton(globals.userState['profilePic'], onPressed, 'Pegg Yourself',
-                    'Pick a question and answer it.');
+                return _buildButton(globals.userState['profilePic'], onPressed,
+                    'Pegg Yourself', 'Pick a question and answer it.');
               }
               if (turn['peggeeId'] == globals.userState['userId']) {
-                return _buildButton(globals.userState['profilePic'],
-                    null, 'Waiting on...', 'your friends to Pegg you.');
+                return _buildButton(globals.userState['profilePic'], null,
+                    'Waiting on...', 'your friends to Pegg you.');
               }
               if (turn['guessers'] == null ||
                   turn['guessers'][globals.userState['userId']] == null) {
                 Function onPressed = () => Application.router.navigateTo(
                     context, 'peggFriend?answerId=' + turn['answerId'],
                     transition: TransitionType.fadeIn);
-                return _buildButton(turn['peggeeProfileUrl'], onPressed, 'Pegg ' + turn['peggeeName'],
+                return _buildButton(
+                    turn['peggeeProfileUrl'],
+                    onPressed,
+                    'Pegg ' + turn['peggeeName'],
                     "Guess which answer they picked.");
               }
               if (turn['guessers'][globals.userState['userId']] == true) {
-                return _buildButton(turn['peggeeProfileUrl'], null, 'Waiting on...',
-                    'friends to Pegg ' + turn['peggeeName']);
+                return _buildButton(turn['peggeeProfileUrl'], null,
+                    'Waiting on...', 'friends to Pegg ' + turn['peggeeName']);
               }
             } else {
-              return _buildButton(document['imageUrl'], _handleJoinButtonPressed,
-                  'Request to Join...', 'so you can pegg each other and chat!');
+              return _buildButton(
+                  document['imageUrl'],
+                  _handleJoinButtonPressed,
+                  'Request to Join...',
+                  'so you can pegg each other and chat!');
             }
           });
     } else {
@@ -133,9 +170,9 @@ class _ChatViewState extends State<ChatView> {
             Padding(
                 padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 10.0),
                 child: Image.asset('assets/images/1f60e.png')),
-            Padding(
-                padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 10.0),
-                child: Image.asset('assets/images/1f92b.png')),
+            // Padding(
+            //     padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 10.0),
+            //     child: Image.asset('assets/images/1f92b.png')),
             Padding(
                 padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 10.0),
                 child: Image.asset('assets/images/1f602.png')),
@@ -184,7 +221,9 @@ class _ChatViewState extends State<ChatView> {
                           type: document['type'],
                           userId: document['userId'],
                           userName: document['userName'],
-                          text: document['text'],
+                          text: document['text'].replaceAllMapped(
+                              new RegExp(r'\[([^|]+)\|([^\]]+)]'),
+                              (Match m) => '${m[1]}'),
                           profileUrl: document['profileUrl'],
                           dts: document['dts']);
                       if (message.userName != null &&
@@ -192,14 +231,18 @@ class _ChatViewState extends State<ChatView> {
                           message.userName != nextDocument['userName']) {
                         return Column(children: <Widget>[
                           _buildLabel(message.userName),
-                          ChatMessageListItem(message),
+                          GestureDetector(
+                              child: ChatMessageListItem(message),
+                              onTap: () => _onTapBubble(document['gif'])),
                           // document['gif'] != null
                           //     ? PeggVideoPlayer(document['gif'])
                           //     : Container()
                         ]);
                       } else {
                         return Column(children: <Widget>[
-                          ChatMessageListItem(message),
+                          GestureDetector(
+                              child: ChatMessageListItem(message),
+                              onTap: () => _onTapBubble(document['gif'])),
                           // document['gif'] != null
                           //     ? PeggVideoPlayer(document['gif'])
                           //     : Container()
@@ -209,6 +252,15 @@ class _ChatViewState extends State<ChatView> {
               }));
     } else {
       return Expanded(child: Container());
+    }
+  }
+
+  void _onTapBubble(String gifUrl) {
+    if (gifUrl != null) {
+      setState(() {
+        _showGifOverlay = true;
+        _activeGifUrl = gifUrl;
+      });
     }
   }
 
@@ -475,10 +527,12 @@ class Bubble extends StatelessWidget {
     } else if (type == 'answer') {
       bg = const Color(0xFF9DEB0F);
     }
-    final fontColor =
-        type == 'question' || type == 'answer' || type == 'win' || type == 'fail'
-            ? Colors.black
-            : Colors.white;
+    final fontColor = type == 'question' ||
+            type == 'answer' ||
+            type == 'win' ||
+            type == 'fail'
+        ? Colors.black
+        : Colors.white;
     final align = isMe ? CrossAxisAlignment.start : CrossAxisAlignment.end;
     // final icon = delivered ? Icons.done_all : Icons.done;
     final radius = isMe
@@ -496,7 +550,9 @@ class Bubble extends StatelessWidget {
       crossAxisAlignment: align,
       children: <Widget>[
         Container(
-          foregroundDecoration: type == 'guess' ? BoxDecoration(color: Colors.black, borderRadius: radius) : null,
+          foregroundDecoration: type == 'guess'
+              ? BoxDecoration(color: Colors.black, borderRadius: radius)
+              : null,
           margin: const EdgeInsets.all(3.0),
           padding: const EdgeInsets.all(8.0),
           decoration: BoxDecoration(
@@ -512,15 +568,22 @@ class Bubble extends StatelessWidget {
           ),
           child: Stack(
             children: <Widget>[
-              type != null ? Positioned(
-                top: 0.0,
-                right: isMe == true ? 0.0 : null,
-                left: isMe != true ? 0.0 : null,
-                child: Text(type,
-                    style: TextStyle(fontSize: 12.0, color: Colors.black, fontWeight: FontWeight.w600)),
-              ) : Container(),
+              type != null
+                  ? Positioned(
+                      top: 0.0,
+                      right: isMe == true ? 0.0 : null,
+                      left: isMe != true ? 0.0 : null,
+                      child: Text(type,
+                          style: TextStyle(
+                              fontSize: 12.0,
+                              color: Colors.black,
+                              fontWeight: FontWeight.w600)),
+                    )
+                  : Container(width: 0.0),
               Padding(
-                padding: type != null ? EdgeInsets.symmetric(vertical: 18.0) : EdgeInsets.only(bottom: 18.0),
+                padding: type != null
+                    ? EdgeInsets.symmetric(vertical: 18.0)
+                    : EdgeInsets.only(bottom: 18.0),
                 child: Text(message,
                     style: TextStyle(fontSize: 17.0, color: fontColor),
                     textAlign: isMe == true ? TextAlign.right : TextAlign.left),

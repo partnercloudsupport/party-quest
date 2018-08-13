@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:gratzi_game/globals.dart' as globals;
+import 'package:pegg_party/globals.dart' as globals;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 

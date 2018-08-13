@@ -7,12 +7,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:gratzi_game/main.dart';
+import 'package:pegg_party/main.dart';
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(new GratziGame());
+    await tester.pumpWidget(new PeggParty());
 
     // Verify that our counter starts at 0.
     expect(find.text('0'), findsOneWidget);

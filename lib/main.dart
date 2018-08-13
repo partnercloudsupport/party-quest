@@ -6,23 +6,23 @@ import 'routes.dart';
 import 'pages/splash_pages.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:gratzi_game/globals.dart' as globals;
+import 'package:pegg_party/globals.dart' as globals;
 import 'pages/home_page.dart';
 import 'package:flutter/services.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
 Future<Null> main() async {
-  runApp(new GratziGame());
+  runApp(new PeggParty());
 }
 
-class GratziGame extends StatefulWidget {
+class PeggParty extends StatefulWidget {
   @override
-  createState() => GratziGameState();
+  createState() => PeggPartyState();
 }
 
-class GratziGameState extends State<GratziGame> {
-  GratziGameState() {
+class PeggPartyState extends State<PeggParty> {
+  PeggPartyState() {
     final router = new Router();
     Routes.configureRoutes(router);
     Application.router = router;
@@ -38,7 +38,6 @@ class GratziGameState extends State<GratziGame> {
   @override
   Widget build(BuildContext context) {
     SystemChrome.setEnabledSystemUIOverlays([SystemUiOverlay.bottom]);
-
     SystemChrome
         .setApplicationSwitcherDescription(new ApplicationSwitcherDescription(
       primaryColor: 0xFF,
@@ -52,8 +51,11 @@ class GratziGameState extends State<GratziGame> {
     }
     return new MaterialApp(
       title: 'Pegg Party',
-      theme:
-          new ThemeData(primaryColor: Colors.white, fontFamily: 'Montserrat'),
+      theme: new ThemeData(
+          primaryColor: Colors.white,
+          fontFamily: 'Montserrat',
+          canvasColor: Colors.black,
+          primaryColorLight: Colors.white.withOpacity(0.2)),
       onGenerateRoute: Application.router.generator,
       home: startPage,
     );
@@ -83,11 +85,14 @@ class GratziGameState extends State<GratziGame> {
     globals.userState['userId'] = user.uid;
     var userRef = Firestore.instance.collection('Users').document(user.uid);
     userRef.get().then((snapshot) {
-      if (snapshot.data != null) {
+      if (false) { //snapshot.data != null
         if (snapshot.data['profilePic'] != null) {
           globals.userState['profilePic'] = snapshot.data['profilePic'];
+          globals.userState['isLoggedIn'] = false;
         }
         globals.userState['name'] = snapshot.data['name'];
+      } else {
+        globals.userState['isLoggedIn'] = true;
       }
     });
     return 'signInAnonymously succeeded: $user';

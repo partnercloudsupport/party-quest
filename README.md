@@ -1,4 +1,4 @@
-# gratzi_game
+# pegg_party
 
 A new Flutter project.
 

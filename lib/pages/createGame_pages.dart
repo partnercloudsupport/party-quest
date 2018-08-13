@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:gratzi_game/globals.dart' as globals;
+import 'package:pegg_party/globals.dart' as globals;
 import 'dart:math';
 import 'dart:convert';
 
@@ -21,8 +21,9 @@ class CreateGamePagesState extends State<CreateGamePages> {
     return Scaffold(
         appBar: new AppBar(
             automaticallyImplyLeading: false,
-            leading: new IconButton(icon: new Icon(Icons.close, color: Colors.white),
-              onPressed: () => Navigator.pop(context)),
+            leading: new IconButton(
+                icon: new Icon(Icons.close, color: Colors.white),
+                onPressed: () => Navigator.pop(context)),
             backgroundColor: const Color(0xFF00073F),
             elevation: -1.0,
             title: new Text(
@@ -90,14 +91,21 @@ class CreateGamePagesState extends State<CreateGamePages> {
                   color: const Color(0x33FFFFFF),
                   borderRadius: BorderRadius.circular(8.0)),
             ),
-            Container(child: Row(children: <Widget>[
-              Expanded(child: Text('Private', textAlign: TextAlign.right, style: TextStyle(color: Colors.white),)),
+            Container(
+                child: Row(children: <Widget>[
+              Expanded(
+                  child: Text(
+                'Private',
+                textAlign: TextAlign.right,
+                style: TextStyle(color: Colors.white),
+              )),
               Switch(
                 value: false,
                 inactiveTrackColor: Colors.white70,
                 onChanged: _toggleIsPublic,
               ),
-              Expanded(child: Text('Public', style: TextStyle(color: Colors.white)))
+              Expanded(
+                  child: Text('Public', style: TextStyle(color: Colors.white)))
             ])),
             Padding(
                 padding: const EdgeInsets.only(top: 20.0),
@@ -123,7 +131,7 @@ class CreateGamePagesState extends State<CreateGamePages> {
   void _handleSubmitted(String text) {
     _textController.clear();
     var userId = globals.userState['userId'];
-
+    var code = _generateRandomCode(5);
     //CREATE Game
     final DocumentReference game =
         Firestore.instance.collection('Games').document();
@@ -132,7 +140,7 @@ class CreateGamePagesState extends State<CreateGamePages> {
       'name': _selectedCategory['name'],
       'title': text,
       'imageUrl': _selectedCategory['imageUrl'],
-      'code': _generateRandomCode(5),
+      'code': code,
       'creator': userId,
       'players': {userId: true},
       'isPublic': _isPublic,
@@ -141,9 +149,12 @@ class CreateGamePagesState extends State<CreateGamePages> {
     });
 
     //UPDATE User.games
-    var userRef = Firestore.instance.collection('Users').document(globals.userState['userId']);
+    var userRef = Firestore.instance
+        .collection('Users')
+        .document(globals.userState['userId']);
     userRef.get().then((snapshot) {
-      Map userGames = snapshot.data['games'] == null ? new Map() : snapshot.data['games'];
+      Map userGames =
+          snapshot.data['games'] == null ? new Map() : snapshot.data['games'];
       userGames[game.documentID] = true;
       userRef.updateData(<String, dynamic>{
         'games': userGames,
@@ -154,12 +165,11 @@ class CreateGamePagesState extends State<CreateGamePages> {
         globals.gameState['title'] = text;
         // globals.gameState['isPublic'] = _isPublic;
         Navigator.pop(context);
-        // globals.gameState['code'] = game['code'];
-        // globals.gameState['creator'] = game['creator'];
+        globals.gameState['code'] = code;
+        globals.gameState['creator'] = userId;
         globals.gameState['players'] = json.encode({userId: true});
       });
     });
-
   }
 
   /// Generates a random string of [length] with characters
@@ -178,7 +188,10 @@ class CreateGamePagesState extends State<CreateGamePages> {
 
   Widget _buildCategories() {
     return StreamBuilder<QuerySnapshot>(
-      stream: Firestore.instance.collection('Categories').snapshots(),
+      stream: Firestore.instance
+          .collection('Categories')
+          .orderBy('type')
+          .snapshots(),
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (!snapshot.hasData) return const Text('Loading...');
         final int messageCount = snapshot.data.documents.length;
@@ -232,15 +245,42 @@ class CreateGamePagesState extends State<CreateGamePages> {
                                         fontSize: 16.0)),
                               ])),
                       Container(
-                        margin: EdgeInsets.symmetric(vertical: 16.0),
-                        alignment: FractionalOffset.centerLeft,
-                        child: CachedNetworkImage(
-                          placeholder: CircularProgressIndicator(),
-                          imageUrl: document['imageUrl'],
-                          height: 92.0,
-                          width: 92.0,
-                        ),
-                      ),
+                          margin: EdgeInsets.symmetric(vertical: 16.0),
+                          alignment: FractionalOffset.centerLeft,
+                          child: Stack(children: <Widget>[
+                            CachedNetworkImage(
+                              placeholder: CircularProgressIndicator(),
+                              imageUrl: document['imageUrl'],
+                              height: 92.0,
+                              width: 92.0,
+                            ),
+                            document['type'] == 'paid'
+                                ? Positioned(
+                                    top: 30.0,
+                                    child: RaisedButton(
+                                        padding: EdgeInsets.all(2.0),
+                                        shape: new RoundedRectangleBorder(
+                                            borderRadius:
+                                                new BorderRadius.circular(
+                                                    10.0)),
+                                        onPressed: () => _nextPage(document),
+                                        color: const Color(0xFF48B5FB),
+                                        child: Text(
+                                            "\$1.99",
+                                            style: TextStyle(
+                                              fontSize: 20.0,
+                                              color: Colors.black,
+                                              fontWeight: FontWeight.w800,
+                                            ))))
+                                : Container(width: 0.0)
+                            // Text(
+                            //           '\$1.99',
+                            //           textAlign: TextAlign.left,
+                            //           style: TextStyle(
+                            //               color: Colors.white70,
+                            //               fontWeight: FontWeight.w100,
+                            //               fontSize: 16.0)) : Container(width: 0.0)
+                          ])),
                       // WIP: cant figure this out... circle not positioning correctly.
                       // Positioned(
                       //     left: 100.0,
@@ -272,10 +312,12 @@ class CreateGamePagesState extends State<CreateGamePages> {
   }
 
   void _nextPage(DocumentSnapshot document) {
-    setState(() {
-      _selectedCategory = document;
-    });
-    _pageController.animateToPage(1,
-        duration: Duration(milliseconds: 1000), curve: Curves.elasticOut);
+    if (document['type'] == 'free') {
+      setState(() {
+        _selectedCategory = document;
+      });
+      _pageController.animateToPage(1,
+          duration: Duration(milliseconds: 1000), curve: Curves.elasticOut);
+    }
   }
 }

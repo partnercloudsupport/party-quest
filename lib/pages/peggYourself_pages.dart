@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 // import 'package:cached_network_image/cached_network_image.dart';
-import 'package:gratzi_game/globals.dart' as globals;
+import 'package:pegg_party/globals.dart' as globals;
 // import 'dart:math';
 
 class PeggYourselfPages extends StatefulWidget {
@@ -77,11 +77,14 @@ class PeggYourselfPagesState extends State<PeggYourselfPages> {
               itemBuilder: (_, int index) {
                 final DocumentSnapshot document =
                     snapshot.data.documents[index];
+                var question = document['text'].replaceAllMapped(
+                              new RegExp(r'\[([^|]+)\|([^\]]+)]'),
+                              (Match m) => '${m[1]}');
                 return GestureDetector(
                     child: Container(
                         padding: EdgeInsets.all(20.0),
                         child: Text(
-                          document['text'],
+                          question,
                           style: TextStyle(
                               color: Colors.white,
                               fontSize: 20.0,
@@ -122,7 +125,9 @@ class PeggYourselfPagesState extends State<PeggYourselfPages> {
                     ),
                     Container(
                         margin: EdgeInsets.symmetric(vertical: 12.0),
-                        child: Text(_selectedQuestion['text'],
+                        child: Text(_selectedQuestion['text'].replaceAllMapped(
+                              new RegExp(r'\[([^|]+)\|([^\]]+)]'),
+                              (Match m) => '${m[1]}'),
                             style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 20.0,
@@ -146,7 +151,9 @@ class PeggYourselfPagesState extends State<PeggYourselfPages> {
                     color: const Color(0x55FFFFFF),
                     shape: new RoundedRectangleBorder(
                         borderRadius: new BorderRadius.circular(5.0)),
-                    child: Text(value['text'],
+                    child: Text(value['text'].replaceAllMapped(
+                              new RegExp(r'\[([^|]+)\|([^\]]+)]'),
+                              (Match m) => '${m[1]}'),
                         style: TextStyle(
                             color: Colors.white,
                             fontSize: 20.0,
@@ -157,7 +164,8 @@ class PeggYourselfPagesState extends State<PeggYourselfPages> {
     return Column(children: answerListTiles);
   }
 
-  void _selectAnswer(BuildContext context, String selectedAnswerId, dynamic selectedAnswer) {
+  void _selectAnswer(
+      BuildContext context, String selectedAnswerId, dynamic selectedAnswer) {
     if (selectedAnswer['text'].length > 0) {
       final DocumentReference newAnswer =
           Firestore.instance.collection('Answers').document();

@@ -3,7 +3,7 @@ import '../application.dart';
 import 'package:fluro/fluro.dart';
 import '../components/chat_view.dart';
 import '../components/account_drawer.dart';
-import 'package:gratzi_game/globals.dart' as globals;
+import 'package:pegg_party/globals.dart' as globals;
 
 class HomePage extends StatefulWidget {
   @override
@@ -62,48 +62,48 @@ class HomePageState extends State<HomePage> {
                 : ChatView()));
   }
 
-  Widget _buildBottomBar() {
-    return Container(
-        height: 70.0,
-        decoration: BoxDecoration(
-          color: const Color(0xFF4C6296),
-          // border: Border(top: BorderSide(color: Colors.grey))
-        ),
-        child: Row(children: <Widget>[
-          Container(
-            height: 80.0,
-            color: const Color(0xFFFF694F),
-            child: IconButton(
-              icon: new Icon(Icons.account_circle, color: Colors.white),
-              onPressed: () => _scaffoldKey.currentState.openDrawer()),
-          ),
-          Expanded(
-              child: Container(
-                  height: 80.0,
-                  child: RaisedButton(
-                      shape: new RoundedRectangleBorder(
-                          borderRadius: new BorderRadius.circular(0.0)),
-                      onPressed: () => Application.router.navigateTo(context,
-                          'peggFriend?answerId=', // + document['answerId']
-                          transition: TransitionType.fadeIn),
-                      color: const Color(0xFF00B0FF),
-                      child: Text("Pegg Yourself", // + document['peggeeName']
-                          style: TextStyle(
-                            fontSize: 20.0,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
-                          ))))),
-          Container(
-            height: 80.0,
-            color: const Color(0xFF9DEB0F),
-            child: IconButton(
-              icon: Icon(
-                Icons.casino,
-                color: Colors.white,
-              ),
-              tooltip: 'Info about this Game.',
-              onPressed: _openInfoView))
-        ]));
+  // Widget _buildBottomBar() {
+  //   return Container(
+  //       height: 70.0,
+  //       decoration: BoxDecoration(
+  //         color: const Color(0xFF4C6296),
+  //         // border: Border(top: BorderSide(color: Colors.grey))
+  //       ),
+  //       child: Row(children: <Widget>[
+  //         Container(
+  //           height: 80.0,
+  //           color: const Color(0xFFFF694F),
+  //           child: IconButton(
+  //             icon: new Icon(Icons.account_circle, color: Colors.white),
+  //             onPressed: () => _scaffoldKey.currentState.openDrawer()),
+  //         ),
+  //         Expanded(
+  //             child: Container(
+  //                 height: 80.0,
+  //                 child: RaisedButton(
+  //                     shape: new RoundedRectangleBorder(
+  //                         borderRadius: new BorderRadius.circular(0.0)),
+  //                     onPressed: () => Application.router.navigateTo(context,
+  //                         'peggFriend?answerId=', // + document['answerId']
+  //                         transition: TransitionType.fadeIn),
+  //                     color: const Color(0xFF00B0FF),
+  //                     child: Text("Pegg Yourself", // + document['peggeeName']
+  //                         style: TextStyle(
+  //                           fontSize: 20.0,
+  //                           color: Colors.white,
+  //                           fontWeight: FontWeight.w800,
+  //                         ))))),
+  //         Container(
+  //           height: 80.0,
+  //           color: const Color(0xFF9DEB0F),
+  //           child: IconButton(
+  //             icon: Icon(
+  //               Icons.casino,
+  //               color: Colors.white,
+  //             ),
+  //             tooltip: 'Info about this Game.',
+  //             onPressed: _openInfoView))
+  //       ]));
 
     // Column(children: <Widget>[
     //   ChatView(),
@@ -125,7 +125,7 @@ class HomePageState extends State<HomePage> {
     //             ),
     //           )))
     // ]);
-  }
+  // }
 
   Widget _buildStartScreen() {
     return Center(

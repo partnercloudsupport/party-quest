@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:gratzi_game/globals.dart' as globals;
+import 'package:pegg_party/globals.dart' as globals;
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class UserProfilePage extends StatefulWidget {
   @override
@@ -56,11 +57,14 @@ class UserProfileState extends State<UserProfilePage> {
                 child: Container(
                     width: 190.0,
                     height: 190.0,
-                    decoration: new BoxDecoration(
+                    decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        image: new DecorationImage(
+                        image: DecorationImage(
                             fit: BoxFit.fill,
-                            image: new NetworkImage(_downloadUrl == null ? globals.userState['profilePic'] : _downloadUrl))))),
+                            image: CachedNetworkImageProvider(
+                                _downloadUrl == null
+                                    ? globals.userState['profilePic']
+                                    : _downloadUrl))))),
             // Text("More text"),
             Container(
               height: 50.0,
@@ -73,11 +77,14 @@ class UserProfileState extends State<UserProfilePage> {
                 style: TextStyle(fontSize: 20.0, color: Colors.black),
                 // onChanged: _handleMessageChanged,
                 onSubmitted: _handleSubmitted,
-                decoration:
-                    InputDecoration.collapsed(hintText: globals.userState['name']),
+                decoration: InputDecoration.collapsed(
+                    hintStyle: TextStyle(fontSize: 20.0, color: Colors.white),
+                    hintText: globals.userState['name'] == ''
+                        ? "Enter your name."
+                        : globals.userState['name']),
               ),
               decoration: BoxDecoration(
-                  color: const Color(0xFFFFFFFF),
+                  color: const Color(0x33FFFFFF),
                   borderRadius: BorderRadius.circular(8.0)),
             ),
             FlatButton(
@@ -115,10 +122,12 @@ class UserProfileState extends State<UserProfilePage> {
           .document(globals.userState['userId']);
       userRef.get().then((userResult) {
         userResult.data['name'] = text;
-        if(_downloadUrl.length > 0) userResult.data['profilePic'] = _downloadUrl;
+        if (_downloadUrl.length > 0)
+          userResult.data['profilePic'] = _downloadUrl;
         userRef.updateData(userResult.data).then((onValue) {
           globals.userState['name'] = text;
-          if(_downloadUrl.length > 0) globals.userState['profilePic'] = _downloadUrl;
+          if (_downloadUrl.length > 0)
+            globals.userState['profilePic'] = _downloadUrl;
         });
       });
     }

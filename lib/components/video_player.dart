@@ -10,7 +10,7 @@ class PeggVideoPlayer extends StatefulWidget {
 
 class _PeggVideoPlayerState extends State<PeggVideoPlayer> {
   VideoPlayerController _controller;
-  bool _isPlaying = false;
+  bool _isPlaying = true;
 
   @override
   void initState() {
@@ -28,6 +28,8 @@ class _PeggVideoPlayerState extends State<PeggVideoPlayer> {
         // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
         setState(() {});
       });
+      _controller.play();
+      _controller.setLooping(true);
   }
 
   @override

@@ -1,7 +1,9 @@
 // import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:gratzi_game/globals.dart' as globals;
+import '../application.dart';
+import 'package:pegg_party/globals.dart' as globals;
 import 'package:image_picker/image_picker.dart';
+import 'package:fluro/fluro.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
@@ -13,19 +15,28 @@ class SplashPages extends StatefulWidget {
 }
 
 class SplashPagesState extends State<SplashPages> {
+  SplashPagesState() {
+    globals.userState.changes.listen((changes) {
+      setState(() {
+        _showButton = globals.userState['isLoggedIn'];
+      });
+    });
+  }
+  bool _showButton;
   String _downloadUrl =
       "https://firebasestorage.googleapis.com/v0/b/party-quest-dev.appspot.com/o/profilePics%2FPeggIcon.png?alt=media&token=10e49180-d93d-4faa-a3fc-b9872690ec00";
   final TextEditingController _textController = TextEditingController();
 
-  List<Widget> _buildPages() {
-    return [_buildLandingPage(context), _buildProfilePage(context)];
-  }
+  // List<Widget> _buildPages() {
+  //   return [_buildLandingPage(context), _buildProfilePage(context)];
+  // }
 
   @override
   Widget build(BuildContext context) {
-    return PageView(
-      children: _buildPages(),
-    );
+    return _buildLandingPage(context);
+    // return PageView(
+    //   children: _buildPages(),
+    // );
   }
 
   Widget _buildLandingPage(BuildContext context) {
@@ -37,17 +48,39 @@ class SplashPagesState extends State<SplashPages> {
               image: AssetImage("assets/images/splash_bg.png"),
               fit: BoxFit.cover,
             )),
-            child: Container()
-            // Center(
-            //     child: Text("Gratzi Game",
-            //         style: new TextStyle(
-            //           color: Colors.white,
-            //           fontWeight: FontWeight.w800,
-            //           letterSpacing: 0.2,
-            //           fontSize: 52.0,
-            //         )))
-                    
-                    ));
+            child: Row(children: <Widget>[
+              Expanded(
+                  child: Column(children: <Widget>[
+                Expanded(
+                    child: Container(
+                        decoration: BoxDecoration(
+                            image: DecorationImage(
+                  image: AssetImage("assets/images/splash_unicorns.png"),
+                  fit: BoxFit.contain,
+                )))),
+                Padding(
+                    padding: EdgeInsets.all(40.0),
+                    child: _showButton == true
+                        ? RaisedButton(
+                            padding: EdgeInsets.symmetric(
+                                vertical: 20.0, horizontal: 40.0),
+                            onPressed: () => Application.router.navigateTo(
+                                context, 'userProfile',
+                                transition: TransitionType.fadeIn),
+                            color: const Color(0xFF00b0ff),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: new BorderRadius.circular(40.0)),
+                            child: Text(
+                              "Let's Play!",
+                              style: new TextStyle(
+                                fontSize: 22.0,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ))
+                        : Container())
+              ]))
+            ])));
   }
 
   Widget _buildProfilePage(BuildContext context) {
@@ -114,7 +147,7 @@ class SplashPagesState extends State<SplashPages> {
 
   Future<Null> _uploadImage() async {
     var imageFile = await ImagePicker.pickImage(
-        source: ImageSource.gallery, maxHeight: 300.0, maxWidth: 300.0);
+        source: ImageSource.camera, maxHeight: 300.0, maxWidth: 300.0);
     var userId = globals.userState['userId'];
     var ref = FirebaseStorage.instance.ref().child('$userId.jpg');
     var uploadTask = ref.put(imageFile);
