@@ -74,13 +74,18 @@ class _AccountDrawerState extends State<AccountDrawer> {
       ListTile(
           title: Text("Create Game",
               style: TextStyle(color: Colors.white, fontSize: 16.0)),
-          leading: Icon(Icons.create, color: Colors.white, size: 30.0),
+          leading: Icon(Icons.brush, color: Colors.white, size: 30.0),
           onTap: () => _openCreateGame()),
       ListTile(
           title: Text("Join Game",
               style: TextStyle(color: Colors.white, fontSize: 16.0)),
-          leading: Icon(Icons.contacts, color: Colors.white, size: 30.0),
-          onTap: () => _openJoinGame()),
+          leading: Icon(Icons.group_add, color: Colors.white, size: 30.0),
+          onTap: () => _openJoinGame()),      
+      ListTile(
+          title: Text("Public Games",
+              style: TextStyle(color: Colors.white, fontSize: 16.0)),
+          leading: Icon(Icons.bubble_chart, color: Colors.white, size: 30.0),
+          onTap: () => _openPublicGames()),
       // ListTile(
       //     title: Text("Top Charts"),
       //     leading: Icon(Icons.show_chart),
@@ -93,6 +98,12 @@ class _AccountDrawerState extends State<AccountDrawer> {
     Navigator.pop(context);
     Application.router
         .navigateTo(context, 'createGame', transition: TransitionType.fadeIn);
+  }
+
+  void _openPublicGames() {
+    globals.gameState['id'] = '';
+    globals.gameState['title'] = 'Public Games';
+    Navigator.pop(context);
   }
 
   void _openJoinGame() {

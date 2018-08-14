@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:pegg_party/globals.dart' as globals;
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'dart:async';
 
 class UpperCaseTextFormatter extends TextInputFormatter {
   @override
@@ -106,62 +104,8 @@ class JoinGamePage extends StatelessWidget {
                         fontWeight: FontWeight.w800,
                       ),
                     ))),
-            Row(children: <Widget>[
-              Expanded(
-                  child: Padding(
-                      padding: EdgeInsets.only(left: 15.0),
-                      child: Text("Public Games",
-                          style:
-                              TextStyle(color: Colors.white70, fontSize: 12.0),
-                          textAlign: TextAlign.left)))
-            ]),
-            _buildPublicGamesList(),
           ])),
     );
-  }
-
-  Widget _buildPublicGamesList() {
-    return StreamBuilder<QuerySnapshot>(
-      stream: Firestore.instance
-          .collection('Games')
-          .where('isPublic', isEqualTo: true)
-          .snapshots(),
-      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-        if (!snapshot.hasData) return const Text('Loading...');
-        List<Widget> labelListTiles = [];
-        snapshot.data.documents.forEach((game) {
-          if (game['players'][globals.userState['userId']] == null) {
-            labelListTiles.add(GestureDetector(
-                child: ListTile(
-                  leading: CachedNetworkImage(
-                      placeholder: CircularProgressIndicator(),
-                      imageUrl: game['imageUrl'],
-                      height: 45.0,
-                      width: 45.0),
-                  title: Text(game['title'],
-                      style: TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.w800)),
-                  subtitle: Text(game['name'],
-                      style: TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.w100)),
-                ),
-                onTap: () => _handleGameSelected(context, game)));
-          }
-        });
-        return Column(children: labelListTiles);
-      },
-    );
-  }
-
-  void _handleGameSelected(BuildContext context, DocumentSnapshot game) {
-    globals.gameState['id'] = game.documentID;
-    globals.gameState['type'] = game['type'];
-    globals.gameState['name'] = game['name'];
-    globals.gameState['title'] = game['title'];
-    globals.gameState['code'] = game['code'];
-    globals.gameState['creator'] = game['creator'];
-    globals.gameState['players'] = game['players'].toString();
-    Navigator.pop(context);
   }
 
   void _handleCodeSubmitted(String code) async {

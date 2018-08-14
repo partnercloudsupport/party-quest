@@ -194,7 +194,7 @@ class _ChatViewState extends State<ChatView> {
     final now = DateTime.now();
     final monthAgo = new DateTime(now.year, now.month, now.day - 30);
     if (_gameId != null) {
-      return Flexible(
+      return Expanded(
           child: StreamBuilder<QuerySnapshot>(
               stream: Firestore.instance
                   .collection('Games/$_gameId/Logs')

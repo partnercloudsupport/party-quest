@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:fluro/fluro.dart';
 import 'routes.dart';
-import 'pages/splash_pages.dart';
+import 'pages/splash_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pegg_party/globals.dart' as globals;
@@ -47,7 +47,7 @@ class PeggPartyState extends State<PeggParty> {
     if (_userName != null && _userName.length > 0) {
       startPage = HomePage();
     } else {
-      startPage = SplashPages();
+      startPage = SplashPage();
     }
     return new MaterialApp(
       title: 'Pegg Party',
@@ -85,15 +85,16 @@ class PeggPartyState extends State<PeggParty> {
     globals.userState['userId'] = user.uid;
     var userRef = Firestore.instance.collection('Users').document(user.uid);
     userRef.get().then((snapshot) {
-      if (false) { //snapshot.data != null
+      if (snapshot.data != null) {
         if (snapshot.data['profilePic'] != null) {
           globals.userState['profilePic'] = snapshot.data['profilePic'];
-          globals.userState['isLoggedIn'] = false;
+          globals.userState['isLoggedIn'] = true;
         }
         globals.userState['name'] = snapshot.data['name'];
-      } else {
-        globals.userState['isLoggedIn'] = true;
-      }
+      } 
+      // else {
+      //   globals.userState['isLoggedIn'] = false;
+      // }
     });
     return 'signInAnonymously succeeded: $user';
 
