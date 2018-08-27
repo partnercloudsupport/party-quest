@@ -64,7 +64,7 @@ class PeggYourselfPagesState extends State<PeggYourselfPages> {
   }
 
   Widget _buildPickQuestion() {
-    return StreamBuilder<QuerySnapshot>(
+    return ListView(children: <Widget>[ StreamBuilder<QuerySnapshot>(
         stream: Firestore.instance
             .collection('Questions')
             .where('category', isEqualTo: globals.gameState['category'])
@@ -92,7 +92,7 @@ class PeggYourselfPagesState extends State<PeggYourselfPages> {
                         )),
                     onTap: () => _selectQuestion(document));
               });
-        });
+        })]);
   }
 
   void _selectQuestion(DocumentSnapshot document) {

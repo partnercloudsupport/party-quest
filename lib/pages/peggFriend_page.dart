@@ -39,7 +39,7 @@ class PeggFriendPageState extends State<PeggFriendPage> {
   }
 
   Widget _buildPickAnswer(BuildContext context) {
-    return FutureBuilder(
+    return ListView(children: <Widget>[ FutureBuilder(
         future: Firestore.instance
             .collection('Answers')
             .document(widget.answerId)
@@ -67,7 +67,9 @@ class PeggFriendPageState extends State<PeggFriendPage> {
                         ),
                         Container(
                             margin: EdgeInsets.symmetric(vertical: 12.0),
-                            child: Text(_answerData['question']['text'],
+                            child: Text(_answerData['question']['text'].replaceAllMapped(
+                              new RegExp(r'\[([^|]+)\|([^\]]+)]'),
+                              (Match m) => '${m[1]}'),
                                 style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 20.0,
@@ -81,7 +83,7 @@ class PeggFriendPageState extends State<PeggFriendPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[CircularProgressIndicator()]);
           }
-        });
+        })]);
   }
 
   Widget _buildPredefinedAnswers(Map answers) {
@@ -97,7 +99,9 @@ class PeggFriendPageState extends State<PeggFriendPage> {
                     color: const Color(0x55FFFFFF),
                     shape: new RoundedRectangleBorder(
                         borderRadius: new BorderRadius.circular(5.0)),
-                    child: Text(value['text'],
+                    child: Text(value['text'].replaceAllMapped(
+                              new RegExp(r'\[([^|]+)\|([^\]]+)]'),
+                              (Match m) => '${m[1]}'),
                         style: TextStyle(
                             color: Colors.white,
                             fontSize: 20.0,

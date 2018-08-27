@@ -84,17 +84,18 @@ class PeggPartyState extends State<PeggParty> {
     assert(user.uid == currentUser.uid);
     globals.userState['userId'] = user.uid;
     var userRef = Firestore.instance.collection('Users').document(user.uid);
+    globals.userState['loginStatus'] = 'loggingIn';
     userRef.get().then((snapshot) {
       if (snapshot.data != null) {
         if (snapshot.data['profilePic'] != null) {
           globals.userState['profilePic'] = snapshot.data['profilePic'];
-          globals.userState['isLoggedIn'] = true;
+          globals.userState['loginStatus'] = 'loggedIn';
         }
         globals.userState['name'] = snapshot.data['name'];
       } 
-      // else {
-      //   globals.userState['isLoggedIn'] = false;
-      // }
+      else {
+        globals.userState['loginStatus'] = 'notLoggedIn';
+      }
     });
     return 'signInAnonymously succeeded: $user';
 

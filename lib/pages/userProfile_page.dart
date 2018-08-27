@@ -93,7 +93,7 @@ class UserProfileState extends State<UserProfilePage> {
 				shape: RoundedRectangleBorder(
 				borderRadius: new BorderRadius.circular(40.0)),
 			child: new Text(
-				"Submit",
+				"Done",
 				style: TextStyle(
 					fontSize: 20.0,
 					color: Colors.white,

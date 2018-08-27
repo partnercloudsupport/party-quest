@@ -136,11 +136,12 @@ class _ChatViewState extends State<ChatView> {
                     'Waiting on...', 'friends to Pegg ' + turn['peggeeName']);
               }
             } else {
-              return _buildButton(
-                  document['imageUrl'],
-                  _handleJoinButtonPressed,
-                  'Request to Join...',
-                  'so you can pegg each other and chat!');
+              return Container();
+              // return _buildButton(
+              //     document['imageUrl'],
+              //     _handleJoinButtonPressed,
+              //     'Request to Join...',
+              //     'so you can pegg each other and chat!');
             }
           });
     } else {
