@@ -43,7 +43,7 @@ class SplashPageState extends State<SplashPage> {
 							image: AssetImage("assets/images/splash_unicorns.png"),
 							fit: BoxFit.contain,
 						)))),
-						Container(child: Text("Be a unicorn.", style: TextStyle(color: Colors.white))),
+						// Container(child: Text("Be a unicorn.", style: TextStyle(color: Colors.white, fontSize: 30.0))),
 						Padding(
 							padding: EdgeInsets.all(40.0),
 							child: _loginStatus == 'notLoggedIn'

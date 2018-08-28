@@ -18,7 +18,7 @@ class UserProfileState extends State<UserProfilePage> {
 	@override
 	void initState() {
 		super.initState();
-		_profilePic = globals.userState['isLoggedIn'] == true ? globals.userState['profilePic'] : "https://firebasestorage.googleapis.com/v0/b/party-quest-dev.appspot.com/o/profile-placeholder.png?alt=media&token=35a5323c-0b10-4332-a8c2-355d26e950a8";
+		_profilePic = globals.userState['loginStatus'] == 'loggedIn' ? globals.userState['profilePic'] : "https://firebasestorage.googleapis.com/v0/b/party-quest-dev.appspot.com/o/profile-placeholder.png?alt=media&token=35a5323c-0b10-4332-a8c2-355d26e950a8";
 	}
 
 	@override
@@ -50,22 +50,33 @@ class UserProfileState extends State<UserProfilePage> {
 					image: DecorationImage(
 						image: AssetImage("assets/images/background-gradient.png"),
 						fit: BoxFit.fill)),
-				child: Center(
-					child: Column(children: <Widget>[
+				child: ListView(children: <Widget>[
 					Padding(padding: EdgeInsets.all(10.0)),
-					Container(
-						width: 190.0,
-						height: 190.0,
-						decoration: BoxDecoration(
-							shape: BoxShape.circle,
-							image: DecorationImage(
-								fit: BoxFit.fill,
-								image: CachedNetworkImageProvider(
-									_downloadUrl == null
-										? _profilePic
-										: _downloadUrl)))),
-				_buildPhotoButtons(),
-		Container(
+					_buildProfilePic(),
+						_buildPhotoButtons(),
+							_buildNameField(),
+								_buildDoneButton()])),
+		);
+	}
+
+
+		Widget _buildProfilePic(){
+			return Column(children: <Widget>[ Container(
+				width: 190.0,
+				height: 190.0,
+					margin: const EdgeInsets.only(top: 0.0, bottom: 10.0),
+				decoration: BoxDecoration(
+					shape: BoxShape.circle,
+					image: DecorationImage(
+						fit: BoxFit.cover,
+						image: CachedNetworkImageProvider(
+							_downloadUrl == null
+								? _profilePic
+								: _downloadUrl))))]);
+		}
+
+			Widget _buildNameField(){
+				return Container(
 			height: 50.0,
 			margin: EdgeInsets.symmetric(vertical: 20.0, horizontal: 20.0),
 			padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 10.0),
@@ -73,7 +84,7 @@ class UserProfileState extends State<UserProfilePage> {
 				maxLines: null,
 				keyboardType: TextInputType.text,
 				controller: _textController,
-				style: TextStyle(fontSize: 20.0, color: Colors.black),
+				style: TextStyle(fontSize: 20.0, color: Colors.white),
 				// onChanged: _handleMessageChanged,
 				onSubmitted: _handleSubmitted,
 				decoration: InputDecoration.collapsed(
@@ -85,24 +96,25 @@ class UserProfileState extends State<UserProfilePage> {
 			decoration: BoxDecoration(
 				color: const Color(0x33FFFFFF),
 				borderRadius: BorderRadius.circular(40.0)),
-		),
-		RaisedButton(
+		);
+			}
+
+		Widget _buildDoneButton(){
+			return Padding(padding: EdgeInsets.symmetric(horizontal: 40.0), child: RaisedButton(
 			onPressed: () => _handleSubmitted(_textController.text),
 			color: const Color(0xFF00b0ff),
 				padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
 				shape: RoundedRectangleBorder(
-				borderRadius: new BorderRadius.circular(40.0)),
-			child: new Text(
+				borderRadius: BorderRadius.circular(40.0)),
+			child: Text(
 				"Done",
 				style: TextStyle(
 					fontSize: 20.0,
 					color: Colors.white,
 					fontWeight: FontWeight.w800
 					),
-			))
-		]))),
-		);
-	}
+			)));
+		}
 
 		Widget _buildPhotoButtons(){
 			return Row(children: <Widget>[ Expanded(child: Padding(padding: EdgeInsets.only(left: 20.0, right: 10.0, top: 10.0),
@@ -169,28 +181,31 @@ class UserProfileState extends State<UserProfilePage> {
 				.collection('Users')
 				.document(globals.userState['userId']);
 			userRef.get().then((userResult) {
+				if(userResult.data != null){
 				userResult.data['name'] = text;
-				if (_downloadUrl.length > 0)
-					userResult.data['profilePic'] = _downloadUrl;
-				userRef.updateData(userResult.data).then((onValue) {
+					if (_downloadUrl.length > 0)
+						userResult.data['profilePic'] = _downloadUrl;
+					userRef.updateData(userResult.data).then((onValue) {
+						globals.userState['name'] = text;
+						if (_downloadUrl.length > 0)
+							globals.userState['profilePic'] = _downloadUrl;
+								Navigator.pop(context);
+
+					});
+				} else {
+					userRef.setData(<String, dynamic>{
+					'name': text,
+					'profilePic': _downloadUrl
+				}).then((onValue) {
 					globals.userState['name'] = text;
 					if (_downloadUrl.length > 0)
 						globals.userState['profilePic'] = _downloadUrl;
-				});
+							});
+					}
+						Navigator.pop(context);
+
+
 			});
 		}
 	}
-
-	// Widget _buildCameraView() {
-	// return Padding(
-	// padding: const EdgeInsets.all(16.0),
-	// child: Text(
-	// globals.userState['name'],
-	// style: const TextStyle(
-	// color: Colors.black,
-	// fontSize: 20.0,
-	// fontWeight: FontWeight.w700,
-	// ),
-	// ));
-	// }
 }

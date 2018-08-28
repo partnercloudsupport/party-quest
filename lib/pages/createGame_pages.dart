@@ -47,7 +47,7 @@ class CreateGamePagesState extends State<CreateGamePages> {
     return _selectedCategory == null
         ? Container()
         : Center(
-            child: Column(children: <Widget>[
+            child: ListView(children: <Widget>[
             Padding(padding: EdgeInsets.all(10.0)),
             GestureDetector(
                 child: Container(
