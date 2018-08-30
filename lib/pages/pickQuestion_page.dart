@@ -74,5 +74,18 @@ class PickQuestionPage extends StatelessWidget {
 			'userName': globals.userState['name'],
 			'userId': globals.userState['userId']
 		});
+    // UPDATE Logs.turn
+    final DocumentReference turn =
+        Firestore.instance.collection('Games').document(_gameId);
+    turn.updateData(<String, dynamic>{
+      'turn': {
+        'question': document.data['text'],
+        'dts': DateTime.now(),
+        'peggeeName': globals.userState['name'],
+        'peggeeId': globals.userState['userId'],
+        'peggeeProfileUrl': globals.userState['profilePic'],
+        'guessers': {}
+      }
+    });
 	}
 }

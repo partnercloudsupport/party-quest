@@ -21,7 +21,7 @@ class _ChatViewState extends State<ChatView> {
 
 	bool _showOverlay = false;
 	TapUpDetails _tapDownDetails;
-		DocumentSnapshot _tappedBubble;
+	DocumentSnapshot _tappedBubble;
 
 	_ChatViewState() {
 		globals.gameState.changes.listen((changes) {
@@ -47,7 +47,7 @@ class _ChatViewState extends State<ChatView> {
 						true
 						? _buildTextComposer()
 						: Container()
-            // _buildInfoBox('Tap a speech bubble to react to what people say.')
+							// _buildInfoBox('Tap a speech bubble to react to what people say.')
 						// : _buildReactionComposer()
 				]),
 				_showOverlay == true ? _buildOverlay(_buildReactionComposer()) : Container()
@@ -140,6 +140,27 @@ class _ChatViewState extends State<ChatView> {
 								transition: TransitionType.fadeIn);
 							return _buildButton(document['imageUrl'], inviteFriends,
 								'Invite friends...', 'to get this Pegg Party started!');
+						}
+						var turn = document['turn'];
+            if (turn == null || turn['peggeeId'] == null) {
+							Function onPressed = () => Application.router.navigateTo(
+								context, 'pickQuestion',
+								transition: TransitionType.fadeIn);
+							return _buildButton(document['imageUrl'], onPressed,
+								'Pick Question', 'Ask everyone ' + document['name'] + ' questions.');
+            } 
+						else if (turn['guessers'] == null || turn['guessers'][globals.userState['userId']] == null) {
+              globals.peggeeName = turn['peggeeName'];
+              globals.peggeeProfilePic = turn['peggeeProfileUrl'];
+              globals.question = turn['question'];
+							Function onPressed = () => Application.router.navigateTo(
+                context, 'submitAnswer',
+                transition: TransitionType.fadeIn);
+              return _buildButton(
+                turn['peggeeProfileUrl'],
+                onPressed,
+                'Pegg ' + turn['peggeeName'],
+							"Answer the question about your friend.");
 						} else {
 							Function onPressed = () => Application.router.navigateTo(
 								context, 'pickQuestion',
@@ -147,29 +168,11 @@ class _ChatViewState extends State<ChatView> {
 							return _buildButton(document['imageUrl'], onPressed,
 								'Pick Question', 'Ask everyone ' + document['name'] + ' questions.');
 						}
-						// var turn = document['turn'];
-						// if (turn == null || turn['peggeeId'] == null) {
-						// Function onPressed = () => Application.router.navigateTo(
-						// context, 'peggYourself',
-						// transition: TransitionType.fadeIn);
-						// return _buildButton(globals.userState['profilePic'], onPressed,
-						// 'Pegg Yourself', 'Pick a question and answer it.');
-						// }
 						// if (turn['peggeeId'] == globals.userState['userId']) {
 						// return _buildButton(globals.userState['profilePic'], null,
 						// 'Waiting on...', 'your friends to Pegg you.');
 						// }
-						// if (turn['guessers'] == null ||
-						// turn['guessers'][globals.userState['userId']] == null) {
-						// Function onPressed = () => Application.router.navigateTo(
-						// context, 'peggFriend?answerId=' + turn['answerId'],
-						// transition: TransitionType.fadeIn);
-						// return _buildButton(
-						// turn['peggeeProfileUrl'],
-						// onPressed,
-						// 'Pegg ' + turn['peggeeName'],
-						// "Guess which answer they picked.");
-						// }
+
 						// if (turn['guessers'][globals.userState['userId']] == true) {
 						// return _buildButton(turn['peggeeProfileUrl'], null,
 						// 'Waiting on...', 'friends to Pegg ' + turn['peggeeName']);
@@ -640,8 +643,8 @@ class Bubble extends StatelessWidget {
 								: Container(width: 0.0),
 							Padding(
 								padding: type != null
-									? EdgeInsets.only(top: 18.0, bottom: 28.0)
-									: EdgeInsets.only(bottom: 28.0),
+									? EdgeInsets.only(top: 18.0, bottom: reactions != null ? 28.0 : 10.0)
+									: EdgeInsets.only(bottom: reactions != null ? 28.0 : 10.0),
 								child: Text(message,
 									style: TextStyle(fontSize: 17.0, color: fontColor),
 									textAlign: isMe == true ? TextAlign.right : TextAlign.left),

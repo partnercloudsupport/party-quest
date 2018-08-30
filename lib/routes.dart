@@ -17,6 +17,7 @@ import 'pages/peggYourself_pages.dart';
 import 'pages/inviteFriends_page.dart';
 import 'pages/peggFriend_page.dart';
 import 'pages/pickQuestion_page.dart';
+import 'pages/submitAnswer_page.dart';
 
 class Routes {
 
@@ -31,6 +32,7 @@ class Routes {
     router.define('peggYourself', handler: peggYourselfHandler);
     router.define('inviteFriends', handler: inviteFriendsHandler);
     router.define('peggFriend', handler: peggFriendHandler);
+    router.define('submitAnswer', handler: submitAnswerHandler);
     router.define('pickQuestion', handler: pickQuestionHandler);
     router.define('myGames', handler: myGamesHandler);
     router.define('/', handler: homePageHandler);
@@ -54,6 +56,10 @@ class Routes {
 
   static var pickQuestionHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {
     return new PickQuestionPage();
+  });
+
+  static var submitAnswerHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {
+    return new SubmitAnswerPage();
   });
 
   static var peggFriendHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {
