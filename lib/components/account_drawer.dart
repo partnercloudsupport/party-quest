@@ -240,10 +240,9 @@ class _AccountDrawerState extends State<AccountDrawer> {
 
 void _openGame(DocumentSnapshot game, BuildContext context) {
   globals.gameState['id'] = game.documentID;
-  globals.gameState['category'] = game['category'];
+  globals.gameState['genre'] = game['genre'];
   globals.gameState['name'] = game['name'];
   globals.gameState['title'] = game['title'];
-  // globals.gameState['isPublic'] = game['isPublic'];
   globals.gameState['code'] = game['code'];
   globals.gameState['creator'] = game['creator'];
   globals.gameState['players'] = json.encode(game['players']);

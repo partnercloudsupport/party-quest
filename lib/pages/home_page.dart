@@ -31,13 +31,13 @@ class HomePageState extends State<HomePage> {
 			drawer: AccountDrawer(), // left side
 			appBar: AppBar(
 				// toolbarOpacity: 0.0,
-				leading: new IconButton(
-					icon: new Icon(Icons.account_circle, color: Colors.white),
+				leading: IconButton(
+					icon: Icon(Icons.account_circle, color: Colors.white),
 					onPressed: () => _scaffoldKey.currentState.openDrawer()),
 				backgroundColor: const Color(0xFF00073F),
 				title: Text(_title == null ? 'Public Games' : _title,
 					style:
-						TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+						TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 30.0, letterSpacing: 1.5)),
 				elevation: -1.0,
 				actions: <Widget>[
 					IconButton(
@@ -65,7 +65,7 @@ class HomePageState extends State<HomePage> {
 	}
 
 	Widget _buildStartScreen() {
-		return ListView(children: <Widget> [StreamBuilder<QuerySnapshot>(
+		return Stack(children: <Widget>[ ListView(children: <Widget> [StreamBuilder<QuerySnapshot>(
 			stream: Firestore.instance
 				.collection('Games')
 				.where('isPublic', isEqualTo: true)
@@ -94,7 +94,29 @@ class HomePageState extends State<HomePage> {
 				});
 				return Column(children: labelListTiles);
 			},
-		)]);
+		)]),
+			Align(
+		alignment: Alignment.bottomCenter, child: Container(
+			margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+			child: Padding(
+				padding: const EdgeInsets.only(bottom: 50.0),
+				child: RaisedButton(
+					padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 20.0),
+						color: const Color(0xFF00b0ff),
+						shape: RoundedRectangleBorder(
+							borderRadius:
+								BorderRadius.circular(
+									10.0)),
+						onPressed: () => Application.router
+							.navigateTo(context, 'createGame', transition: TransitionType.fadeIn),
+						child: Text(
+							"Create a Game",
+							style: TextStyle(
+								fontSize: 20.0,
+								color: Colors.white,
+								fontWeight: FontWeight.w800,
+							),)))))
+					]);
 	}
 
 	void _handleGameSelected(BuildContext context, DocumentSnapshot game) {

@@ -15,7 +15,7 @@ class _InfoPageState extends State<InfoPage> {
     if (globals.gameState['id'].length == 0) {
       children = [Container()];
     } else {
-      children..add(_buildPlayersList())..add(_buildUserRequestsList());
+      children..add(_buildCode())..add(_buildPlayersList())..add(_buildUserRequestsList());
     }
 
     return Scaffold(
@@ -43,6 +43,20 @@ class _InfoPageState extends State<InfoPage> {
                       child: ListView(
                           padding: EdgeInsets.zero, children: children)))
             ]));
+  }
+
+  Widget _buildCode() {
+    return Column(children: <Widget>[
+      Padding(
+          padding: EdgeInsets.all(50.0),
+          child: Row(children: <Widget>[
+            Expanded(
+                child: Text(
+              globals.gameState['code'],
+              style: TextStyle(fontSize: 40.0, color: Colors.white),
+            ))
+          ]))
+    ]);
   }
 
   Widget _buildLabel(String labelName) {

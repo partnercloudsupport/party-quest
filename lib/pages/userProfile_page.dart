@@ -84,7 +84,7 @@ class UserProfileState extends State<UserProfilePage> {
 				maxLines: null,
 				keyboardType: TextInputType.text,
 				controller: _textController,
-				style: TextStyle(fontSize: 20.0, color: Colors.white),
+				style: TextStyle(fontSize: 20.0, color: Colors.white, fontFamily: 'LondrinaSolid'),
 				// onChanged: _handleMessageChanged,
 				onSubmitted: _handleSubmitted,
 				decoration: InputDecoration.collapsed(

@@ -6,5 +6,5 @@ String question;
 String peggeeProfilePic;
 String peggeeName;
 ObservableMap userState = toObservable({'loginStatus': '', 'userId': '', 'name': '', 'profilePic': ''});
-ObservableMap gameState = toObservable({'id': '', 'category': '', 'name': '', 'title': '', 'isPublic': '', 'code': ''});
+ObservableMap gameState = toObservable({'id': '', 'genre': '', 'name': '', 'title': '', 'isPublic': '', 'code': ''});
 // List<CameraDescription> cameras;

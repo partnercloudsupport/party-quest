@@ -13,11 +13,11 @@ import 'pages/createGame_pages.dart';
 import 'pages/joinGame_page.dart';
 import 'pages/userProfile_page.dart';
 import 'pages/myGames_page.dart';
-import 'pages/peggYourself_pages.dart';
 import 'pages/inviteFriends_page.dart';
-import 'pages/peggFriend_page.dart';
-import 'pages/pickQuestion_page.dart';
-import 'pages/submitAnswer_page.dart';
+import 'pages/pickScenario_page.dart';
+import 'pages/pickCharacter_page.dart';
+import 'pages/pickResponse_page.dart';
+import 'pages/pickAction_page.dart';
 
 class Routes {
 
@@ -29,11 +29,11 @@ class Routes {
     router.define('userProfile', handler: userProfilePageHandler);
     router.define('createGame', handler: createGameHandler);
     router.define('joinGame', handler: joinGameHandler);
-    router.define('peggYourself', handler: peggYourselfHandler);
     router.define('inviteFriends', handler: inviteFriendsHandler);
-    router.define('peggFriend', handler: peggFriendHandler);
-    router.define('submitAnswer', handler: submitAnswerHandler);
-    router.define('pickQuestion', handler: pickQuestionHandler);
+    router.define('pickScenario', handler: pickScenarioHandler);
+    router.define('pickAction', handler: pickActionHandler);
+    router.define('pickCharacter', handler: pickCharacterHandler);
+    router.define('pickResponse', handler: pickResponseHandler);
     router.define('myGames', handler: myGamesHandler);
     router.define('/', handler: homePageHandler);
   }
@@ -50,21 +50,21 @@ class Routes {
     return new JoinGamePage();
   });
 
-  static var peggYourselfHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {
-    return new PeggYourselfPages();
+  static var pickCharacterHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {
+    return new PickCharacterPage();
   });
 
-  static var pickQuestionHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {
-    return new PickQuestionPage();
+  static var pickActionHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {
+    return new PickActionPage();
   });
 
-  static var submitAnswerHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {
-    return new SubmitAnswerPage();
+  static var pickResponseHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {
+    return new PickResponsePage();
   });
 
-  static var peggFriendHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {
-    String answerId = params["answerId"]?.first;
-    return new PeggFriendPage(answerId);
+  static var pickScenarioHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {
+    // String answerId = params["answerId"]?.first;
+    return new PickScenarioPage();
   });
 
   static var inviteFriendsHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {

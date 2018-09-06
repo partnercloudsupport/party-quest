@@ -53,7 +53,8 @@ class PeggPartyState extends State<PeggParty> {
       title: 'Pegg Party',
       theme: new ThemeData(
           primaryColor: Colors.white,
-          fontFamily: 'Montserrat',
+          fontFamily: 'LondrinaSolid',
+          textTheme: TextTheme(title: TextStyle(letterSpacing: 1.2)) ,
           canvasColor: Colors.black,
           primaryColorLight: Colors.white.withOpacity(0.2)),
       onGenerateRoute: Application.router.generator,
@@ -86,7 +87,7 @@ class PeggPartyState extends State<PeggParty> {
     var userRef = Firestore.instance.collection('Users').document(user.uid);
     globals.userState['loginStatus'] = 'loggingIn';
     userRef.get().then((snapshot) {
-      if (snapshot.data != null) {
+      if (snapshot.data != null) { //snapshot.data != null
         if (snapshot.data['profilePic'] != null) {
           globals.userState['profilePic'] = snapshot.data['profilePic'];
           globals.userState['loginStatus'] = 'loggedIn';

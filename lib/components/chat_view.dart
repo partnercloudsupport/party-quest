@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:timeago/timeago.dart';
 import '../application.dart';
 import 'package:fluro/fluro.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class ChatView extends StatefulWidget {
 	@override
@@ -134,44 +135,41 @@ class _ChatViewState extends State<ChatView> {
 					if (globals.gameState['players']
 						?.contains(globals.userState['userId']) ==
 						true) {
-						if (document['players'].length == 1) {
-							Function inviteFriends = () => Application.router.navigateTo(
-								context, 'inviteFriends?code=' + document['code'],
+							var characters = document['characters'];
+            //PICK A CHARACTER
+						if (characters == null || characters[globals.userState['userId']] == null) {
+							Function pickCharacter = () => Application.router.navigateTo(
+								context, 'pickCharacter',
 								transition: TransitionType.fadeIn);
-							return _buildButton(document['imageUrl'], inviteFriends,
-								'Invite friends...', 'to get this Pegg Party started!');
+							return _buildButton(document['imageUrl'], pickCharacter,
+								'Pick a character...', 'to play as in this story!');
 						}
+            //PICK A SCENARIO
 						var turn = document['turn'];
-            if (turn == null || turn['peggeeId'] == null) {
+						if (turn == null || turn['scenario'] == null) {  
 							Function onPressed = () => Application.router.navigateTo(
-								context, 'pickQuestion',
+								context, 'pickScenario',
 								transition: TransitionType.fadeIn);
 							return _buildButton(document['imageUrl'], onPressed,
-								'Pick Question', 'Ask everyone ' + document['name'] + ' questions.');
-            } 
-						else if (turn['guessers'] == null || turn['guessers'][globals.userState['userId']] == null) {
-              globals.peggeeName = turn['peggeeName'];
-              globals.peggeeProfilePic = turn['peggeeProfileUrl'];
-              globals.question = turn['question'];
+							'Pick a Scenario', 'Set the stage for your party quest.');
+						} 
+            // START YOUR TURN
+						if (turn['scenario'] != null && turn['turnPhase'] == null) { // || turn['actors'][globals.userState['userId']] == null)
 							Function onPressed = () => Application.router.navigateTo(
-                context, 'submitAnswer',
-                transition: TransitionType.fadeIn);
-              return _buildButton(
-                turn['peggeeProfileUrl'],
-                onPressed,
-                'Pegg ' + turn['peggeeName'],
-							"Answer the question about your friend.");
+								context, 'pickAction',
+								transition: TransitionType.fadeIn);
+								return _buildButton(globals.userState['profilePic'], onPressed,
+									'What do you do?', "It's your turn, " + globals.userState['name'] + '.');
+						} else if(turn['turnPhase'] == 'respond') {
+							Function onPressed = () => Application.router.navigateTo(
+								context, 'pickResponse',
+								transition: TransitionType.fadeIn);
+							return _buildButton(document['imageUrl'], onPressed,
+								'What happens next?', 'Tell the next part of the story.');
 						} else {
-							Function onPressed = () => Application.router.navigateTo(
-								context, 'pickQuestion',
-								transition: TransitionType.fadeIn);
-							return _buildButton(document['imageUrl'], onPressed,
-								'Pick Question', 'Ask everyone ' + document['name'] + ' questions.');
+              return _buildButton(globals.userState['profilePic'], null,
+              'Waiting on...', 'your friends to play.');
 						}
-						// if (turn['peggeeId'] == globals.userState['userId']) {
-						// return _buildButton(globals.userState['profilePic'], null,
-						// 'Waiting on...', 'your friends to Pegg you.');
-						// }
 
 						// if (turn['guessers'][globals.userState['userId']] == true) {
 						// return _buildButton(turn['peggeeProfileUrl'], null,
@@ -269,14 +267,36 @@ class _ChatViewState extends State<ChatView> {
 								} else {
 									nextDocument = snapshot.data.documents[index];
 								}
+									if(document['type'] == 'narration'){
+										return Container(child: Padding(padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0), child: 
+											Column(children: <Widget>[
+
+											document['titleImageUrl'] != null ?
+                      CachedNetworkImage(
+												placeholder: CircularProgressIndicator(),
+												imageUrl: document['titleImageUrl'],
+												height: 80.0,
+												width: 80.0) : Container(),
+											document['title'] != null ?
+                      Padding(padding: EdgeInsets.only(top: 5.0, bottom: 10.0), child: Text(document['title'],
+												style: new TextStyle(
+													color: Colors.white,
+													fontWeight: FontWeight.w800,
+													letterSpacing: 0.5,
+													fontSize: 24.0,
+												))) : Container(),
+												Text(document['text'].replaceAll('\\n', '\n\n'), style: TextStyle(color: Colors.white, fontSize: 20.0 ))
+											]
+
+											)));
+									}
 								var message = new ChatMessage(
 									type: document['type'],
+									title: document['title'],
 									userId: document['userId'],
 									userName: document['userName'],
 									reactions: document['reactions'],
-									text: document['text'].replaceAllMapped(
-										new RegExp(r'\[([^|]+)\|([^\]]+)]'),
-										(Match m) => '${m[1]}'),
+									text: document['text'],
 									profileUrl: document['profileUrl'],
 									dts: document['dts']);
 								if (message.userName != null &&
@@ -340,7 +360,7 @@ class _ChatViewState extends State<ChatView> {
 					child: Row(children: <Widget>[
 						Flexible(
 							child: TextField(
-								style: TextStyle(color: Colors.white, fontSize: 18.0),
+								style: TextStyle(color: Colors.white, fontSize: 18.0, fontFamily: 'LondrinaSolid'),
 								maxLines: null,
 								keyboardType: TextInputType.multiline,
 								controller: _textController,
@@ -478,14 +498,17 @@ class ChatMessage {
 		this.text,
 		this.profileUrl,
 		this.dts,
-			this.reactions});
+			this.reactions,
+      this.title});
 	final String type;
 	final String userId;
 	final String text;
 	final String profileUrl;
 	final String userName;
+	final String title;
 	final DateTime dts;
 		final Map reactions;
+
 }
 
 class ChatMessageListItem extends StatelessWidget {
@@ -509,7 +532,8 @@ class ChatMessageListItem extends StatelessWidget {
 								delivered: true,
 								isMe: true,
 								type: message.type,
-									reactions: message.reactions),
+									reactions: message.reactions,
+                title: message.title),
 						],
 					)),
 					Container(
@@ -555,8 +579,10 @@ class ChatMessageListItem extends StatelessWidget {
 								time: timeAgo(message.dts.toLocal()),
 								delivered: true,
 								isMe: false,
+									userName: message.userName,
 								type: message.type,
-									reactions: message.reactions),
+									reactions: message.reactions,
+                  title: message.title),
 						],
 					)),
 				],
@@ -570,16 +596,16 @@ class ChatMessageListItem extends StatelessWidget {
 }
 
 class Bubble extends StatelessWidget {
-	Bubble({this.message, this.time, this.delivered, this.isMe, this.type, this.reactions});
+	Bubble({this.message, this.time, this.delivered, this.isMe, this.type, this.userName, this.reactions, this.title});
 
-	final String message, time, type;
+	final String message, time, type, userName, title;
 	final delivered, isMe;
 		final Map reactions;
 
 	@override
 	Widget build(BuildContext context) {
 		var bg = Colors.white.withOpacity(.2);
-		if (type == 'question') {
+		if (type == 'characterAction') {
 			bg = const Color(0xFFFFFFFF);
 		} else if (type == 'win') {
 			bg = const Color(0xBB9DEB0F);
@@ -588,7 +614,7 @@ class Bubble extends StatelessWidget {
 		} else if (type == 'answer') {
 			bg = const Color(0xFF9DEB0F);
 		}
-		final fontColor = type == 'question' ||
+		final fontColor = type == 'characterAction' ||
 			type == 'answer' ||
 			type == 'win' ||
 			type == 'fail'
@@ -629,12 +655,12 @@ class Bubble extends StatelessWidget {
 					),
 					child: Stack(
 						children: <Widget>[
-							type != null
+							type == 'characterAction'
 								? Positioned(
 									top: 0.0,
 									right: isMe == true ? 0.0 : null,
 									left: isMe != true ? 0.0 : null,
-									child: Text(type,
+									child: Text(title,
 										style: TextStyle(
 											fontSize: 12.0,
 											color: Colors.black,
