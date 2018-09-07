@@ -1,4 +1,4 @@
-library pegg_party.globals;
+library party_quest.globals;
 // import 'package:camera/camera.dart';
 import 'package:observable/observable.dart';
 

@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/pegg_party.iml" filepath="$PROJECT_DIR$/pegg_party.iml" />
-      <module fileurl="file://$PROJECT_DIR$/pegg_party_android.iml" filepath="$PROJECT_DIR$/pegg_party_android.iml" />
+      <module fileurl="file://$PROJECT_DIR$/party_quest.iml" filepath="$PROJECT_DIR$/party_quest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/party_quest_android.iml" filepath="$PROJECT_DIR$/party_quest_android.iml" />
     </modules>
   </component>
 </project>

@@ -1,4 +1,4 @@
-# pegg_party
+# party_quest
 
 A new Flutter project.
 

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:pegg_party/globals.dart' as globals;
+import 'package:party_quest/globals.dart' as globals;
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -185,6 +185,8 @@ class UserProfileState extends State<UserProfilePage> {
 				userResult.data['name'] = text;
 					if (_downloadUrl.length > 0)
 						userResult.data['profilePic'] = _downloadUrl;
+          // else
+					// 	userResult.data['profilePic'] = 'https://firebasestorage.googleapis.com/v0/b/party-quest-dev.appspot.com/o/profile-placeholder.png?alt=media&token=35a5323c-0b10-4332-a8c2-355d26e950a8';
 					userRef.updateData(userResult.data).then((onValue) {
 						globals.userState['name'] = text;
 						if (_downloadUrl.length > 0)

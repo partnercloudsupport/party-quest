@@ -1,7 +1,7 @@
 // import 'dart:math';
 import 'package:flutter/material.dart';
 import '../application.dart';
-import 'package:pegg_party/globals.dart' as globals;
+import 'package:party_quest/globals.dart' as globals;
 import 'package:fluro/fluro.dart';
 
 class SplashPage extends StatefulWidget {

@@ -6,7 +6,7 @@ import 'routes.dart';
 import 'pages/splash_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:pegg_party/globals.dart' as globals;
+import 'package:party_quest/globals.dart' as globals;
 import 'pages/home_page.dart';
 import 'package:flutter/services.dart';
 

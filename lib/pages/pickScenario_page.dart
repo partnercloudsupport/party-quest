@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 // import 'package:cached_network_image/cached_network_image.dart';
-import 'package:pegg_party/globals.dart' as globals;
+import 'package:party_quest/globals.dart' as globals;
 // import 'dart:math';
 
 class PickScenarioPage extends StatelessWidget {
@@ -75,6 +75,8 @@ class PickScenarioPage extends StatelessWidget {
         Firestore.instance.collection('Games').document(_gameId);
     turn.updateData(<String, dynamic>{
       'turn': {
+        'playerId': globals.userState['userId'],
+        'turnPhase': 'act',
         'scenario': document.data['title'],
         'dts': DateTime.now(),
       }

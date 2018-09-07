@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:pegg_party/globals.dart' as globals;
+import 'package:party_quest/globals.dart' as globals;
 import 'package:flutter/services.dart';
 import 'package:timeago/timeago.dart';
 import '../application.dart';
@@ -64,22 +64,23 @@ class _ChatViewState extends State<ChatView> {
 		// }
 	}
 
-	Widget _buildInfoBox(String infoText){
-		return Container(
-			decoration: BoxDecoration(
-				color: Color(0xFF4C6296),
-				// boxShadow: <BoxShadow>[
-				// BoxShadow(
-				// color: Colors.black12,
-				// blurRadius: 10.0,
-				// offset: Offset(0.0, -10.0),
-				// ),
-				// ],
-			),
-			height: 80.0,
-			child: Padding(padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
-				child: Text(infoText, style: TextStyle(color: Colors.white, fontSize: 20.0, fontWeight: FontWeight.w600))));
-	}
+	// Widget _buildInfoBox(String infoText){
+	// 	return Container(
+	// 		decoration: BoxDecoration(
+	// 			color: Color(0xFF4C6296),
+	// 			// boxShadow: <BoxShadow>[
+	// 			// BoxShadow(
+	// 			// color: Colors.black12,
+	// 			// blurRadius: 10.0,
+	// 			// offset: Offset(0.0, -10.0),
+	// 			// ),
+	// 			// ],
+	// 		),
+	// 		height: 80.0,
+	// 		child: Padding(padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+	// 			child: Text(infoText, style: TextStyle(color: Colors.white, fontSize: 20.0, fontWeight: FontWeight.w600))));
+	// }
+
 	Widget _buildOverlay(Widget content) {
 		MediaQueryData queryData;
 		queryData = MediaQuery.of(context);
@@ -153,28 +154,35 @@ class _ChatViewState extends State<ChatView> {
 							return _buildButton(document['imageUrl'], onPressed,
 							'Pick a Scenario', 'Set the stage for your party quest.');
 						} 
-            // START YOUR TURN
-						if (turn['scenario'] != null && turn['turnPhase'] == null) { // || turn['actors'][globals.userState['userId']] == null)
-							Function onPressed = () => Application.router.navigateTo(
-								context, 'pickAction',
-								transition: TransitionType.fadeIn);
-								return _buildButton(globals.userState['profilePic'], onPressed,
-									'What do you do?', "It's your turn, " + globals.userState['name'] + '.');
-						} else if(turn['turnPhase'] == 'respond') {
-							Function onPressed = () => Application.router.navigateTo(
-								context, 'pickResponse',
-								transition: TransitionType.fadeIn);
-							return _buildButton(document['imageUrl'], onPressed,
-								'What happens next?', 'Tell the next part of the story.');
-						} else {
-              return _buildButton(globals.userState['profilePic'], null,
-              'Waiting on...', 'your friends to play.');
-						}
+            
+            // YOUR TURN
+            if(turn['playerId'] == globals.userState['userId']){
+              // ACT PHASE
+              if (turn['turnPhase'] == 'act') {
+                Function onPressed = () => Application.router.navigateTo(
+                  context, 'pickAction',
+                  transition: TransitionType.fadeIn);
+                  return _buildButton(globals.userState['profilePic'], onPressed,
+                    'What do you do?', "It's your turn, " + globals.userState['name'] + '.');
+              }
+              // RESPOND PHASE
+              if(turn['turnPhase'] == 'respond') {
+                Function onPressed = () => Application.router.navigateTo(
+                  context, 'pickResponse',
+                  transition: TransitionType.fadeIn);
+                return _buildButton(document['imageUrl'], onPressed,
+                  'What happens next?', 'Tell the next part of the story.');
+              }
+            }
 
-						// if (turn['guessers'][globals.userState['userId']] == true) {
-						// return _buildButton(turn['peggeeProfileUrl'], null,
-						// 'Waiting on...', 'friends to Pegg ' + turn['peggeeName']);
-						// }
+            // NOT YOUR TURN
+            if(turn['playerImageUrl'] != null){
+              return _buildButton(turn['playerImageUrl'], null,
+                'Waiting on...', 'Your friend ' + turn['playerName'] + ' to finish their turn.');
+            } else{
+              return _buildButton(document['imageUrl'], null,
+                'Waiting on...', 'The next player to start their turn');
+            }
 					} else {
 						return Container();
 						// return _buildButton(
@@ -336,20 +344,20 @@ class _ChatViewState extends State<ChatView> {
 		});
 	}
 
-	void _handleJoinButtonPressed() {
-		var userRef = Firestore.instance
-			.collection('Users')
-			.document(globals.userState['userId']);
-		userRef.get().then((snapshot) {
-			Map userRequests = snapshot.data['requests'] == null
-				? new Map()
-				: snapshot.data['requests'];
-			userRequests[globals.gameState['code']] = true;
-			userRef.updateData(<String, dynamic>{
-				'requests': userRequests,
-			});
-		});
-	}
+	// void _handleJoinButtonPressed() {
+	// 	var userRef = Firestore.instance
+	// 		.collection('Users')
+	// 		.document(globals.userState['userId']);
+	// 	userRef.get().then((snapshot) {
+	// 		Map userRequests = snapshot.data['requests'] == null
+	// 			? new Map()
+	// 			: snapshot.data['requests'];
+	// 		userRequests[globals.gameState['code']] = true;
+	// 		userRef.updateData(<String, dynamic>{
+	// 			'requests': userRequests,
+	// 		});
+	// 	});
+	// }
 
 	Widget _buildTextComposer() {
 		return Container(

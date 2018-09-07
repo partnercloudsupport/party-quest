@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:pegg_party/globals.dart' as globals;
+import 'package:party_quest/globals.dart' as globals;
 import 'dart:math';
 import 'dart:convert';
 
@@ -154,6 +154,7 @@ class CreateGamePagesState extends State<CreateGamePages> {
 			'turn': {'dts': DateTime.now()}
 		});
 
+    Navigator.pop(context);
 		//UPDATE User.games
 		var userRef = Firestore.instance
 			.collection('Users')
@@ -170,7 +171,6 @@ class CreateGamePagesState extends State<CreateGamePages> {
 				globals.gameState['name'] = _selectedGenre['name'];
 				globals.gameState['title'] = text;
 				// globals.gameState['isPublic'] = _isPublic;
-				Navigator.pop(context);
 				globals.gameState['code'] = code;
 				globals.gameState['creator'] = userId;
 				globals.gameState['players'] = json.encode({userId: true});

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:pegg_party/globals.dart' as globals;
-// import 'dart:math';
+import 'package:party_quest/globals.dart' as globals;
+import 'dart:math';
 
 class PickActionPage extends StatefulWidget {
 	@override
@@ -184,6 +184,16 @@ class _PickActionPageState extends State<PickActionPage> with SingleTickerProvid
 		  var _gameId = globals.gameState['id'];
       var chosenSkill = _skills[_tabController.index];
       var skillPower = _characterData['skills'][chosenSkill];
+      var outComePossibilities = [
+        ' fails miserably!',
+        ' just barely fails.',
+        ' just barely succeeds.',
+        ' succeeds spectacularly!'
+      ];
+      var rng = new Random();
+      var result = rng.nextInt(11) + skillPower;
+      if(result > 12) result = 12;
+      var outcomeText = outComePossibilities[(result/3).round()];
 			Firestore.instance.collection('Games/$_gameId/Logs').document()
       .setData(<String, dynamic>{
         'text': _textController.text,
@@ -195,12 +205,17 @@ class _PickActionPageState extends State<PickActionPage> with SingleTickerProvid
       });
 			Firestore.instance.collection('Games/$_gameId/Logs').document()
       .setData(<String, dynamic>{
-        'text': _characterData['characterName'] + ' succeeds spectacularly!',
+        'text': _characterData['characterName'] + outcomeText,
         'type': 'narration',
         'dts': DateTime.now(),
         'userId': globals.userState['userId']
       });
-      var turns = [_turnData, {'turnPhase': 'respond', 'dts': DateTime.now()}];
+      var turns = [_turnData, {
+        'turnPhase': 'respond', 
+        'dts': DateTime.now(), 
+        'playerImageUrl': globals.userState['profilePic'],
+        'playerName': globals.userState['name']
+      }];
       var combinedTurns = turns.reduce((map1, map2) => map1..addAll(map2));
       final DocumentReference turn =
         Firestore.instance.collection('Games').document(_gameId);

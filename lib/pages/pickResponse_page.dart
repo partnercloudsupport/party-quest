@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:pegg_party/globals.dart' as globals;
+import 'package:party_quest/globals.dart' as globals;
 
 class PickResponsePage extends StatelessWidget {
 	final TextEditingController _textController = TextEditingController();
@@ -89,8 +89,21 @@ class PickResponsePage extends StatelessWidget {
     final DocumentReference gameRef =
         Firestore.instance.collection('Games').document(_gameId);
     gameRef.get().then((gameResult) {
-      var nextPlayer = gameResult['players'];
-      var turns = [gameResult['turn'], {'playerId': 'asdksajf', 'dts': DateTime.now(), 'turnPhase': 'act'}];
+      String nextPlayerId;
+      List<dynamic> sortedPlayerIds = gameResult['players'].keys.toList()..sort();
+      int playerIndex = sortedPlayerIds.indexOf(globals.userState['userId']);
+      if(playerIndex < sortedPlayerIds.length-1){
+        nextPlayerId = sortedPlayerIds[playerIndex+1];
+      } else {
+        nextPlayerId = sortedPlayerIds[0];
+      }
+      var turns = [gameResult['turn'], {
+        'playerId': nextPlayerId,
+        'dts': DateTime.now(), 
+        'turnPhase': 'act',
+        'playerImageUrl': null,
+        'playerName': null}
+      ];
       var combinedTurns = turns.reduce((map1, map2) => map1..addAll(map2));
       gameRef.updateData(<String, dynamic>{
         'turn': combinedTurns

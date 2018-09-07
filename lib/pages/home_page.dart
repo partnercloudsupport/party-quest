@@ -3,7 +3,7 @@ import '../application.dart';
 import 'package:fluro/fluro.dart';
 import '../components/chat_view.dart';
 import '../components/account_drawer.dart';
-import 'package:pegg_party/globals.dart' as globals;
+import 'package:party_quest/globals.dart' as globals;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 

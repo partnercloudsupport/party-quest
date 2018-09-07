@@ -1,4 +1,4 @@
-name: pegg_party
+name: party_quest
 description: Laugh with your friends and fans about each other.
 
 dependencies:
@@ -44,6 +44,9 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
    - assets/images/
+
+  # Got our emojis from: 
+  # https://www.emojione.com/blog/emojione-to-release-version-40-with-special-preorder-offer
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.io/assets-and-images/#resolution-aware.
