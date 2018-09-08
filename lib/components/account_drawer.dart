@@ -65,7 +65,7 @@ class _AccountDrawerState extends State<AccountDrawer> {
               color: Colors.white,
               fontWeight: FontWeight.w100,
               // letterSpacing: 0.5,
-              fontSize: 12.0,
+              fontSize: 16.0,
             )));
   }
 
@@ -73,17 +73,17 @@ class _AccountDrawerState extends State<AccountDrawer> {
     return [
       ListTile(
           title: Text("Create Game",
-              style: TextStyle(color: Colors.white, fontSize: 16.0)),
+              style: TextStyle(color: Colors.white, fontSize: 18.0)),
           leading: Icon(Icons.brush, color: Colors.white, size: 30.0),
           onTap: () => _openCreateGame()),
       ListTile(
           title: Text("Join Game",
-              style: TextStyle(color: Colors.white, fontSize: 16.0)),
+              style: TextStyle(color: Colors.white, fontSize: 18.0)),
           leading: Icon(Icons.group_add, color: Colors.white, size: 30.0),
           onTap: () => _openJoinGame()),      
       ListTile(
           title: Text("Public Games",
-              style: TextStyle(color: Colors.white, fontSize: 16.0)),
+              style: TextStyle(color: Colors.white, fontSize: 18.0)),
           leading: Icon(Icons.bubble_chart, color: Colors.white, size: 30.0),
           onTap: () => _openPublicGames()),
       // ListTile(
@@ -142,7 +142,7 @@ class _AccountDrawerState extends State<AccountDrawer> {
                       color: Colors.white,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 0.5,
-                      fontSize: 24.0,
+                      fontSize: 28.0,
                     ))
               ]),
               onTap: () => Application.router.navigateTo(context, 'userProfile',
@@ -226,16 +226,36 @@ class _AccountDrawerState extends State<AccountDrawer> {
                   style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w800,
-                      fontSize: 15.0)),
+                      fontSize: 17.0)),
               subtitle: Text(game['name'],
                   style: TextStyle(
                       color: Colors.white, fontWeight: FontWeight.w100)),
+              trailing: RaisedButton(
+                  color: const Color(0xFF00b0ff),
+                  shape: new RoundedRectangleBorder(
+                    borderRadius:
+                      new BorderRadius.circular(
+                        10.0)),
+                  onPressed: () => _handleInviteButtonTap(context, game["code"]),
+                  child: new Text(
+                    "Invite",
+                    style: new TextStyle(
+                      fontSize: 18.0,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                    ),)),
               onTap: () => _openGame(game, context),
             ));
           });
           return Column(children: labelListTiles);
         });
   }
+}
+
+void _handleInviteButtonTap(BuildContext context, String code){
+  Application.router.navigateTo(
+			context, 'inviteFriends?code=' + code,
+			transition: TransitionType.fadeIn);
 }
 
 void _openGame(DocumentSnapshot game, BuildContext context) {

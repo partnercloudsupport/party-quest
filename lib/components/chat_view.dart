@@ -145,6 +145,14 @@ class _ChatViewState extends State<ChatView> {
 							return _buildButton(document['imageUrl'], pickCharacter,
 								'Pick a character...', 'to play as in this story!');
 						}
+            //INVITE SOMEONE
+            if (document['players'].length == 1) {
+							Function pickCharacter = () => Application.router.navigateTo(
+								context, 'inviteFriends?code=' + document['code'],
+								transition: TransitionType.fadeIn);
+							return _buildButton(document['imageUrl'], pickCharacter,
+								'Invite a friend!', 'Get your party together.');
+						}
             //PICK A SCENARIO
 						var turn = document['turn'];
 						if (turn == null || turn['scenario'] == null) {  
@@ -154,7 +162,6 @@ class _ChatViewState extends State<ChatView> {
 							return _buildButton(document['imageUrl'], onPressed,
 							'Pick a Scenario', 'Set the stage for your party quest.');
 						} 
-            
             // YOUR TURN
             if(turn['playerId'] == globals.userState['userId']){
               // ACT PHASE
@@ -174,7 +181,6 @@ class _ChatViewState extends State<ChatView> {
                   'What happens next?', 'Tell the next part of the story.');
               }
             }
-
             // NOT YOUR TURN
             if(turn['playerImageUrl'] != null){
               return _buildButton(turn['playerImageUrl'], null,
@@ -368,7 +374,7 @@ class _ChatViewState extends State<ChatView> {
 					child: Row(children: <Widget>[
 						Flexible(
 							child: TextField(
-								style: TextStyle(color: Colors.white, fontSize: 18.0, fontFamily: 'LondrinaSolid'),
+								style: TextStyle(color: Colors.white, fontSize: 20.0, fontFamily: 'LondrinaSolid'),
 								maxLines: null,
 								keyboardType: TextInputType.multiline,
 								controller: _textController,
@@ -430,12 +436,12 @@ class _ChatViewState extends State<ChatView> {
 							style: TextStyle(
 								color: Colors.white,
 								letterSpacing: 0.5,
-								fontSize: 12.0,
+								fontSize: 14.0,
 							),
 						), Text(timeAgo(dts.toLocal()),
 							style: TextStyle(
 								color: Colors.white.withOpacity(.8),
-								fontSize: 10.0,
+								fontSize: 12.0,
 							))
 			])))]);
 	}
@@ -485,7 +491,7 @@ class _ChatViewState extends State<ChatView> {
 																		color: Colors.white,
 																		// fontWeight: FontWeight.w800,
 																		letterSpacing: 0.5,
-																		fontSize: 12.0,
+																		fontSize: 14.0,
 																	),
 																)
 															])))
@@ -670,7 +676,7 @@ class Bubble extends StatelessWidget {
 									left: isMe != true ? 0.0 : null,
 									child: Text(title,
 										style: TextStyle(
-											fontSize: 12.0,
+											fontSize: 14.0,
 											color: Colors.black,
 											fontWeight: FontWeight.w600)),
 									)
@@ -680,7 +686,7 @@ class Bubble extends StatelessWidget {
 									? EdgeInsets.only(top: 18.0, bottom: reactions != null ? 28.0 : 10.0)
 									: EdgeInsets.only(bottom: reactions != null ? 28.0 : 10.0),
 								child: Text(message,
-									style: TextStyle(fontSize: 17.0, color: fontColor),
+									style: TextStyle(fontSize: 19.0, color: fontColor),
 									textAlign: isMe == true ? TextAlign.right : TextAlign.left),
 							),
 							Positioned(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:party_quest/globals.dart' as globals;
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_functions/cloud_functions.dart';
+import 'friendRequest_widget.dart';
 
 class InfoPage extends StatefulWidget {
   @override
@@ -15,7 +15,8 @@ class _InfoPageState extends State<InfoPage> {
     if (globals.gameState['id'].length == 0) {
       children = [Container()];
     } else {
-      children..add(_buildCode())..add(_buildPlayersList())..add(_buildUserRequestsList());
+      children
+      ..add(_buildPlayersList())..add(_buildUserRequestsList());
     }
 
     return Scaffold(
@@ -84,41 +85,10 @@ class _InfoPageState extends State<InfoPage> {
             labelListTiles.add(_buildLabel('Requests to Join'));
           }
           snapshot.data.documents.forEach((user) {
-            labelListTiles.add(ListTile(
-              leading: CircleAvatar(
-                  backgroundImage: NetworkImage(user['profilePic'])),
-              title:
-                  new Text(user['name'], style: TextStyle(color: Colors.white)),
-              trailing: globals.gameState['creator'] ==
-                      globals.userState['userId']
-                  ? FlatButton(
-                      key: null,
-                      onPressed: () => _handleRequestApproved(user.documentID),
-                      color: const Color(0xFF00b0ff),
-                      child: new Text(
-                        "Approve",
-                        style: new TextStyle(
-                          fontSize: 16.0,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ))
-                  : null,
-              // subtitle: new Text("Level 1 - Played by Bobby")
-            ));
+            labelListTiles.add(FriendRequest(friend: user));
           });
           return Column(children: labelListTiles);
         });
-  }
-
-  void _handleRequestApproved(String userId) async {
-    dynamic resp = await CloudFunctions.instance
-        .call(functionName: 'acceptRequest', parameters: <String, dynamic>{
-      'userId': userId,
-      'gameId': globals.gameState['id'],
-      'code': globals.gameState['code']
-    });
-    print(resp);
   }
 
   Widget _buildPlayersList() {
