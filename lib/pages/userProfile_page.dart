@@ -14,6 +14,7 @@ class UserProfilePage extends StatefulWidget {
 class UserProfileState extends State<UserProfilePage> {
 	String _downloadUrl, _profilePic;
 	final TextEditingController _textController = TextEditingController();
+  bool _buttonEnabled = false;
 
 	@override
 	void initState() {
@@ -86,7 +87,8 @@ class UserProfileState extends State<UserProfilePage> {
 				controller: _textController,
 				style: TextStyle(fontSize: 20.0, color: Colors.white, fontFamily: 'LondrinaSolid'),
 				// onChanged: _handleMessageChanged,
-				onSubmitted: _handleSubmitted,
+        onChanged: _handleTextFieldChange,
+				// onSubmitted: _handleSubmitted,
 				decoration: InputDecoration.collapsed(
 					hintStyle: TextStyle(fontSize: 20.0, color: Colors.white),
 					hintText: globals.userState['name'] == ''
@@ -101,7 +103,7 @@ class UserProfileState extends State<UserProfilePage> {
 
 		Widget _buildDoneButton(){
 			return Padding(padding: EdgeInsets.symmetric(horizontal: 40.0), child: RaisedButton(
-			onPressed: () => _handleSubmitted(_textController.text),
+			onPressed: _buttonEnabled ? _handleSubmitted : null,
 			color: const Color(0xFF00b0ff),
 				padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
 				shape: RoundedRectangleBorder(
@@ -174,40 +176,48 @@ class UserProfileState extends State<UserProfilePage> {
 			}
 	}
 
-	void _handleSubmitted(String text) {
-		_textController.clear();
-		if (text.length > 0) {
-			final DocumentReference userRef = Firestore.instance
-				.collection('Users')
-				.document(globals.userState['userId']);
-			userRef.get().then((userResult) {
-				if(userResult.data != null){
-				userResult.data['name'] = text;
-					if (_downloadUrl.length > 0)
-						userResult.data['profilePic'] = _downloadUrl;
-          // else
-					// 	userResult.data['profilePic'] = 'https://firebasestorage.googleapis.com/v0/b/party-quest-dev.appspot.com/o/profile-placeholder.png?alt=media&token=35a5323c-0b10-4332-a8c2-355d26e950a8';
-					userRef.updateData(userResult.data).then((onValue) {
-						globals.userState['name'] = text;
-						if (_downloadUrl.length > 0)
-							globals.userState['profilePic'] = _downloadUrl;
-								Navigator.pop(context);
+  void _handleTextFieldChange(String text){
+    if(_textController.text.length > 0){
+      setState((){
+        _buttonEnabled = true;
+      });
+    } else {
+      setState((){
+        _buttonEnabled = false;
+      });
+    }
+  }
 
-					});
-				} else {
-					userRef.setData(<String, dynamic>{
-					'name': text,
-					'profilePic': _downloadUrl
-				}).then((onValue) {
-					globals.userState['name'] = text;
-					if (_downloadUrl.length > 0)
-						globals.userState['profilePic'] = _downloadUrl;
-							});
-					}
-						Navigator.pop(context);
-
-
-			});
-		}
+	void _handleSubmitted() {
+    var text = _textController.text;
+    _textController.clear();
+    final DocumentReference userRef = Firestore.instance
+      .collection('Users')
+      .document(globals.userState['userId']);
+    userRef.get().then((userResult) {
+      if(userResult.data != null){
+      userResult.data['name'] = text;
+        if (_downloadUrl.length > 0)
+          userResult.data['profilePic'] = _downloadUrl;
+        // else
+        // 	userResult.data['profilePic'] = 'https://firebasestorage.googleapis.com/v0/b/party-quest-dev.appspot.com/o/profile-placeholder.png?alt=media&token=35a5323c-0b10-4332-a8c2-355d26e950a8';
+        userRef.updateData(userResult.data).then((onValue) {
+          globals.userState['name'] = text;
+          if (_downloadUrl.length > 0)
+            globals.userState['profilePic'] = _downloadUrl;
+              Navigator.pop(context);
+        });
+      } else {
+        userRef.setData(<String, dynamic>{
+        'name': text,
+        'profilePic': _downloadUrl
+      }).then((onValue) {
+        globals.userState['name'] = text;
+        if (_downloadUrl.length > 0)
+          globals.userState['profilePic'] = _downloadUrl;
+            });
+        }
+          Navigator.pop(context);
+    });
 	}
 }

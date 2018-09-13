@@ -175,13 +175,14 @@ class _ChatViewState extends State<ChatView> {
                   return _buildButton(globals.userState['profilePic'], onPressed,
                     'What do you do?', "It's your turn, " + globals.userState['name'] + '.');
               }
-              // RESPOND PHASE
-              if(_turn['turnPhase'] == 'difficulty' && (_turn['playerId'] != globals.userState['userId'] || document['players'].length == 1)) {
+              // DIFFICULTY
+              if(_turn['turnPhase'] == 'difficulty' && document['players'].length == 1) {
+                //you can set your own difficulty if you're the only person in here.
                 return RatingButton(_turn);
               }
               // ROLL PHASE
               if(_turn['turnPhase'] == 'roll' && _turn['playerId'] == globals.userState['userId']){
-                return RollButton(_turn);
+                return RollButton(_turn, characters);
                 // Function onPressed = () => Application.router.navigateTo(
                 //   context, 'pickRoll',
                 //   transition: TransitionType.fadeIn);
@@ -198,6 +199,11 @@ class _ChatViewState extends State<ChatView> {
               }
             }
             // NOT YOUR TURN
+            // RESPOND PHASE
+            if(_turn['turnPhase'] == 'difficulty') {
+              return RatingButton(_turn);
+            }
+
             if(_turn['playerImageUrl'] != null){
               return _buildButton(_turn['playerImageUrl'], null,
                 'Waiting on...', 'Your friend ' + _turn['playerName'] + ' to finish their turn.');

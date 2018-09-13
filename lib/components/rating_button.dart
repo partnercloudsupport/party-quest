@@ -31,9 +31,9 @@ class _RatingButtonState extends State<RatingButton> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             _buildRatingButton(1, 'easy'),
-            _buildRatingButton(2, ''),
+            _buildRatingButton(2, 'tricky'),
             _buildRatingButton(3, 'hard'),
-            _buildRatingButton(4, ''),
+            _buildRatingButton(4, 'brutal'),
             _buildRatingButton(5, 'insane')])
         ])
             );
@@ -67,7 +67,7 @@ class _RatingButtonState extends State<RatingButton> {
       String _gameId = globals.gameState['id'];
     	Firestore.instance.collection('Games/$_gameId/Logs').document()
       .setData(<String, dynamic>{
-        'text': 'I give it a ' + value.toString() + '. ' + description,
+        'text': 'That sounds ' + description + '.',
         'title': 'Difficulty Check',
         'type': 'difficulty',
         'dts': DateTime.now(),

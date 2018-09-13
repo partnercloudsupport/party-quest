@@ -36,9 +36,9 @@ class PickCharacterPage extends StatelessWidget {
 		alignment: Alignment.bottomCenter, child: Container(
 			margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
 			child: Padding(
-				padding: const EdgeInsets.only(bottom: 50.0),
+				padding: const EdgeInsets.only(bottom: 5.0),
 				child: RaisedButton(
-					padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 20.0),
+					padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 30.0),
 						color: const Color(0xFF00b0ff),
 						shape: new RoundedRectangleBorder(
 							borderRadius:
@@ -46,9 +46,9 @@ class PickCharacterPage extends StatelessWidget {
 									10.0)),
 						onPressed: () => _selectCharacter(context),
 						child: new Text(
-							"This one!",
+							"I pick this one.",
 							style: new TextStyle(
-								fontSize: 18.0,
+								fontSize: 20.0,
 								color: Colors.white,
 								fontWeight: FontWeight.w800,
 							),)))));

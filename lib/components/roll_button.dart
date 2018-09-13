@@ -7,8 +7,12 @@ import 'dart:math';
 import 'dart:core';
 
 class RollButton extends StatefulWidget {
-  RollButton(Map turn) : this._turn = turn;
-  final Map _turn;
+  RollButton(Map turn, Map characters){
+    this._turn = turn;
+    this._characters = characters;
+  }
+  Map _turn;
+  Map _characters;
 	@override
 	_RollButtonState createState() => new _RollButtonState();
 }
@@ -22,16 +26,16 @@ class _RollButtonState extends State<RollButton> {
   Timer _timer1;
   Timer _timer2;
   dynamic outcomePossibilities = {'win': [
-      {'title': 'You did it... but just barely.', 'description': "You earn 0XP.", 'chat': ' barely succeeded. +0XP'},
-      {'title': 'Success.', 'description': 'You earn 1XP.', 'chat': ' succeeded. +1XP'},
-      {'title': 'Great success.', 'description': 'You earn 2XP.', 'chat': ' succeeded greatly! +2XP'},
-      {'title': 'CRITICAL SUCCESS!', 'description': 'You earn 3XP.', 'chat': " got a CRITICAL SUCCESS! +3XP"}
+      {'title': 'You did it... but just barely.', 'description': "You earn 0XP.", 'chat': ' barely succeeded. +0XP', 'XP': 0},
+      {'title': 'Success.', 'description': 'You earn 1XP.', 'chat': ' succeeded. +1XP', 'XP': 1},
+      {'title': 'Great success.', 'description': 'You earn 2XP.', 'chat': ' succeeded greatly! +2XP', 'XP': 2},
+      {'title': 'CRITICAL SUCCESS!', 'description': 'You earn 3XP.', 'chat': ' got a CRITICAL SUCCESS! +3XP', 'XP': 3}
     ], 
     'fail': [
-      {'title': 'You failed... but just barely.','description': "You lose 0HP.", 'chat': ' barely failed. -0HP'},
-      {'title': 'Failure.', 'description': "You lose 1HP.", 'chat': ' failed. -1HP'},
-      {'title': 'Horrible fail.', 'description': "You lose 2HP.", 'chat': ' failed horribly! -2HP'},
-      {'title': 'CRITICAL FAILURE!', 'description': "You lose 3HP.", 'chat': " got a CRITICAL FAIURE! -3HP"},
+      {'title': 'You failed... but just barely.','description': "You lose 0HP.", 'chat': ' barely failed. -0HP', 'HP': 0},
+      {'title': 'Failure.', 'description': "You lose 1HP.", 'chat': ' failed. -1HP', 'HP': -1},
+      {'title': 'Horrible fail.', 'description': "You lose 2HP.", 'chat': ' failed horribly! -2HP', 'HP': -2},
+      {'title': 'CRITICAL FAILURE!', 'description': "You lose 3HP.", 'chat': " got a CRITICAL FAIURE! -3HP", 'HP': -3},
     ]};
 
 	@override
@@ -137,6 +141,7 @@ class _RollButtonState extends State<RollButton> {
     });
     _timer2 = Timer(const Duration(milliseconds: 1000), () {
       var _gameId = globals.gameState['id'];
+      // ADD Log
       Firestore.instance.collection('Games/$_gameId/Logs').document()
       .setData(<String, dynamic>{
         'text': widget._turn['characterName'] + ' ' + outcomePossibilities[winFail][index]['chat'],
@@ -144,6 +149,10 @@ class _RollButtonState extends State<RollButton> {
         'dts': DateTime.now(),
         'userId': globals.userState['userId']
       });
+      if(winFail == 'fail')
+        widget._characters[globals.userState['userId']]['HP'] += outcomePossibilities[winFail][index]['HP'];
+      else
+        widget._characters[globals.userState['userId']]['XP'] += outcomePossibilities[winFail][index]['XP'];
       // UPDATE Game.turn
       var turns = [widget._turn, {
         'dts': DateTime.now(), 
@@ -154,12 +163,10 @@ class _RollButtonState extends State<RollButton> {
       final DocumentReference gameRef =
         Firestore.instance.collection('Games').document(_gameId);
       gameRef.updateData(<String, dynamic>{
-        'turn': combinedTurns
+        'turn': combinedTurns,
+        'characters': widget._characters
       });
-    
-      // setState(() {
-      //   _buttonPressed = false;
-      // });
+      
     });
   }
 }

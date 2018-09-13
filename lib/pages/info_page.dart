@@ -80,14 +80,21 @@ class _InfoPageState extends State<InfoPage> {
             break;
           }
         }
+        var character;
+        if(gameInfo.data['characters'] != null)
+          character = gameInfo.data['characters'][player.documentID];
         labelListTiles.add(ListTile(
           leading: Container(child: Stack(children: <Widget>[
               CircleAvatar(radius: 25.0, backgroundImage: NetworkImage(player['profilePic'])),
-              gameInfo.data['characters'][player.documentID] == null ? Container(width: 10.0) : Positioned(left: 5.0, top: 5.0, child: CircleAvatar(backgroundImage: NetworkImage(gameInfo.data['characters'][player.documentID]['imageUrl']))),              
+              character == null ? Container(width: 10.0) : Positioned(left: 5.0, top: 5.0, child: CircleAvatar(backgroundImage: NetworkImage(character['imageUrl']))),              
               ])),
-          title: Text(player['name'], style: TextStyle(color: Colors.white)),
-          subtitle: gameInfo.data['characters'][player.documentID] == null ? Container() : Text(gameInfo.data['characters'][player.documentID]['characterName'], style: TextStyle(color: Colors.white)),
-          trailing: playerReactions == null? Container(width: 10.0) : _buildReactionsRow(playerReactions)
+          title: character == null ? Text(player['name'], style: TextStyle(color: Colors.white, fontSize: 20.0)) : Text(player['name'] + '  :  ' + character['characterName'], style: TextStyle(color: Colors.white, fontSize: 20.0)),
+          subtitle: playerReactions == null? Container(width: 10.0) : _buildReactionsRow(playerReactions),
+          trailing: Padding(padding: EdgeInsets.only(top: 0.0), child: 
+            character == null ? Container(width: 10.0) : Column(children: <Widget>[
+              Text(character['HP'].toString() + 'HP', style: TextStyle(color: Colors.red, fontSize: 18.0)),
+              Text(character['XP'].toString() + 'XP', style: TextStyle(color: Colors.blue, fontSize: 18.0)), 
+            ]))
         ));
       });
       return labelListTiles;
@@ -99,7 +106,7 @@ class _InfoPageState extends State<InfoPage> {
       reactionsListTiles.add(Container(child: Image.asset('assets/images/reaction-' + key + '.png'), height: 20.0));
 			reactionsListTiles.add(Padding(padding: EdgeInsets.only(right: 10.0, left: 0.0, top: 9.0), child: Text("${playerReactions[key]}", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w400, fontSize: 10.0))));
     }
-    return Container(width: 100.0, child: Row(children: reactionsListTiles));
+    return Padding(padding: EdgeInsets.only(top: 5.0), child: Row(children: reactionsListTiles));
   }
 
   // List<Widget> _buildUserRequestsList(QuerySnapshot userRequests) {
