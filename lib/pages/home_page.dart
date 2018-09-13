@@ -37,7 +37,7 @@ class HomePageState extends State<HomePage> {
 				backgroundColor: const Color(0xFF00073F),
 				title: Text(_title == null ? 'Public Games' : _title,
 					style:
-						TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 30.0, letterSpacing: 1.5)),
+						TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 25.0, letterSpacing: 1.5)),
 				elevation: -1.0,
 				actions: <Widget>[
 					IconButton(

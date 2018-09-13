@@ -188,6 +188,9 @@ class CreateGamePagesState extends State<CreateGamePages> {
           'profileUrl': globals.userState['profilePic'],
           'userName': globals.userState['name'],
         });
+        final DocumentReference newReactionsCollection =
+            Firestore.instance.collection('Games/' + game.documentID + '/Reactions').document(globals.userState['userId']);
+        newReactionsCollection.setData(<String, dynamic>{'love': 1});
 			});
 		});
 	}

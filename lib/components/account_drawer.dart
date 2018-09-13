@@ -230,20 +230,20 @@ class _AccountDrawerState extends State<AccountDrawer> {
               subtitle: Text(game['name'],
                   style: TextStyle(
                       color: Colors.white, fontWeight: FontWeight.w100)),
-              trailing: RaisedButton(
-                  color: const Color(0xFF00b0ff),
-                  shape: new RoundedRectangleBorder(
-                    borderRadius:
-                      new BorderRadius.circular(
-                        10.0)),
-                  onPressed: () => _handleInviteButtonTap(context, game["code"]),
-                  child: new Text(
-                    "Invite",
-                    style: new TextStyle(
-                      fontSize: 18.0,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                    ),)),
+              // trailing: RaisedButton(
+              //     color: const Color(0xFF00b0ff),
+              //     shape: new RoundedRectangleBorder(
+              //       borderRadius:
+              //         new BorderRadius.circular(
+              //           10.0)),
+              //     onPressed: () => _handleInviteButtonTap(context, game["code"]),
+              //     child: new Text(
+              //       "Invite",
+              //       style: new TextStyle(
+              //         fontSize: 18.0,
+              //         color: Colors.white,
+              //         fontWeight: FontWeight.w800,
+              //       ),)),
               onTap: () => _openGame(game, context),
             ));
           });
@@ -252,11 +252,11 @@ class _AccountDrawerState extends State<AccountDrawer> {
   }
 }
 
-void _handleInviteButtonTap(BuildContext context, String code){
-  Application.router.navigateTo(
-			context, 'inviteFriends?code=' + code,
-			transition: TransitionType.fadeIn);
-}
+// void _handleInviteButtonTap(BuildContext context, String code){
+//   Application.router.navigateTo(
+// 			context, 'inviteFriends?code=' + code,
+// 			transition: TransitionType.fadeIn);
+// }
 
 void _openGame(DocumentSnapshot game, BuildContext context) {
   globals.gameState['id'] = game.documentID;

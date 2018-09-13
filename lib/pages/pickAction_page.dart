@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:party_quest/globals.dart' as globals;
-import 'dart:math';
 
 class PickActionPage extends StatefulWidget {
 	@override
@@ -12,6 +11,7 @@ class PickActionPage extends StatefulWidget {
 class _PickActionPageState extends State<PickActionPage> with SingleTickerProviderStateMixin {
 	dynamic _characterData;
 	dynamic _turnData;
+  bool _buttonEnabled = false;
 	TabController _tabController;
 	TextEditingController _textController;
   List<String> _skills = ['dexterity', 'strength', 'charisma', 'intelligence'];
@@ -67,12 +67,20 @@ class _PickActionPageState extends State<PickActionPage> with SingleTickerProvid
             ..addAll(_buildTabsDetails())
             ..addAll(_buildDescriptionField())
             ..addAll(_buildSubmitButton());
-          return Column( children: <Widget>[Expanded(child: Container(child: ListView(children: pageWidgets)))]);
+          return ListView(children: pageWidgets);
+          // Stack(children: <Widget>[
+          //   Positioned(child: Container(child: ListView(children: pageWidgets))), 
+          //   Positioned(top: 30.0, left: 80.0, child: Container(child: _buildHPWidget())) 
+          // ]);
         } else {
 				  return CircularProgressIndicator(); 
         }
 			});
 		}
+
+  // Widget _buildHPWidget(){
+  //   return Text(_characterData['HP'].toString() + ' HP', style: TextStyle(color: Colors.white));
+  // }
 
 	List<Widget> _buildHeaderDetails(){
 			return [
@@ -81,12 +89,16 @@ class _PickActionPageState extends State<PickActionPage> with SingleTickerProvid
 					imageUrl: _characterData['imageUrl'],
 					height: 180.0,
 					width: 180.0), 
-				Center(child: Padding(padding: EdgeInsets.only(top: 5.0, bottom: 20.0), child: Text(
+				Center(child: Padding(padding: EdgeInsets.only(top: 5.0, bottom: 10.0), child: Text(
 					_characterData['characterName'],
 					style: TextStyle(
 						color: Colors.white,
 						fontSize: 22.0,
 						fontWeight: FontWeight.w800)))),
+        Row(children: <Widget>[
+          Expanded(child: Padding(padding: EdgeInsets.only(right: 10.0, bottom: 10.0), child: Text(_characterData['HP'].toString() + ' HP', textAlign: TextAlign.right, style: TextStyle(color: Colors.red)))),
+          Expanded(child: Padding(padding: EdgeInsets.only(left: 10.0, bottom: 10.0), child: Text(_characterData['XP'].toString() + ' XP', style: TextStyle(color: Colors.blue))))
+        ],)
 			];
 		}
 
@@ -145,6 +157,7 @@ class _PickActionPageState extends State<PickActionPage> with SingleTickerProvid
 					maxLines: null,
 					keyboardType: TextInputType.text,
 					controller: _textController,
+          onChanged: _handleTextFieldChange,
 					style: TextStyle(color: Colors.white, fontSize: 18.0, fontFamily: 'LondrinaSolid'),
 					decoration:
 						InputDecoration.collapsed(hintText: 'Describe the action.', hintStyle: TextStyle(color: const Color(0x99FFFFFF))),
@@ -155,6 +168,18 @@ class _PickActionPageState extends State<PickActionPage> with SingleTickerProvid
 			)
 				];
 			}
+
+  void _handleTextFieldChange(String text){
+    if(_textController.text.length > 0){
+      setState((){
+        _buttonEnabled = true;
+      });
+    } else {
+      setState((){
+        _buttonEnabled = false;
+      });
+    }
+  }
 
 	List<Widget> _buildSubmitButton(){
 					return [Container(
@@ -168,7 +193,7 @@ class _PickActionPageState extends State<PickActionPage> with SingleTickerProvid
 								borderRadius:
 									new BorderRadius.circular(
 										10.0)),
-							onPressed: () => _handleSubmitted(),
+							onPressed: _buttonEnabled ? _handleSubmitted : null,
 							child: new Text(
 								"Attempt to do this.",
 								style: new TextStyle(
@@ -183,38 +208,31 @@ class _PickActionPageState extends State<PickActionPage> with SingleTickerProvid
       Navigator.pop(context);
 		  var _gameId = globals.gameState['id'];
       var chosenSkill = _skills[_tabController.index];
-      var skillPower = _characterData['skills'][chosenSkill];
-      var outComePossibilities = [
-        ' fails miserably!',
-        ' just barely fails.',
-        ' just barely succeeds.',
-        ' succeeds spectacularly!'
-      ];
-      var rng = new Random();
-      var result = rng.nextInt(11) + skillPower;
-      if(result > 12) result = 12;
-      var outcomeText = outComePossibilities[(result/3).round()];
+      var chosenSkillPower = _characterData['skills'][chosenSkill];
 			Firestore.instance.collection('Games/$_gameId/Logs').document()
       .setData(<String, dynamic>{
         'text': _textController.text,
-        'title': chosenSkill,
+        'title': chosenSkill + ': ' + (chosenSkillPower > 0 ? '+' : '') + chosenSkillPower.toString(),
         'type': 'characterAction',
         'dts': DateTime.now(),
         'profileUrl': _characterData['imageUrl'],
         'userId': globals.userState['userId']
       });
-			Firestore.instance.collection('Games/$_gameId/Logs').document()
-      .setData(<String, dynamic>{
-        'text': _characterData['characterName'] + outcomeText,
-        'type': 'narration',
-        'dts': DateTime.now(),
-        'userId': globals.userState['userId']
-      });
+			// Firestore.instance.collection('Games/$_gameId/Logs').document()
+      // .setData(<String, dynamic>{
+      //   'text': _characterData['characterName'] + outcomeText,
+      //   'type': 'narration',
+      //   'dts': DateTime.now(),
+      //   'userId': globals.userState['userId']
+      // });
       var turns = [_turnData, {
-        'turnPhase': 'respond', 
+        'turnPhase': 'difficulty', 
         'dts': DateTime.now(), 
         'playerImageUrl': globals.userState['profilePic'],
-        'playerName': globals.userState['name']
+        'playerName': globals.userState['name'],
+        'characterName': _characterData['characterName'],
+        'skill': chosenSkill,
+        'skillPower': chosenSkillPower
       }];
       var combinedTurns = turns.reduce((map1, map2) => map1..addAll(map2));
       final DocumentReference turn =

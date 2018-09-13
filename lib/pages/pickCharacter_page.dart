@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+// import 'package:cached_network_image/cached_network_image.dart';
+import '../components/characterAnimation.dart';
 import 'package:party_quest/globals.dart' as globals;
 // import 'dart:math';
 
@@ -76,45 +77,43 @@ class PickCharacterPage extends StatelessWidget {
 
 		Widget _buildCharacterWidget(BuildContext context, DocumentSnapshot document) {
 			return Container(
-				padding: EdgeInsets.all(30.0),
+				padding: EdgeInsets.symmetric(horizontal: 20.0),
 				child: Column(children: <Widget>[ 
-					CachedNetworkImage(
-					placeholder: CircularProgressIndicator(),
-					imageUrl: document['imageUrl'],
-					height: 200.0,
-					width: 200.0), 
-						Text(
+				Container(height: 350.0, child: CharacterAnimation(document['characterFileName'], document['spriteX'], document['spriteY'], document['spriteCount'])), 
+				Text(
 					document['name'],
+          // textAlign: TextAlign.right,
 					style: TextStyle(
 						color: Colors.white,
-						fontSize: 22.0,
-						fontWeight: FontWeight.w100)),
+						fontSize: 24.0,
+						fontWeight: FontWeight.w800)),
 				Padding(padding: EdgeInsets.symmetric(vertical: 20.0), child: Text(
 					document['description'],
 					style: TextStyle(
 						color: Colors.white,
 							height: 1.3,
-						fontSize: 16.0,
-						fontWeight: FontWeight.w200))),
+						fontSize: 20.0,
+						fontWeight: FontWeight.w400))),
 				Row(mainAxisSize: MainAxisSize.min,
 					mainAxisAlignment: MainAxisAlignment.center,children: <Widget>[
-						_buildSkillBoxWidget('Dex', document['dexterity']),
-						_buildSkillBoxWidget('Str', document['strength']),
-						_buildSkillBoxWidget('Int', document['intelligence']),
-						_buildSkillBoxWidget('Cha', document['charisma'])
+						_buildSkillBoxWidget('Dexterity', document['dexterity']),
+						_buildSkillBoxWidget('Strength', document['strength']),
+						_buildSkillBoxWidget('Intelligence', document['intelligence']),
+						_buildSkillBoxWidget('Charisma', document['charisma'])
 						]),
 
 							]));
 		}
 
 		Widget _buildSkillBoxWidget(String dimension, int value) {
-			return Expanded(child: Padding(padding: EdgeInsets.all(10.0), 
+			return Expanded(
 				child: Container(
-					decoration: BoxDecoration(
-					border: Border.all(color: Colors.white)
-				),
-				child: Padding(padding: EdgeInsets.all(10.0), 
-					child: Column( children: <Widget>[Text(value.toString(), style: TextStyle(color: Colors.white, fontSize: 20.0),), Text(dimension, style: TextStyle(color: Colors.white))])))));
+				child: Padding(padding: EdgeInsets.all(0.0), 
+					child: Column( children: <Widget>[
+            Text((value > 0 ? '+' : '') + value.toString(), style: TextStyle(color: Colors.white, fontSize: 30.0)), 
+            Text(dimension, style: TextStyle(color: Colors.white)
+          )]
+        ))));
 		}
 
 	void _selectCharacter(BuildContext context) {
@@ -140,6 +139,8 @@ class PickCharacterPage extends StatelessWidget {
             characters[globals.userState['userId']] = {
               'characterId': _selectedCharacter.documentID,
 			        'characterName': _selectedCharacter['name'],
+              'HP': 20,
+              'XP': 0,
               'skills': {
                 'dexterity': _selectedCharacter['dexterity'],
                 'strength': _selectedCharacter['strength'],

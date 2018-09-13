@@ -6,6 +6,8 @@ import 'package:timeago/timeago.dart';
 import '../application.dart';
 import 'package:fluro/fluro.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../components/roll_button.dart';
+import '../components/rating_button.dart';
 
 class ChatView extends StatefulWidget {
 	@override
@@ -21,6 +23,7 @@ class _ChatViewState extends State<ChatView> {
 	}
 
 	bool _showOverlay = false;
+  Map _turn;
 	TapUpDetails _tapDownDetails;
 	DocumentSnapshot _tappedBubble;
 
@@ -146,16 +149,16 @@ class _ChatViewState extends State<ChatView> {
 								'Pick a character...', 'to play as in this story!');
 						}
             //INVITE SOMEONE
-            if (document['players'].length == 1) {
-							Function pickCharacter = () => Application.router.navigateTo(
-								context, 'inviteFriends?code=' + document['code'],
-								transition: TransitionType.fadeIn);
-							return _buildButton(document['imageUrl'], pickCharacter,
-								'Invite a friend!', 'Get your party together.');
-						}
+            // if (document['players'].length == 1) {
+						// 	Function pickCharacter = () => Application.router.navigateTo(
+						// 		context, 'inviteFriends?code=' + document['code'],
+						// 		transition: TransitionType.fadeIn);
+						// 	return _buildButton(document['imageUrl'], pickCharacter,
+						// 		'Invite a friend!', 'Get your party together.');
+						// }
             //PICK A SCENARIO
-						var turn = document['turn'];
-						if (turn == null || turn['scenario'] == null) {  
+						_turn = document['turn'];
+						if (_turn == null || _turn['scenario'] == null) {  
 							Function onPressed = () => Application.router.navigateTo(
 								context, 'pickScenario',
 								transition: TransitionType.fadeIn);
@@ -163,9 +166,9 @@ class _ChatViewState extends State<ChatView> {
 							'Pick a Scenario', 'Set the stage for your party quest.');
 						} 
             // YOUR TURN
-            if(turn['playerId'] == globals.userState['userId']){
+            if(_turn['playerId'] == globals.userState['userId']){
               // ACT PHASE
-              if (turn['turnPhase'] == 'act') {
+              if (_turn['turnPhase'] == 'act') {
                 Function onPressed = () => Application.router.navigateTo(
                   context, 'pickAction',
                   transition: TransitionType.fadeIn);
@@ -173,7 +176,20 @@ class _ChatViewState extends State<ChatView> {
                     'What do you do?', "It's your turn, " + globals.userState['name'] + '.');
               }
               // RESPOND PHASE
-              if(turn['turnPhase'] == 'respond') {
+              if(_turn['turnPhase'] == 'difficulty' && (_turn['playerId'] != globals.userState['userId'] || document['players'].length == 1)) {
+                return RatingButton(_turn);
+              }
+              // ROLL PHASE
+              if(_turn['turnPhase'] == 'roll' && _turn['playerId'] == globals.userState['userId']){
+                return RollButton(_turn);
+                // Function onPressed = () => Application.router.navigateTo(
+                //   context, 'pickRoll',
+                //   transition: TransitionType.fadeIn);
+                // return _buildButton('https://firebasestorage.googleapis.com/v0/b/party-quest-dev.appspot.com/o/app-images%2F20D20.png?alt=media&token=ad8510fc-e299-4c90-ae1f-21ac6594eb01', 
+                // onPressed, 'Roll the dice!', 'Find out if you succeed or fail.');
+              }
+              // RESPOND PHASE
+              if(_turn['turnPhase'] == 'respond') {
                 Function onPressed = () => Application.router.navigateTo(
                   context, 'pickResponse',
                   transition: TransitionType.fadeIn);
@@ -182,9 +198,9 @@ class _ChatViewState extends State<ChatView> {
               }
             }
             // NOT YOUR TURN
-            if(turn['playerImageUrl'] != null){
-              return _buildButton(turn['playerImageUrl'], null,
-                'Waiting on...', 'Your friend ' + turn['playerName'] + ' to finish their turn.');
+            if(_turn['playerImageUrl'] != null){
+              return _buildButton(_turn['playerImageUrl'], null,
+                'Waiting on...', 'Your friend ' + _turn['playerName'] + ' to finish their turn.');
             } else{
               return _buildButton(document['imageUrl'], null,
                 'Waiting on...', 'The next player to start their turn');
@@ -234,23 +250,46 @@ class _ChatViewState extends State<ChatView> {
 
 		void _onTapReaction(String reactionType) {
 			setState(() {
-			_showOverlay = false;
-				});
-				_tappedBubble.reference.get().then((logResult) {
-				if(logResult.data != null){
-					if(logResult.data['reactions'] != null){
-						if(logResult.data['reactions'][reactionType] != null)
-							logResult.data['reactions'][reactionType] += 1;
-						else
-							logResult.data['reactions'][reactionType] = 1;
-					} else {
-						logResult.data['reactions'] = {reactionType: 1};
-					}
-					_tappedBubble.reference.updateData(logResult.data).then((onValue) {
+			  _showOverlay = false;
+			});
+      // TODO: only do this if the user hasn't already reacted with this type on this bubble.
+      _tappedBubble.reference.get().then((bubbleDoc) {
+        if(bubbleDoc.data != null){
+          if(bubbleDoc.data['reactions'] != null){
+            if(bubbleDoc.data['reactions'][reactionType] != null)
+              bubbleDoc.data['reactions'][reactionType] += 1;
+            else
+              bubbleDoc.data['reactions'][reactionType] = 1;
+          } else {
+            bubbleDoc.data['reactions'] = {reactionType: 1};
+          }
+        }
+      _tappedBubble.reference.updateData(bubbleDoc.data).then((onValue) {
+        var _userId = bubbleDoc.data['userId'];
+        var _gameId = globals.gameState['id'];
+        final DocumentReference reactionsRef = Firestore.instance.collection('Games/$_gameId/Reactions').document(_userId);
+        reactionsRef.get().then((reactionResult){
+          if(reactionResult.data == null){
+            reactionsRef.setData({ reactionType: 1 });
+          } else {
+            if(reactionResult.data[reactionType] == null) reactionResult.data[reactionType] = 0;
+            reactionResult.data[reactionType] += 1;
+            reactionsRef.updateData(reactionResult.data);
+          }
+        });
+      });
 
-					});
-				}
-				});
+      // This doesnt work for public games because public players dont have accesss to update the game.
+      // final DocumentReference gameRef =
+      // Firestore.instance.collection('Games').document(globals.gameState['id']);
+      // gameRef.get().then((gameResult) {
+      //   var reactions = gameResult['reactions'] == null ? {bubbleDoc.data['userId']: {reactionType: 0}} : gameResult['reactions'];
+      //   if(reactions[bubbleDoc.data['userId']] == null) reactions[bubbleDoc.data['userId']] = {reactionType: 0};
+      //   if(reactions[bubbleDoc.data['userId']][reactionType] == null) reactions[bubbleDoc.data['userId']][reactionType] = 0;
+      //   reactions[bubbleDoc.data['userId']][reactionType] += 1;
+      //   gameRef.updateData(<String, dynamic>{ 'reactions': reactions });
+      // });
+    });
 		}
 
 	Widget _buildChatLog() {
@@ -628,10 +667,7 @@ class Bubble extends StatelessWidget {
 		} else if (type == 'answer') {
 			bg = const Color(0xFF9DEB0F);
 		}
-		final fontColor = type == 'characterAction' ||
-			type == 'answer' ||
-			type == 'win' ||
-			type == 'fail'
+		final fontColor = type == 'characterAction'
 			? Colors.black
 			: Colors.white;
 		final align = isMe ? CrossAxisAlignment.start : CrossAxisAlignment.end;
@@ -669,7 +705,7 @@ class Bubble extends StatelessWidget {
 					),
 					child: Stack(
 						children: <Widget>[
-							type == 'characterAction'
+							type == 'characterAction' || type == 'difficulty'
 								? Positioned(
 									top: 0.0,
 									right: isMe == true ? 0.0 : null,
@@ -677,7 +713,7 @@ class Bubble extends StatelessWidget {
 									child: Text(title,
 										style: TextStyle(
 											fontSize: 14.0,
-											color: Colors.black,
+											color: fontColor,
 											fontWeight: FontWeight.w600)),
 									)
 								: Container(width: 0.0),
@@ -706,7 +742,7 @@ class Bubble extends StatelessWidget {
 		Widget _buildReactionsIcons(Map reactions, String type){
 			List<Widget> reactionsListTiles = [];
 
-				for(var key in reactions.keys){
+			for(var key in reactions.keys){
 				reactionsListTiles.add(Container(child: Image.asset('assets/images/reaction-' + key + '.png'), height: 30.0));
 				reactionsListTiles.add(Padding(padding: EdgeInsets.only(right: 10.0, left: 0.0, top: 9.0), child: Text("${reactions[key]}", style: TextStyle(color: type != null ? Colors.black : Colors.white, fontWeight: FontWeight.w400, fontSize: 10.0))));
 					// ListTile(

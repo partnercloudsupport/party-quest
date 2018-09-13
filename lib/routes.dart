@@ -17,6 +17,7 @@ import 'pages/inviteFriends_page.dart';
 import 'pages/pickScenario_page.dart';
 import 'pages/pickCharacter_page.dart';
 import 'pages/pickResponse_page.dart';
+import 'pages/pickRoll_page.dart';
 import 'pages/pickAction_page.dart';
 
 class Routes {
@@ -34,6 +35,7 @@ class Routes {
     router.define('pickAction', handler: pickActionHandler);
     router.define('pickCharacter', handler: pickCharacterHandler);
     router.define('pickResponse', handler: pickResponseHandler);
+    router.define('pickRoll', handler: pickRollHandler);
     router.define('myGames', handler: myGamesHandler);
     router.define('/', handler: homePageHandler);
   }
@@ -60,6 +62,10 @@ class Routes {
 
   static var pickResponseHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {
     return new PickResponsePage();
+  });
+
+  static var pickRollHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {
+    return new PickRollPage();
   });
 
   static var pickScenarioHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {

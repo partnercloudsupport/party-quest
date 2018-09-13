@@ -74,7 +74,8 @@ class JoinGamePage extends StatelessWidget {
 										fontSize: 25.0,
 										fontWeight: FontWeight.w800,
 										color: Colors.white,
-										letterSpacing: 8.0),
+										letterSpacing: 8.0,
+                    fontFamily: 'LondrinaSolid'),
 									controller: _textController,
 									inputFormatters: <TextInputFormatter>[
 										upperCaseTextFormatter
