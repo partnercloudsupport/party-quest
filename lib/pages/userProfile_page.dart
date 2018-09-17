@@ -20,7 +20,8 @@ class UserProfileState extends State<UserProfilePage> {
 	void initState() {
 		super.initState();
 		_profilePic = globals.userState['loginStatus'] == 'loggedIn' ? globals.userState['profilePic'] : "https://firebasestorage.googleapis.com/v0/b/party-quest-dev.appspot.com/o/profile-placeholder.png?alt=media&token=35a5323c-0b10-4332-a8c2-355d26e950a8";
-	}
+    if(globals.userState['name'] != '') _textController.text = globals.userState['name'];
+  }
 
 	@override
 	void dispose() {
@@ -90,7 +91,7 @@ class UserProfileState extends State<UserProfilePage> {
         onChanged: _handleTextFieldChange,
 				// onSubmitted: _handleSubmitted,
 				decoration: InputDecoration.collapsed(
-					hintStyle: TextStyle(fontSize: 20.0, color: Colors.white),
+					hintStyle: TextStyle(fontSize: 20.0, color: const Color(0x99FFFFFF)),
 					hintText: globals.userState['name'] == ''
 						? "Enter your name."
 						: globals.userState['name']),
@@ -196,28 +197,31 @@ class UserProfileState extends State<UserProfilePage> {
       .document(globals.userState['userId']);
     userRef.get().then((userResult) {
       if(userResult.data != null){
-      userResult.data['name'] = text;
-        if (_downloadUrl.length > 0)
+        // Existing user
+        userResult.data['name'] = text;
+        if (_downloadUrl != null)
           userResult.data['profilePic'] = _downloadUrl;
-        // else
-        // 	userResult.data['profilePic'] = 'https://firebasestorage.googleapis.com/v0/b/party-quest-dev.appspot.com/o/profile-placeholder.png?alt=media&token=35a5323c-0b10-4332-a8c2-355d26e950a8';
-        userRef.updateData(userResult.data).then((onValue) {
-          globals.userState['name'] = text;
-          if (_downloadUrl.length > 0)
-            globals.userState['profilePic'] = _downloadUrl;
-              Navigator.pop(context);
+          userRef.updateData(userResult.data).then((onValue) {
+            globals.userState['name'] = text;
+            if (_downloadUrl != null) globals.userState['profilePic'] = _downloadUrl;
+            Navigator.pop(context);
         });
       } else {
+        // New user
+        var profileUrl = '';
+        if (_downloadUrl != null)
+          profileUrl = _downloadUrl;
+        else
+        	profileUrl = 'https://firebasestorage.googleapis.com/v0/b/party-quest-dev.appspot.com/o/profile-placeholder.png?alt=media&token=35a5323c-0b10-4332-a8c2-355d26e950a8';
         userRef.setData(<String, dynamic>{
-        'name': text,
-        'profilePic': _downloadUrl
-      }).then((onValue) {
-        globals.userState['name'] = text;
-        if (_downloadUrl.length > 0)
-          globals.userState['profilePic'] = _downloadUrl;
-            });
-        }
-          Navigator.pop(context);
+          'name': text,
+          'profilePic': profileUrl
+        }).then((onValue) {
+          globals.userState['name'] = text;
+          globals.userState['profilePic'] = profileUrl;
+        });
+      }
+      Navigator.pop(context);
     });
 	}
 }

@@ -212,7 +212,7 @@ class _PickActionPageState extends State<PickActionPage> with SingleTickerProvid
 			Firestore.instance.collection('Games/$_gameId/Logs').document()
       .setData(<String, dynamic>{
         'text': _textController.text,
-        'title': chosenSkill + ': ' + (chosenSkillPower > 0 ? '+' : '') + chosenSkillPower.toString(),
+        'title': chosenSkill, //+ ': ' + (chosenSkillPower > 0 ? '+' : '') + chosenSkillPower.toString(),
         'type': 'characterAction',
         'dts': DateTime.now(),
         'profileUrl': _characterData['imageUrl'],

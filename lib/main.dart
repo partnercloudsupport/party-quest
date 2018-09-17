@@ -9,20 +9,23 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:party_quest/globals.dart' as globals;
 import 'pages/home_page.dart';
 import 'package:flutter/services.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_database/firebase_database.dart';
 
+final FirebaseMessaging _firebaseMessaging = new FirebaseMessaging();
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
 Future<Null> main() async {
-  runApp(new PeggParty());
+  runApp(new PartyQuest());
 }
 
-class PeggParty extends StatefulWidget {
+class PartyQuest extends StatefulWidget {
   @override
-  createState() => PeggPartyState();
+  createState() => PartyQuestState();
 }
 
-class PeggPartyState extends State<PeggParty> {
-  PeggPartyState() {
+class PartyQuestState extends State<PartyQuest> {
+  PartyQuestState() {
     final router = new Router();
     Routes.configureRoutes(router);
     Application.router = router;
@@ -34,6 +37,32 @@ class PeggPartyState extends State<PeggParty> {
     });
   }
   String _userName;
+  DatabaseReference _messagesRef;
+
+  @override
+  void initState() {
+    super.initState();
+    _firebaseMessaging.configure(
+      onMessage: (Map<String, dynamic> message) async {
+        print("onMessage: $message");
+        // _showItemDialog(message);
+      },
+      onLaunch: (Map<String, dynamic> message) async {
+        print("onLaunch: $message");
+        // _navigateToItemDetail(message);
+      },
+      onResume: (Map<String, dynamic> message) async {
+        print("onResume: $message");
+        // _navigateToItemDetail(message);
+      },
+    );
+    _firebaseMessaging.requestNotificationPermissions(
+        const IosNotificationSettings(sound: true, badge: true, alert: true));
+    _firebaseMessaging.onIosSettingsRegistered
+        .listen((IosNotificationSettings settings) {
+      print("Settings registered: $settings");
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -98,6 +127,16 @@ class PeggPartyState extends State<PeggParty> {
         globals.userState['loginStatus'] = 'notLoggedIn';
       }
     });
+
+    _firebaseMessaging.getToken().then((String token) {
+      assert(token != null);
+      _messagesRef = FirebaseDatabase.instance.reference().child('deviceTokens');
+      _messagesRef.push().set(<String, String>{
+        'path': user.uid,
+        'token': token
+      });
+    });
+
     return 'signInAnonymously succeeded: $user';
 
     // UserUpdateInfo ui = new UserUpdateInfo();

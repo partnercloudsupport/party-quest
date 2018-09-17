@@ -16,6 +16,7 @@ class _InfoPageState extends State<InfoPage> {
   String _gameId;
   _InfoPageState() {
     _gameId = globals.gameState['id'];
+    if(_gameId == '') return; 
     Future.wait([_getGameInfo(), _getGamePlayers(), _getGameReactions(), _getGameRequests()])
     .then((List responses) {
       setState(() {
@@ -85,7 +86,7 @@ class _InfoPageState extends State<InfoPage> {
           character = gameInfo.data['characters'][player.documentID];
         labelListTiles.add(ListTile(
           leading: Container(child: Stack(children: <Widget>[
-              CircleAvatar(radius: 25.0, backgroundImage: NetworkImage(player['profilePic'])),
+              player['profilePic'] == null ? Container(width: 10.0) : CircleAvatar(radius: 25.0, backgroundImage: NetworkImage(player['profilePic'])),
               character == null ? Container(width: 10.0) : Positioned(left: 5.0, top: 5.0, child: CircleAvatar(backgroundImage: NetworkImage(character['imageUrl']))),              
               ])),
           title: character == null ? Text(player['name'], style: TextStyle(color: Colors.white, fontSize: 20.0)) : Text(player['name'] + '  :  ' + character['characterName'], style: TextStyle(color: Colors.white, fontSize: 20.0)),

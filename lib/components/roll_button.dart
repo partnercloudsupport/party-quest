@@ -139,7 +139,7 @@ class _RollButtonState extends State<RollButton> {
       _rollOutcomeTitle = outcomePossibilities[winFail][index]['title'];
       _rollOutcomeDescription = outcomePossibilities[winFail][index]['description'];
     });
-    _timer2 = Timer(const Duration(milliseconds: 1000), () {
+    _timer2 = Timer(const Duration(milliseconds: 2000), () {
       var _gameId = globals.gameState['id'];
       // ADD Log
       Firestore.instance.collection('Games/$_gameId/Logs').document()

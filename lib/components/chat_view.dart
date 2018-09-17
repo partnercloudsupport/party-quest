@@ -148,14 +148,7 @@ class _ChatViewState extends State<ChatView> {
 							return _buildButton(document['imageUrl'], pickCharacter,
 								'Pick a character...', 'to play as in this story!');
 						}
-            //INVITE SOMEONE
-            // if (document['players'].length == 1) {
-						// 	Function pickCharacter = () => Application.router.navigateTo(
-						// 		context, 'inviteFriends?code=' + document['code'],
-						// 		transition: TransitionType.fadeIn);
-						// 	return _buildButton(document['imageUrl'], pickCharacter,
-						// 		'Invite a friend!', 'Get your party together.');
-						// }
+            
             //PICK A SCENARIO
 						_turn = document['turn'];
 						if (_turn == null || _turn['scenario'] == null) {  
@@ -164,7 +157,17 @@ class _ChatViewState extends State<ChatView> {
 								transition: TransitionType.fadeIn);
 							return _buildButton(document['imageUrl'], onPressed,
 							'Pick a Scenario', 'Set the stage for your party quest.');
-						} 
+						}
+
+            //INVITE SOMEONE
+            if (document['players'].length == 1) {
+							Function pickCharacter = () => Application.router.navigateTo(
+								context, 'inviteFriends?code=' + document['code'],
+								transition: TransitionType.fadeIn);
+							return _buildButton(document['imageUrl'], pickCharacter,
+								'Invite a friend!', 'Get your party together.');
+						}
+             
             // YOUR TURN
             if(_turn['playerId'] == globals.userState['userId']){
               // ACT PHASE
@@ -176,12 +179,17 @@ class _ChatViewState extends State<ChatView> {
                     'What do you do?', "It's your turn, " + globals.userState['name'] + '.');
               }
               // DIFFICULTY
-              if(_turn['turnPhase'] == 'difficulty' && document['players'].length == 1) {
-                //you can set your own difficulty if you're the only person in here.
-                return RatingButton(_turn);
+              if(_turn['turnPhase'] == 'difficulty') {
+                if(document['players'].keys.length == 1){
+                  //you can set your own difficulty if you're the only person in here.
+                  return RatingButton(_turn);
+                } else {
+                  return _buildButton(_turn['playerImageUrl'], null,
+                    'Waiting on...', 'Another player to set the difficulty.');
+                }
               }
               // ROLL PHASE
-              if(_turn['turnPhase'] == 'roll' && _turn['playerId'] == globals.userState['userId']){
+              if(_turn['turnPhase'] == 'roll'){
                 return RollButton(_turn, characters);
                 // Function onPressed = () => Application.router.navigateTo(
                 //   context, 'pickRoll',

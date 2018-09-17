@@ -216,6 +216,12 @@ class _AccountDrawerState extends State<AccountDrawer> {
           List<Widget> labelListTiles = [];
           // final int messageCount = snapshot.data.documents.length;
           snapshot.data.documents.forEach((game) {
+            String characterNames = '';
+            if(game['characters'] != null){
+              for(var key in game['characters'].keys){
+                characterNames += game['characters'][key]['characterName'] + ', ';
+              }
+            }
             labelListTiles.add(new ListTile(
               leading: CachedNetworkImage(
                   placeholder: CircularProgressIndicator(),
@@ -227,7 +233,7 @@ class _AccountDrawerState extends State<AccountDrawer> {
                       color: Colors.white,
                       fontWeight: FontWeight.w800,
                       fontSize: 17.0)),
-              subtitle: Text(game['name'],
+              subtitle: Text(characterNames,
                   style: TextStyle(
                       color: Colors.white, fontWeight: FontWeight.w100)),
               // trailing: RaisedButton(
@@ -259,6 +265,7 @@ class _AccountDrawerState extends State<AccountDrawer> {
 // }
 
 void _openGame(DocumentSnapshot game, BuildContext context) {
+  Navigator.pop(context);
   globals.gameState['id'] = game.documentID;
   globals.gameState['genre'] = game['genre'];
   globals.gameState['name'] = game['name'];
@@ -266,7 +273,6 @@ void _openGame(DocumentSnapshot game, BuildContext context) {
   globals.gameState['code'] = game['code'];
   globals.gameState['creator'] = game['creator'];
   globals.gameState['players'] = json.encode(game['players']);
-  Navigator.pop(context);
 }
 
 class User {

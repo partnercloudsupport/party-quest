@@ -30,9 +30,22 @@ class PickResponsePage extends StatelessWidget {
           child: Container(child: ListView(children: <Widget>[
             Container(height: 20.0), 
             _buildDescriptionField(), 
-            _buildSubmitButton(context)])))])
+            _buildSubmitButton(context),
+            _buildSuggestions()])))])
         ));
 	}
+
+  Widget _buildSuggestions(){
+    return Column(children: <Widget>[
+       Padding(padding: EdgeInsets.only(top: 20.0), child: Text("Something lurks behind that tree.", style: TextStyle(color: Colors.white, fontSize: 22.0))),
+       Padding(padding: EdgeInsets.only(top: 20.0), child: Text("A character gets sick.", style: TextStyle(color: Colors.white, fontSize: 22.0))),
+       Padding(padding: EdgeInsets.only(top: 20.0), child: Text("One of the characters turns on the party.", style: TextStyle(color: Colors.white, fontSize: 22.0))),
+       Padding(padding: EdgeInsets.only(top: 20.0), child: Text("Someone finds a magic orb.", style: TextStyle(color: Colors.white, fontSize: 22.0))),
+       Padding(padding: EdgeInsets.only(top: 20.0), child: Text("What's that smell?", style: TextStyle(color: Colors.white, fontSize: 22.0))),
+       Padding(padding: EdgeInsets.only(top: 20.0), child: Text("Goblins are everywhere!", style: TextStyle(color: Colors.white, fontSize: 22.0))),
+       Padding(padding: EdgeInsets.only(top: 20.0), child: Text("The party is desperately low on water.", style: TextStyle(color: Colors.white, fontSize: 22.0)))
+    ]); 
+  }
 
   Widget _buildDescriptionField(){
     return Container(

@@ -74,3 +74,42 @@ exports.acceptRequest = functions.https.onCall((data, context) => {
   });
   // res.send(Items[Math.floor(Math.random()*Items.length)]);
 });
+
+exports.sendPush = functions.database.ref('/push/{pushId}').onWrite(event => {
+  let pushData = event.data.val();
+  let payload = {
+    notification: {
+        title: pushData.title,
+        body: pushData.message,
+        sound: 'default',
+        badge: '1'
+    },
+    data: pushData
+  };
+  // console.log(pushData.friendId)
+  return loadTokens(pushData.friendId).then(tokens => {
+      admin.messaging().sendToDevice(tokens, payload)
+      .then( results => {
+        // Delete the push item
+        event.data.adminRef.remove()
+      });
+  });
+});
+
+function loadTokens(userId) {
+  let dbRef = admin.database().ref('/deviceTokens/' + userId);
+  let defer = new Promise((resolve, reject) => {
+      dbRef.once('value', (snap) => {
+          let data = snap.val();
+          let tokens = [];
+          for (var property in data) {
+              tokens.push(property);
+          }
+          // console.log(tokens);
+          resolve(tokens);
+      }, (err) => {
+          reject(err);
+      });
+  });
+  return defer;
+}

@@ -73,7 +73,7 @@ class CreateGamePagesState extends State<CreateGamePages> {
 						fontWeight: FontWeight.w800),
 				)),
 				Container(
-					height: 50.0,
+					height: 60.0,
 					margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
 					padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 10.0),
 					child: TextField(
