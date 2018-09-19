@@ -74,7 +74,7 @@ class HomePageState extends State<HomePage> {
 				if (!snapshot.hasData) return const Text('Loading...');
 				List<Widget> labelListTiles = [];
 				snapshot.data.documents.forEach((game) {
-					if (game['players'][globals.userState['userId']] == null) {
+					if (true) { //game['players'][globals.userState['userId']] == null
 						labelListTiles.add(GestureDetector(
 							child: ListTile(
 								leading: CachedNetworkImage(
@@ -124,6 +124,7 @@ class HomePageState extends State<HomePage> {
 		globals.gameState['type'] = game['type'];
 		globals.gameState['name'] = game['name'];
 		globals.gameState['title'] = game['title'];
+		globals.gameState['genre'] = game['genre'];
 		globals.gameState['code'] = game['code'];
 		globals.gameState['creator'] = game['creator'];
 		globals.gameState['players'] = game['players'].toString();

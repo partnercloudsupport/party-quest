@@ -49,7 +49,7 @@ class PickCharacterState extends State<PickCharacterPage> {
   Widget _buildCharacterDetailsPage(BuildContext context){
     return ListView(children: <Widget>[
       _selectedCharacter == null ? Container(width: 10.0) : Image(height: 100.0,
-						image: CachedNetworkImageProvider(_selectedCharacter['imageUrl'])),
+						image: AssetImage("assets/images/" + _selectedCharacter.documentID + ".png")),
       Container(
 					height: 60.0,
 					margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),

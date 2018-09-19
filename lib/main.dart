@@ -45,14 +45,17 @@ class PartyQuestState extends State<PartyQuest> {
     _firebaseMessaging.configure(
       onMessage: (Map<String, dynamic> message) async {
         print("onMessage: $message");
+        _loadGame(message);
         // _showItemDialog(message);
       },
       onLaunch: (Map<String, dynamic> message) async {
         print("onLaunch: $message");
+        _loadGame(message);
         // _navigateToItemDetail(message);
       },
       onResume: (Map<String, dynamic> message) async {
         print("onResume: $message");
+        _loadGame(message);
         // _navigateToItemDetail(message);
       },
     );
@@ -64,11 +67,20 @@ class PartyQuestState extends State<PartyQuest> {
     });
   }
 
+  void _loadGame(Map gameData){
+    globals.gameState['id'] = gameData['gameId'];
+    globals.gameState['genre'] = gameData['genre'];
+    globals.gameState['title'] = gameData['gameTitle'];
+    globals.gameState['name'] = gameData['name'];
+    globals.gameState['code'] = gameData['code'];
+    globals.gameState['creator'] = gameData['creator'];
+    globals.gameState['players'] = gameData['players'];
+  }
+
   @override
   Widget build(BuildContext context) {
     SystemChrome.setEnabledSystemUIOverlays([SystemUiOverlay.bottom]);
-    SystemChrome
-        .setApplicationSwitcherDescription(new ApplicationSwitcherDescription(
+    SystemChrome.setApplicationSwitcherDescription(new ApplicationSwitcherDescription(
       primaryColor: 0xFF,
     ));
 
@@ -120,6 +132,7 @@ class PartyQuestState extends State<PartyQuest> {
         if (snapshot.data['profilePic'] != null) {
           globals.userState['profilePic'] = snapshot.data['profilePic'];
           globals.userState['loginStatus'] = 'loggedIn';
+          globals.userState['requests'] = snapshot.data['requests'].toString();
         }
         globals.userState['name'] = snapshot.data['name'];
       } 
@@ -127,13 +140,10 @@ class PartyQuestState extends State<PartyQuest> {
         globals.userState['loginStatus'] = 'notLoggedIn';
       }
     });
-
     _firebaseMessaging.getToken().then((String token) {
-      assert(token != null);
-      _messagesRef = FirebaseDatabase.instance.reference().child('deviceTokens');
-      _messagesRef.push().set(<String, String>{
-        'path': user.uid,
-        'token': token
+      _messagesRef = FirebaseDatabase.instance.reference().child('deviceTokens/' + user.uid);
+      _messagesRef.set(<String, dynamic>{
+        token: DateTime.now().toString()
       });
     });
 

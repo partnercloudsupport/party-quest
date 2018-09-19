@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:party_quest/globals.dart' as globals;
+import 'dart:convert';
+import 'package:firebase_database/firebase_database.dart';
 
 class PickActionPage extends StatefulWidget {
 	@override
@@ -84,11 +86,19 @@ class _PickActionPageState extends State<PickActionPage> with SingleTickerProvid
 
 	List<Widget> _buildHeaderDetails(){
 			return [
-				CachedNetworkImage(
-					placeholder: CircularProgressIndicator(),
-					imageUrl: _characterData['imageUrl'],
-					height: 180.0,
-					width: 180.0), 
+        Container(
+          width: 180.0,
+          height: 180.0,
+					decoration: BoxDecoration(
+					image: DecorationImage(
+							image: AssetImage("assets/images/" + _characterData['characterId'] + ".png"),
+							fit: BoxFit.contain,
+						))),
+				// CachedNetworkImage(
+				// 	placeholder: CircularProgressIndicator(),
+				// 	imageUrl: _characterData['imageUrl'],
+				// 	height: 180.0,
+				// 	width: 180.0), 
 				Center(child: Padding(padding: EdgeInsets.only(top: 5.0, bottom: 10.0), child: Text(
 					_characterData['characterName'],
 					style: TextStyle(
@@ -96,8 +106,8 @@ class _PickActionPageState extends State<PickActionPage> with SingleTickerProvid
 						fontSize: 22.0,
 						fontWeight: FontWeight.w800)))),
         Row(children: <Widget>[
-          Expanded(child: Padding(padding: EdgeInsets.only(right: 10.0, bottom: 10.0), child: Text(_characterData['HP'].toString() + ' HP', textAlign: TextAlign.right, style: TextStyle(color: Colors.red)))),
-          Expanded(child: Padding(padding: EdgeInsets.only(left: 10.0, bottom: 10.0), child: Text(_characterData['XP'].toString() + ' XP', style: TextStyle(color: Colors.blue))))
+          Expanded(child: Padding(padding: EdgeInsets.only(right: 10.0, bottom: 10.0), child: Text(_characterData['HP'].toString() + ' HP', textAlign: TextAlign.right, style: TextStyle(color: Colors.red, fontSize: 18.0)))),
+          Expanded(child: Padding(padding: EdgeInsets.only(left: 10.0, bottom: 10.0), child: Text(_characterData['XP'].toString() + ' XP', style: TextStyle(color: Colors.blue, fontSize: 18.0))))
         ],)
 			];
 		}
@@ -240,5 +250,23 @@ class _PickActionPageState extends State<PickActionPage> with SingleTickerProvid
       turn.updateData(<String, dynamic>{
         'turn': combinedTurns
       });
+      Map players = json.decode(globals.gameState['players']);
+      for(var key in players.keys){
+        if(key != globals.userState['userId']){
+          FirebaseDatabase.instance.reference().child('push').push().set(<String, dynamic>{
+            'title': "Difficulty Check!",
+            'message': globals.userState['name'] + " is attempting something in " + globals.gameState['title'] + '.',
+            'friendId': key,
+            'gameId': globals.gameState['id'],
+            'genre': globals.gameState['genre'],
+            'name': globals.gameState['name'],
+            'gameTitle': globals.gameState['title'],
+            'code': globals.gameState['code'],
+            'players': globals.gameState['players'],
+            'creator': globals.gameState['creator']
+          });
+        }
+      }
+
     }
 }

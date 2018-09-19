@@ -8,6 +8,8 @@ import 'package:fluro/fluro.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../components/roll_button.dart';
 import '../components/rating_button.dart';
+import 'package:firebase_database/firebase_database.dart';
+
 
 class ChatView extends StatefulWidget {
 	@override
@@ -50,8 +52,7 @@ class _ChatViewState extends State<ChatView> {
 						?.contains(globals.userState['userId']) ==
 						true
 						? _buildTextComposer()
-						: Container()
-							// _buildInfoBox('Tap a speech bubble to react to what people say.')
+						: _buildInfoBox('Tap any speech bubble to react to what players are saying.')
 						// : _buildReactionComposer()
 				]),
 				_showOverlay == true ? _buildOverlay(_buildReactionComposer()) : Container()
@@ -67,22 +68,22 @@ class _ChatViewState extends State<ChatView> {
 		// }
 	}
 
-	// Widget _buildInfoBox(String infoText){
-	// 	return Container(
-	// 		decoration: BoxDecoration(
-	// 			color: Color(0xFF4C6296),
-	// 			// boxShadow: <BoxShadow>[
-	// 			// BoxShadow(
-	// 			// color: Colors.black12,
-	// 			// blurRadius: 10.0,
-	// 			// offset: Offset(0.0, -10.0),
-	// 			// ),
-	// 			// ],
-	// 		),
-	// 		height: 80.0,
-	// 		child: Padding(padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
-	// 			child: Text(infoText, style: TextStyle(color: Colors.white, fontSize: 20.0, fontWeight: FontWeight.w600))));
-	// }
+	Widget _buildInfoBox(String infoText){
+		return Container(
+			decoration: BoxDecoration(
+				color: Color(0xFF4C6296),
+				// boxShadow: <BoxShadow>[
+				// BoxShadow(
+				// color: Colors.black12,
+				// blurRadius: 10.0,
+				// offset: Offset(0.0, -10.0),
+				// ),
+				// ],
+			),
+			height: 80.0,
+			child: Padding(padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+				child: Text(infoText, style: TextStyle(color: Colors.white, fontSize: 20.0, fontWeight: FontWeight.w400))));
+	}
 
 	Widget _buildOverlay(Widget content) {
 		MediaQueryData queryData;
@@ -100,23 +101,6 @@ class _ChatViewState extends State<ChatView> {
 			),
 			onTap: _closeOverlay);
 		}
-
-	// Widget _buildGifOverlay() {
-	// MediaQueryData queryData;
-	// queryData = MediaQuery.of(context);
-	// return GestureDetector(
-	// child: Center(
-	// child: Container(
-	// width: queryData.size.width,
-	// height: queryData.size.height,
-	// child: PeggVideoPlayer(_activeGifUrl),
-	// decoration: BoxDecoration(
-	// shape: BoxShape.rectangle,
-	// color: Colors.black.withOpacity(.4),
-	// )),
-	// ),
-	// onTap: _closeOverlay);
-	// }
 
 	void _closeOverlay() {
 		setState(() {
@@ -136,10 +120,8 @@ class _ChatViewState extends State<ChatView> {
 					(BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
 					if (!snapshot.hasData) return new Text("Loading");
 					var document = snapshot.data;
-					if (globals.gameState['players']
-						?.contains(globals.userState['userId']) ==
-						true) {
-							var characters = document['characters'];
+					if (document['players'][globals.userState['userId']] == true) {
+						var characters = document['characters'];
             //PICK A CHARACTER
 						if (characters == null || characters[globals.userState['userId']] == null) {
 							Function pickCharacter = () => Application.router.navigateTo(
@@ -167,7 +149,7 @@ class _ChatViewState extends State<ChatView> {
 							return _buildButton(document['imageUrl'], pickCharacter,
 								'Invite a friend!', 'Get your party together.');
 						}
-             
+
             // YOUR TURN
             if(_turn['playerId'] == globals.userState['userId']){
               // ACT PHASE
@@ -191,11 +173,6 @@ class _ChatViewState extends State<ChatView> {
               // ROLL PHASE
               if(_turn['turnPhase'] == 'roll'){
                 return RollButton(_turn, characters);
-                // Function onPressed = () => Application.router.navigateTo(
-                //   context, 'pickRoll',
-                //   transition: TransitionType.fadeIn);
-                // return _buildButton('https://firebasestorage.googleapis.com/v0/b/party-quest-dev.appspot.com/o/app-images%2F20D20.png?alt=media&token=ad8510fc-e299-4c90-ae1f-21ac6594eb01', 
-                // onPressed, 'Roll the dice!', 'Find out if you succeed or fail.');
               }
               // RESPOND PHASE
               if(_turn['turnPhase'] == 'respond') {
@@ -220,12 +197,17 @@ class _ChatViewState extends State<ChatView> {
                 'Waiting on...', 'The next player to start their turn');
             }
 					} else {
-						return Container();
-						// return _buildButton(
-						// document['imageUrl'],
-						// _handleJoinButtonPressed,
-						// 'Request to Join...',
-						// 'so you can pegg each other and chat!');
+            if(globals.userState['requests'] == null || globals.userState['requests']?.contains(globals.gameState['code']) != true){
+              //request not sent
+              return _buildButton(
+                document['imageUrl'],
+                _handleJoinButtonPressed,
+                'Request to Join...',
+                'so you can adventure with this party!');
+            } else {
+              return _buildButton(document['imageUrl'], null,
+              'Request Sent...', 'Waiting on approval from the game creator.');
+            }
 					}
 				});
 		} else {
@@ -403,20 +385,36 @@ class _ChatViewState extends State<ChatView> {
 		});
 	}
 
-	// void _handleJoinButtonPressed() {
-	// 	var userRef = Firestore.instance
-	// 		.collection('Users')
-	// 		.document(globals.userState['userId']);
-	// 	userRef.get().then((snapshot) {
-	// 		Map userRequests = snapshot.data['requests'] == null
-	// 			? new Map()
-	// 			: snapshot.data['requests'];
-	// 		userRequests[globals.gameState['code']] = true;
-	// 		userRef.updateData(<String, dynamic>{
-	// 			'requests': userRequests,
-	// 		});
-	// 	});
-	// }
+	void _handleJoinButtonPressed() {
+    var userRef = Firestore.instance.collection('Users').document(globals.userState['userId']);
+		userRef.get().then((snapshot) {
+			Map userRequests = snapshot.data['requests'] == null
+				? new Map()
+				: snapshot.data['requests'];
+			userRequests[globals.gameState['code']] = true;
+			userRef.updateData(<String, dynamic>{
+				'requests': userRequests,
+			});
+      globals.userState['requests'] = userRequests.toString();
+      setState(() {
+        // just trigger a new build
+        _showOverlay = false;
+      });
+    });
+    FirebaseDatabase.instance.reference().child('push').push().set(<String, dynamic>{
+      'title': "New request to join the party!",
+      'message': globals.userState['name'] + " would like to join " + globals.gameState['title'] + '.',
+      'friendId': globals.gameState['creator'],
+      'gameId': globals.gameState['id'],
+      'genre': globals.gameState['genre'],
+      'name': globals.gameState['name'],
+      'gameTitle': globals.gameState['title'],
+      'code': globals.gameState['code'],
+      'players': globals.gameState['players'],
+      'creator': globals.gameState['creator']
+    });
+
+	}
 
 	Widget _buildTextComposer() {
 		return Container(

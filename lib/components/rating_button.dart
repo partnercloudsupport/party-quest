@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:party_quest/globals.dart' as globals;
+import 'package:firebase_database/firebase_database.dart';
 
 class RatingButton extends StatefulWidget {
   final Map _turn;
@@ -84,6 +85,18 @@ class _RatingButtonState extends State<RatingButton> {
         Firestore.instance.collection('Games').document(_gameId);
       turn.updateData(<String, dynamic>{
         'turn': combinedTurns
+      });
+      FirebaseDatabase.instance.reference().child('push').push().set(<String, dynamic>{
+        'title': "Time for you to roll...",
+        'message': globals.userState['name'] + " said your action was " + description + "!",
+        'friendId': widget._turn['playerId'],
+        'gameId': globals.gameState['id'],
+        'genre': globals.gameState['genre'],
+        'name': globals.gameState['name'],
+        'gameTitle': globals.gameState['title'],
+        'code': globals.gameState['code'],
+        'players': globals.gameState['players'],
+        'creator': globals.gameState['creator']
       });
   }
 }

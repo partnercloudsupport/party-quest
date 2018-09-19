@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:party_quest/globals.dart' as globals;
+import 'package:firebase_database/firebase_database.dart';
 
-class PickResponsePage extends StatelessWidget {
-	final TextEditingController _textController = TextEditingController();
+class PickResponsePage extends StatefulWidget {
+	@override
+	createState() => PickResponseState();
+}
+
+class PickResponseState extends State<PickResponsePage> {
+	TextEditingController _textController = TextEditingController();
+  bool _buttonEnabled = false;
 
 	@override
 	Widget build(BuildContext context) {
@@ -56,6 +63,7 @@ class PickResponsePage extends StatelessWidget {
 					maxLines: null,
 					keyboardType: TextInputType.text,
 					controller: _textController,
+					onChanged: _handleTextChange,
 					style: TextStyle(color: Colors.white, fontSize: 18.0, fontFamily: 'LondrinaSolid'),
 					decoration:
 						InputDecoration.collapsed(hintText: 'Tell the next part of the story...', hintStyle: TextStyle(color: const Color(0x99FFFFFF))),
@@ -78,7 +86,7 @@ class PickResponsePage extends StatelessWidget {
 							borderRadius:
 								new BorderRadius.circular(
 									10.0)),
-						onPressed: () => _handleSubmitted(context),
+						onPressed: _buttonEnabled ? () => _handleSubmitted(context) : null,
 						child: new Text(
 							"Submit",
 							style: new TextStyle(
@@ -87,6 +95,19 @@ class PickResponsePage extends StatelessWidget {
 								fontWeight: FontWeight.w800,
 							))))); 
 			}
+
+  void _handleTextChange(String text){
+    if(_textController.text.length > 0){
+      // enable submit button
+      setState((){
+        _buttonEnabled = true;
+      });
+    } else {
+      setState((){
+        _buttonEnabled = false;
+      });
+    }
+  }      
 
 	void _handleSubmitted(BuildContext context) {
     Navigator.pop(context);
@@ -120,6 +141,18 @@ class PickResponsePage extends StatelessWidget {
       var combinedTurns = turns.reduce((map1, map2) => map1..addAll(map2));
       gameRef.updateData(<String, dynamic>{
         'turn': combinedTurns
+      });
+      FirebaseDatabase.instance.reference().child('push').push().set(<String, dynamic>{
+        'title': "It's your turn!",
+        'message': "Your friends are waiting on you to continue the story!",
+        'friendId': nextPlayerId,
+        'gameId': globals.gameState['id'],
+        'genre': globals.gameState['genre'],
+        'name': globals.gameState['name'],
+        'gameTitle': globals.gameState['title'],
+        'code': globals.gameState['code'],
+        'players': globals.gameState['players'],
+        'creator': globals.gameState['creator']
       });
     });
 	}

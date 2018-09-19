@@ -64,7 +64,8 @@ class _InfoPageState extends State<InfoPage> {
               children: <Widget>[
                 Expanded(
                   child: ListView(padding: EdgeInsets.zero, children: children)),
-                _buildInviteButton()])));
+                globals.gameState['players']?.contains(globals.userState['userId']) == true ? _buildInviteButton() : Container()
+            ])));
   }
 
   List<Widget> _buildPlayersList(DocumentSnapshot gameInfo, QuerySnapshot gamePlayers, QuerySnapshot gameReactions) {
