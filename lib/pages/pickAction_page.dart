@@ -107,7 +107,7 @@ class _PickActionPageState extends State<PickActionPage> with SingleTickerProvid
 						fontWeight: FontWeight.w800)))),
         Row(children: <Widget>[
           Expanded(child: Padding(padding: EdgeInsets.only(right: 10.0, bottom: 10.0), child: Text(_characterData['HP'].toString() + ' HP', textAlign: TextAlign.right, style: TextStyle(color: Colors.red, fontSize: 18.0)))),
-          Expanded(child: Padding(padding: EdgeInsets.only(left: 10.0, bottom: 10.0), child: Text(_characterData['XP'].toString() + ' XP', style: TextStyle(color: Colors.blue, fontSize: 18.0))))
+          Expanded(child: Padding(padding: EdgeInsets.only(left: 10.0, bottom: 10.0), child: Text(_characterData['XP'].toString() + ' XP', style: TextStyle(color: Colors.green, fontSize: 18.0))))
         ],)
 			];
 		}
@@ -222,11 +222,12 @@ class _PickActionPageState extends State<PickActionPage> with SingleTickerProvid
 			Firestore.instance.collection('Games/$_gameId/Logs').document()
       .setData(<String, dynamic>{
         'text': _textController.text,
-        'title': chosenSkill, //+ ': ' + (chosenSkillPower > 0 ? '+' : '') + chosenSkillPower.toString(),
+        'title': _characterData['characterName'] + ' with ' + chosenSkill, //+ ': ' + (chosenSkillPower > 0 ? '+' : '') + chosenSkillPower.toString(),
         'type': 'characterAction',
         'dts': DateTime.now(),
         'profileUrl': _characterData['imageUrl'],
-        'userId': globals.userState['userId']
+        'userId': globals.userState['userId'],
+			  'userName': globals.userState['name'],
       });
 			// Firestore.instance.collection('Games/$_gameId/Logs').document()
       // .setData(<String, dynamic>{

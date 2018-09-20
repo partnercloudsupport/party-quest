@@ -146,6 +146,7 @@ class _RollButtonState extends State<RollButton> {
       .setData(<String, dynamic>{
         'text': widget._turn['characterName'] + ' ' + outcomePossibilities[winFail][index]['chat'],
         'type': 'narration',
+        'color': winFail == 'fail' ? 'FF694F' : '9deb00',
         'dts': DateTime.now(),
         'userId': globals.userState['userId']
       });

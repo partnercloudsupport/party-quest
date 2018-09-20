@@ -17,7 +17,6 @@ class ChatView extends StatefulWidget {
 }
 
 class _ChatViewState extends State<ChatView> {
-	// bool _isPlaying = false;
 
 	@override
 	void initState() {
@@ -308,38 +307,8 @@ class _ChatViewState extends State<ChatView> {
 							reverse: true,
 							itemCount: messageCount,
 							itemBuilder: (_, int index) {
-								final DocumentSnapshot document =
-									snapshot.data.documents[index];
-								DocumentSnapshot nextDocument;
-								if (index + 1 < messageCount) {
-									nextDocument = snapshot.data.documents[index + 1];
-								} else {
-									nextDocument = snapshot.data.documents[index];
-								}
-									if(document['type'] == 'narration'){
-										return Container(child: Padding(padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0), child: 
-											Column(children: <Widget>[
-
-											document['titleImageUrl'] != null ?
-                      CachedNetworkImage(
-												placeholder: CircularProgressIndicator(),
-												imageUrl: document['titleImageUrl'],
-												height: 80.0,
-												width: 80.0) : Container(),
-											document['title'] != null ?
-                      Padding(padding: EdgeInsets.only(top: 5.0, bottom: 10.0), child: Text(document['title'],
-												style: new TextStyle(
-													color: Colors.white,
-													fontWeight: FontWeight.w800,
-													letterSpacing: 0.5,
-													fontSize: 24.0,
-												))) : Container(),
-												Text(document['text'].replaceAll('\\n', '\n\n'), style: TextStyle(color: Colors.white, fontSize: 20.0 ))
-											]
-
-											)));
-									}
-								var message = new ChatMessage(
+								final DocumentSnapshot document = snapshot.data.documents[index];
+                var message = new ChatMessage(
 									type: document['type'],
 									title: document['title'],
 									userId: document['userId'],
@@ -347,29 +316,47 @@ class _ChatViewState extends State<ChatView> {
 									reactions: document['reactions'],
 									text: document['text'],
 									profileUrl: document['profileUrl'],
-									dts: document['dts']);
-								if (message.userName != null &&
-									message.userId != globals.userState['userId'] &&
-									message.userName != nextDocument['userName']) {
-									return Column(children: <Widget>[
-										_buildLabel(message.userName, message.dts),
-										GestureDetector(
-											child: ChatMessageListItem(message),
-											onTapUp: (TapUpDetails details) => _onTapBubble(details, document)),
-										// document['gif'] != null
-										// ? PeggVideoPlayer(document['gif'])
-										// : Container()
-									]);
-								} else {
-									return Column(children: <Widget>[
-										GestureDetector(
-											child: ChatMessageListItem(message),
-											onTapUp: (TapUpDetails details) => _onTapBubble(details, document)),
-										// document['gif'] != null
-										// ? PeggVideoPlayer(document['gif'])
-										// : Container()
-									]);
+									dts: document['dts']
+                );
+                List<Widget> logItems = [];
+                DocumentSnapshot nextDocument;
+                // Get next document
+								if (index + 1 < messageCount) nextDocument = snapshot.data.documents[index + 1];
+								else nextDocument = snapshot.data.documents[index];
+                // Build label if needed
+                if (message.userName != null && (index == messageCount-1 || message.userId != nextDocument['userId'])){
+                  logItems.add(_buildLabel(message.userName, message.dts));
+                }
+                if(message.type == 'narration'){
+                  logItems.add(
+                    Padding(padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0), 
+                      child: Column(
+                        children: <Widget>[
+                          document['titleImageUrl'] != null ?
+                          CachedNetworkImage(
+                            placeholder: CircularProgressIndicator(),
+                            imageUrl: document['titleImageUrl'],
+                            height: 120.0,
+                            width: 120.0) : Container(),
+                          document['title'] != null ?
+                          Padding(padding: EdgeInsets.only(top: 5.0, bottom: 10.0), child: Text(document['title'],
+                            style: new TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.5,
+                              fontSize: 24.0,
+                            ))) : Container(),
+                            Text(document['text'].replaceAll('\\n', '\n\n'), style: 
+                              TextStyle(
+                                color: document['color'] == null ? Colors.white : Color(int.parse("0x" + 'FF' + document['color'])), 
+                                fontSize: 20.0 ))
+                      ])));
+                } else {
+                  logItems.add(GestureDetector(
+                    child: ChatMessageListItem(message),
+                    onTapUp: (TapUpDetails details) => _onTapBubble(details, document)));
 								}
+                return Column(children: logItems);
 							});
 					}));
 		} else {
@@ -474,15 +461,15 @@ class _ChatViewState extends State<ChatView> {
 		}
 	}
 
-	Widget _buildLabel(String text, DateTime dts) {
+	Widget _buildLabel(String username, DateTime dts) {
 		return Row(
 			// margin: const EdgeInsets.all(10.0),
 			children: <Widget>[
 				Expanded(
 					child: Padding(
-						padding: EdgeInsets.only(right: 15.0, top: 10.0),
-						child: Column(crossAxisAlignment: CrossAxisAlignment.end, children: <Widget>[Text(
-							text,
+						padding: username == globals.userState['name'] ? EdgeInsets.only(left: 15.0, top: 10.0) : EdgeInsets.only(right: 15.0, top: 10.0),
+						child: Column(crossAxisAlignment: username == globals.userState['name'] ? CrossAxisAlignment.start : CrossAxisAlignment.end, children: <Widget>[Text(
+							username,
 							textAlign: TextAlign.right,
 							style: TextStyle(
 								color: Colors.white,
@@ -676,9 +663,7 @@ class Bubble extends StatelessWidget {
 			bg = const Color(0xBB9DEB0F);
 		} else if (type == 'fail') {
 			bg = const Color(0xBBFF694F);
-		} else if (type == 'answer') {
-			bg = const Color(0xFF9DEB0F);
-		}
+		} 
 		final fontColor = type == 'characterAction'
 			? Colors.black
 			: Colors.white;

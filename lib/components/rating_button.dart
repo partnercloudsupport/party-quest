@@ -73,7 +73,8 @@ class _RatingButtonState extends State<RatingButton> {
         'type': 'difficulty',
         'dts': DateTime.now(),
         'profileUrl': globals.userState['profilePic'],
-        'userId': globals.userState['userId']
+        'userId': globals.userState['userId'],
+				'userName': globals.userState['name']
       });
       var turns = [widget._turn, {
         'turnPhase': 'roll', 

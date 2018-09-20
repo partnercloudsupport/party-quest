@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import '../components/characterAnimation.dart';
 import 'package:party_quest/globals.dart' as globals;
 // import 'dart:math';
@@ -82,7 +81,7 @@ class PickCharacterState extends State<PickCharacterPage> {
           onChanged: _handleTextChange,
 					style: TextStyle(color: Colors.white, fontSize: 18.0, fontFamily: 'LondrinaSolid'),
 					decoration:
-						InputDecoration.collapsed(hintText: 'Introduce your character (in 1st person)...', hintStyle: TextStyle(color: const Color(0x99FFFFFF))),
+						InputDecoration.collapsed(hintText: 'Introduce your character (in 3rd person)...', hintStyle: TextStyle(color: const Color(0x99FFFFFF))),
 				),
 				decoration: BoxDecoration(
 					color: const Color(0x33FFFFFF),
@@ -230,21 +229,24 @@ class PickCharacterState extends State<PickCharacterPage> {
     // ADD Narration to Chat Logs
 		final DocumentReference newNarration = Firestore.instance.collection('Games/$_gameId/Logs').document();
 		newNarration.setData(<String, dynamic>{
-			'text': 'A ' + _selectedCharacter['name'] + ' joins the party.', // + _selectedCharacter['description']
+			'text': 'A ' + _selectedCharacter['name'] + ' joins the party.' + '\\n' + _textControllerIntro.text, // + _selectedCharacter['description']
 			'type': 'narration',
 			'dts': DateTime.now(),
-			'userId': globals.userState['userId']
+			'userId': globals.userState['userId'],
+      'titleImageUrl': _selectedCharacter['imageUrl'],
+      'title': _textControllerName.text,
+			'userName': globals.userState['name']
 		});
 		// ADD Character to Chat Logs
-		final DocumentReference newChat = Firestore.instance.collection('Games/$_gameId/Logs').document();
-		newChat.setData(<String, dynamic>{
-			'text': _textControllerIntro.text,
-      'title': _textControllerName.text,
-			'type': 'characterAction',
-			'dts': DateTime.now(),
-			'profileUrl': _selectedCharacter['imageUrl'],
-			'userId': globals.userState['userId']
-		});
+		// final DocumentReference newChat = Firestore.instance.collection('Games/$_gameId/Logs').document();
+		// newChat.setData(<String, dynamic>{
+		// 	'text': _textControllerIntro.text,
+    //   'title': _textControllerName.text,
+		// 	'type': 'characterAction',
+		// 	'dts': DateTime.now(),
+		// 	'profileUrl': _selectedCharacter['imageUrl'],
+		// 	'userId': globals.userState['userId']
+		// });
     // UPDATE Logs.turn
     final DocumentReference gameRef =
       Firestore.instance.collection('Games').document(_gameId);

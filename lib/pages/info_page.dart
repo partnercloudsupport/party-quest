@@ -95,7 +95,7 @@ class _InfoPageState extends State<InfoPage> {
           trailing: Padding(padding: EdgeInsets.only(top: 0.0), child: 
             character == null ? Container(width: 10.0) : Column(children: <Widget>[
               Text(character['HP'].toString() + 'HP', style: TextStyle(color: Colors.red, fontSize: 18.0)),
-              Text(character['XP'].toString() + 'XP', style: TextStyle(color: Colors.blue, fontSize: 18.0)), 
+              Text(character['XP'].toString() + 'XP', style: TextStyle(color: Colors.green, fontSize: 18.0)), 
             ]))
         ));
       });

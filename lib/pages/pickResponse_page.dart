@@ -117,7 +117,8 @@ class PickResponseState extends State<PickResponsePage> {
       'text': _textController.text,
       'type': 'narration',
       'dts': DateTime.now(),
-      'userId': globals.userState['userId']
+      'userId': globals.userState['userId'],
+			'userName': globals.userState['name']
     });
     // UPDATE Game.turn
     final DocumentReference gameRef =
