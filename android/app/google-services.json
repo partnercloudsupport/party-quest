@@ -10,7 +10,38 @@
       "client_info": {
         "mobilesdk_app_id": "1:802829752006:android:86821c3ba471c5c9",
         "android_client_info": {
-          "package_name": "us.gratzi.game"
+          "package_name": "us.gratzi.partyquest"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "802829752006-83vkv2hnk67lqqq3kukq4fu1l4akej24.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAsC4XZ-P-AlvfI5ekOpAgzsUB88sQaFwI"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:802829752006:android:f29179eb17dfda36",
+        "android_client_info": {
+          "package_name": "us.gratzi.partyquest"
         }
       },
       "oauth_client": [

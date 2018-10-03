@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:party_quest/globals.dart' as globals;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'friendRequest_widget.dart';
 import '../application.dart';
 import 'package:fluro/fluro.dart';
 import 'dart:async';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class InfoPage extends StatefulWidget {
   @override
@@ -17,7 +19,7 @@ class _InfoPageState extends State<InfoPage> {
   _InfoPageState() {
     _gameId = globals.gameState['id'];
     if(_gameId == '') return; 
-    Future.wait([_getGameInfo(), _getGamePlayers(), _getGameReactions(), _getGameRequests()])
+    Future.wait([_getGameInfo(), _getGamePlayers(), _getGameReactions()]) //, _getGameRequests()
     .then((List responses) {
       setState(() {
         List<Widget> children = [];
@@ -83,23 +85,33 @@ class _InfoPageState extends State<InfoPage> {
           }
         }
         var character;
-        if(gameInfo.data['characters'] != null)
-          character = gameInfo.data['characters'][player.documentID];
+        if(gameInfo.data['characters'] != null) character = gameInfo.data['characters'][player.documentID];
+        var canRomove = player.documentID != gameInfo.data['creator'] && globals.userState['userId'] == gameInfo.data['creator'];
         labelListTiles.add(ListTile(
           leading: Container(child: Stack(children: <Widget>[
-              player['profilePic'] == null ? Container(width: 10.0) : CircleAvatar(radius: 25.0, backgroundImage: NetworkImage(player['profilePic'])),
-              character == null ? Container(width: 10.0) : Positioned(left: 5.0, top: 5.0, child: CircleAvatar(backgroundImage: NetworkImage(character['imageUrl']))),              
+              CircleAvatar(radius: 25.0, backgroundImage: player['profilePic'].contains('http') ? CachedNetworkImageProvider(player['profilePic']) : AssetImage("${player['profilePic']}")),
+              character == null ? Container(width: 10.0) : Positioned(left: 5.0, top: 5.0, child: CircleAvatar(backgroundImage: character['imageUrl'].contains('http') ? CachedNetworkImageProvider(character['imageUrl']) : AssetImage("${character['imageUrl']}"))),              
               ])),
           title: character == null ? Text(player['name'], style: TextStyle(color: Colors.white, fontSize: 20.0)) : Text(player['name'] + '  :  ' + character['characterName'], style: TextStyle(color: Colors.white, fontSize: 20.0)),
           subtitle: playerReactions == null? Container(width: 10.0) : _buildReactionsRow(playerReactions),
           trailing: Padding(padding: EdgeInsets.only(top: 0.0), child: 
-            character == null ? Container(width: 10.0) : Column(children: <Widget>[
+            character == null ? 
+            (canRomove ? GestureDetector(child: Text('remove', style: TextStyle(color: Colors.blue, fontSize: 14.0)), onTap: () => _handleRemovePlayer(player)) : Container(width: 10.0)) 
+            : Column(children: <Widget>[
               Text(character['HP'].toString() + 'HP', style: TextStyle(color: Colors.red, fontSize: 18.0)),
-              Text(character['XP'].toString() + 'XP', style: TextStyle(color: Colors.green, fontSize: 18.0)), 
+              Text(character['XP'].toString() + 'XP', style: TextStyle(color: Colors.green, fontSize: 18.0)),
+              canRomove ? GestureDetector(child: Text('remove', style: TextStyle(color: Colors.blue, fontSize: 14.0)), onTap: () => _handleRemovePlayer(player)) : Container(width: 10.0)
             ]))
         ));
       });
       return labelListTiles;
+  }
+
+  void _handleRemovePlayer(DocumentSnapshot player) async {
+    await CloudFunctions.instance.call(functionName: 'removePlayer', parameters: <String, dynamic>{
+      'userId': player.documentID,
+      'gameId': globals.gameState['id']
+    });
   }
 
   Widget _buildReactionsRow(Map playerReactions){
@@ -216,8 +228,8 @@ class _InfoPageState extends State<InfoPage> {
     return players.getDocuments();
   }
 
-  Future<QuerySnapshot> _getGameRequests(){
-    var requests = Firestore.instance.collection('Users').where('requests.' + globals.gameState['code'], isEqualTo: true);
-    return requests.getDocuments();
-  }
+  // Future<QuerySnapshot> _getGameRequests(){
+  //   var requests = Firestore.instance.collection('Users').where('requests.' + globals.gameState['code'], isEqualTo: true);
+  //   return requests.getDocuments();
+  // }
 }

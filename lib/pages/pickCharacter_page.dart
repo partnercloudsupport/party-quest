@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../components/characterAnimation.dart';
+// import '../components/characterAnimation.dart';
 import 'package:party_quest/globals.dart' as globals;
 // import 'dart:math';
 
@@ -186,7 +186,8 @@ class PickCharacterState extends State<PickCharacterPage> {
 			return Container(
 				padding: EdgeInsets.symmetric(horizontal: 20.0),
 				child: Column(children: <Widget>[ 
-				Container(height: 350.0, child: CharacterAnimation(document['characterFileName'], document['spriteX'], document['spriteY'], document['spriteCount'])), 
+				Container(height: 350.0, child: Image(height: 200.0, image: AssetImage("assets/images/" + document.documentID + ".png"))),
+        // CharacterAnimation(document['characterFileName'], document['spriteX'], document['spriteY'], document['spriteCount'])), 
 				Text(
 					document['name'],
           // textAlign: TextAlign.right,
@@ -233,7 +234,7 @@ class PickCharacterState extends State<PickCharacterPage> {
 			'type': 'narration',
 			'dts': DateTime.now(),
 			'userId': globals.userState['userId'],
-      'titleImageUrl': _selectedCharacter['imageUrl'],
+      'titleImageUrl': "assets/images/" + _selectedCharacter.documentID + ".png",
       'title': _textControllerName.text,
 			'userName': globals.userState['name']
 		});
@@ -263,7 +264,7 @@ class PickCharacterState extends State<PickCharacterPage> {
               'charisma': _selectedCharacter['charisma'],
               'intelligence': _selectedCharacter['intelligence']
             },
-            'imageUrl': _selectedCharacter['imageUrl']
+            'imageUrl': "assets/images/" + _selectedCharacter.documentID + ".png"
           };
           gameRef.updateData(<String, dynamic>{
             'characters': characters

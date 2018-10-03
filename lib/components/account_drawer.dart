@@ -120,30 +120,33 @@ class _AccountDrawerState extends State<AccountDrawer> {
               child: Column(children: <Widget>[
                 Container(
                   margin: const EdgeInsets.only(top: 40.0, bottom: 10.0),
-                  child: Container(
-                      width: 150.0,
-                      height: 150.0,
-                      // child: CachedNetworkImage(
-                      //     placeholder: CircularProgressIndicator(),
-                      //     imageUrl: currentUser.profilePic,
-                      //     height: 150.0,
-                      //     width: 150.0,
-                      //     fit: BoxFit.contain,
-                      //     ),
-                      decoration: BoxDecoration(
-                          border: Border.all(color: Colors.white, width: 3.0),
-                          shape: BoxShape.circle,
-                          image: DecorationImage(
-                              fit: BoxFit.cover,
-                              image: NetworkImage(currentUser.profilePic)))),
+                  child: Container(width: 150.0, height: 150.0,
+                      decoration: BoxDecoration(border: Border.all(color: Colors.white, width: 3.0), shape: BoxShape.circle,
+                        image: DecorationImage(fit: BoxFit.cover,
+						              image: currentUser.profilePic.contains('http') ? CachedNetworkImageProvider(currentUser.profilePic) : AssetImage(currentUser.profilePic)))),
                 ),
                 Text(currentUser.name,
-                    style: new TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.5,
-                      fontSize: 28.0,
-                    ))
+                  style: new TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
+                    fontSize: 28.0,
+                  )),
+                // TODO: GOLD!!!!!!
+                // Padding(
+                //   padding: EdgeInsets.only(left: 20.0, top: 10.0), 
+                //   child: Container(
+                //     decoration: BoxDecoration(
+                //       image: DecorationImage(
+                //         image: AssetImage("assets/images/coins-icon.png"),
+                //         fit: BoxFit.contain)),
+                //     child: Padding(padding: EdgeInsets.only(right: 50.0),  child: Text('20',
+                //       style: new TextStyle(
+                //         color: const Color(0xFFFDCF39),
+                //         fontWeight: FontWeight.w400,
+                //         letterSpacing: 0.5,
+                //         fontSize: 20.0,
+                //       )))))
               ]),
               onTap: () => Application.router.navigateTo(context, 'userProfile',
                   transition: TransitionType.fadeIn))),

@@ -277,7 +277,7 @@ class CreateGamePagesState extends State<CreateGamePages> {
 													placeholder: CircularProgressIndicator(),
 													imageUrl: document['imageUrl'],
 													height: 92.0,
-													width: 92.0,
+													width: 102.0,
 												),
 												document['type'] == 'paid'
 													? Positioned(
@@ -291,7 +291,7 @@ class CreateGamePagesState extends State<CreateGamePages> {
 															onPressed: () => _nextPage(document),
 															color: const Color(0xFF48B5FB),
 															child: Text(
-																"\$1.99",
+																"Coming Soon",
 																style: TextStyle(
 																	fontSize: 20.0,
 																	color: Colors.black,

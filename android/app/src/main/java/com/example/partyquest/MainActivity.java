@@ -1,4 +1,4 @@
-package us.gratzi.game;
+package us.gratzi.partyquest;
 
 import android.os.Bundle;
 import io.flutter.app.FlutterActivity;

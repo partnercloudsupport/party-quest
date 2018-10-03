@@ -40,6 +40,42 @@ admin.initializeApp();
 //   }
 // });
 
+exports.removePlayer = functions.https.onCall((data, context) => {
+  // console.log("uid: " + context.auth.uid);
+  console.log(data);
+  var gameRef = admin.firestore().collection('Games').doc(data.gameId);
+  var userRef = admin.firestore().collection('Users').doc(data.userId);
+  return gameRef.get().then((gameResult) => {
+    var gameData = gameResult.data()
+    // console.log("creator: " + gameData['creator']);
+    // Only the game creator can remove players
+    if (gameData['creator'] == context.auth.uid) {
+      // Remove user from Game.players
+      var players = gameData['players']
+      delete players[data.userId];
+      // Update turn to next player if it was the removed player's turn
+      var turn = gameData['turn']
+      if(turn['playerId'] == data.userId){
+        turn['turnPhase'] = 'act';
+        turn['playerId'] = Object.keys(players)[0];
+        turn['playerImageUrl'] = null;
+        turn['playerName'] = null;
+      }
+      return gameRef.update({ 'players': players, 'turn': turn }).then(() => {
+        // Remove user from User.games
+        return userRef.get().then(userResult => {
+          var userData = userResult.data()
+          var games = userData['games'] == null ? {} : userData['games'];
+          delete games[data.gameId];
+          return userRef.update({ 'games': games });
+        });
+      });
+    } else {
+      return null;
+    }
+  });
+});
+
 
 exports.acceptRequest = functions.https.onCall((data, context) => {
   // console.log("uid: " + context.auth.uid);

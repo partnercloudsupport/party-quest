@@ -19,6 +19,7 @@ import 'pages/pickCharacter_page.dart';
 import 'pages/pickResponse_page.dart';
 import 'pages/pickRoll_page.dart';
 import 'pages/pickAction_page.dart';
+import 'pages/phoneAuth_page.dart';
 
 class Routes {
 
@@ -34,6 +35,7 @@ class Routes {
     router.define('pickScenario', handler: pickScenarioHandler);
     router.define('pickAction', handler: pickActionHandler);
     router.define('pickCharacter', handler: pickCharacterHandler);
+    router.define('phoneAuth', handler: phoneAuthHandler);
     router.define('pickResponse', handler: pickResponseHandler);
     router.define('pickRoll', handler: pickRollHandler);
     router.define('myGames', handler: myGamesHandler);
@@ -66,6 +68,10 @@ class Routes {
 
   static var pickRollHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {
     return new PickRollPage();
+  });
+ 
+ static var phoneAuthHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {
+    return new AuthScreen();
   });
 
   static var pickScenarioHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {

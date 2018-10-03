@@ -50,7 +50,7 @@ class SplashPageState extends State<SplashPage> {
 					padding: EdgeInsets.symmetric(
 						vertical: 20.0, horizontal: 40.0),
 					onPressed: () => Application.router.navigateTo(
-						context, 'userProfile',
+						context, 'phoneAuth',
 						transition: TransitionType.fadeIn),
 					color: const Color(0xFF00b0ff),
 					shape: RoundedRectangleBorder(

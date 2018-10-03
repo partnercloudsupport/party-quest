@@ -11,9 +11,11 @@ class PickResponsePage extends StatefulWidget {
 class PickResponseState extends State<PickResponsePage> {
 	TextEditingController _textController = TextEditingController();
   bool _buttonEnabled = false;
+  List<String> _pushIds = [];
 
 	@override
 	Widget build(BuildContext context) {
+    _pushIds = [];
 		return Scaffold(
 			appBar: new AppBar(
 				automaticallyImplyLeading: false,
@@ -35,12 +37,51 @@ class PickResponseState extends State<PickResponsePage> {
 				child: 
         Column( children: <Widget>[Expanded(
           child: Container(child: ListView(children: <Widget>[
-            Container(height: 20.0), 
+            Container(height: 10.0), 
+            _buildCharacterList(),
             _buildDescriptionField(), 
             _buildSubmitButton(context),
             _buildSuggestions()])))])
         ));
 	}
+
+  Widget _buildCharacterList(){
+    List<Widget> characterWidgets = [];
+    return FutureBuilder(
+			future: Firestore.instance.collection('Games').document(globals.gameState['id']).get(),
+			builder: (BuildContext context, AsyncSnapshot snapshot) {
+        if(snapshot.hasData){
+          for(var key in snapshot.data['characters'].keys){
+            characterWidgets.add(_buildCharacterWidget(key, snapshot.data['characters'][key]));
+            // characterWidgets.add(_buildCharacterWidget(snapshot.data['characters'][key]));
+          }
+          return Container(height: 80.0, child: ListView(children: characterWidgets, scrollDirection: Axis.horizontal));
+        } else {
+				  return CircularProgressIndicator();
+        }
+    });
+  }
+
+  Widget _buildCharacterWidget(String playerId, Map character){
+    return GestureDetector(child: Container(width: 100.0, 
+      child: Column(children: <Widget>[
+        Container(
+          width: 50.0,
+          height: 50.0,
+					decoration: BoxDecoration(
+					image: DecorationImage(
+							image: AssetImage("assets/images/" + character['characterId'] + ".png"),
+							fit: BoxFit.contain,
+						))),
+        Text(character['characterName'], style: TextStyle(color: Colors.white))
+      ])),
+      onTap: () => _onCharacterTap(playerId, character));
+  }
+
+  void _onCharacterTap(String playerId, Map character) {
+    _textController.text += character['characterName'] + ' ';
+    if(_pushIds.contains(playerId) != true) _pushIds.add(playerId);
+  }
 
   Widget _buildSuggestions(){
     return Column(children: <Widget>[
@@ -50,7 +91,7 @@ class PickResponseState extends State<PickResponsePage> {
        Padding(padding: EdgeInsets.only(top: 20.0), child: Text("Someone finds a magic orb.", style: TextStyle(color: Colors.white, fontSize: 22.0))),
        Padding(padding: EdgeInsets.only(top: 20.0), child: Text("What's that smell?", style: TextStyle(color: Colors.white, fontSize: 22.0))),
        Padding(padding: EdgeInsets.only(top: 20.0), child: Text("Goblins are everywhere!", style: TextStyle(color: Colors.white, fontSize: 22.0))),
-       Padding(padding: EdgeInsets.only(top: 20.0), child: Text("The party is desperately low on water.", style: TextStyle(color: Colors.white, fontSize: 22.0)))
+       Padding(padding: EdgeInsets.only(top: 20.0), child: Text("The party eats magic mushrooms.", style: TextStyle(color: Colors.white, fontSize: 22.0)))
     ]); 
   }
 
@@ -124,7 +165,7 @@ class PickResponseState extends State<PickResponsePage> {
     final DocumentReference gameRef =
         Firestore.instance.collection('Games').document(_gameId);
     gameRef.get().then((gameResult) {
-      String nextPlayerId;
+      String nextPlayerId, nextPlayerName, nextPlayerImageUrl;
       List<dynamic> sortedPlayerIds = gameResult['players'].keys.toList()..sort();
       int playerIndex = sortedPlayerIds.indexOf(globals.userState['userId']);
       if(playerIndex < sortedPlayerIds.length-1){
@@ -132,12 +173,14 @@ class PickResponseState extends State<PickResponsePage> {
       } else {
         nextPlayerId = sortedPlayerIds[0];
       }
+      nextPlayerName = gameResult['characters'][nextPlayerId] != null ? gameResult['characters'][nextPlayerId]['characterName'] : null;
+      nextPlayerImageUrl = gameResult['characters'][nextPlayerId] != null ? gameResult['characters'][nextPlayerId]['imageUrl'] : null;
       var turns = [gameResult['turn'], {
         'playerId': nextPlayerId,
         'dts': DateTime.now(), 
         'turnPhase': 'act',
-        'playerImageUrl': null,
-        'playerName': null}
+        'playerImageUrl': nextPlayerImageUrl,
+        'playerName': nextPlayerName}
       ];
       var combinedTurns = turns.reduce((map1, map2) => map1..addAll(map2));
       gameRef.updateData(<String, dynamic>{
@@ -154,6 +197,21 @@ class PickResponseState extends State<PickResponsePage> {
         'code': globals.gameState['code'],
         'players': globals.gameState['players'],
         'creator': globals.gameState['creator']
+      });
+
+      _pushIds.forEach((pushId) {
+        FirebaseDatabase.instance.reference().child('push').push().set(<String, dynamic>{
+          'title': "You're been tagged in the story.",
+          'message': "Check out what's new in " + globals.gameState['title'],
+          'friendId': pushId,
+          'gameId': globals.gameState['id'],
+          'genre': globals.gameState['genre'],
+          'name': globals.gameState['name'],
+          'gameTitle': globals.gameState['title'],
+          'code': globals.gameState['code'],
+          'players': globals.gameState['players'],
+          'creator': globals.gameState['creator']
+        });
       });
     });
 	}

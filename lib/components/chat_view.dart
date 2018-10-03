@@ -24,6 +24,7 @@ class _ChatViewState extends State<ChatView> {
 	}
 
 	bool _showOverlay = false;
+  String _overlayType = '';
   Map _turn;
 	TapUpDetails _tapDownDetails;
 	DocumentSnapshot _tappedBubble;
@@ -34,6 +35,7 @@ class _ChatViewState extends State<ChatView> {
 			// TODO only call setState once... not for every change of gameState
 			setState(() {
 				_showOverlay = false;
+        _overlayType = '';
 			});
 		});
 	}
@@ -42,8 +44,7 @@ class _ChatViewState extends State<ChatView> {
 	@override
 	Widget build(BuildContext context) {
 		// CollectionReference get logs =>
-		return GestureDetector(
-			child: Stack(children: <Widget>[
+		return Stack(children: <Widget>[
 				Column(children: <Widget>[
 					_buildChatLog(),
 					_buildActionButton(),
@@ -52,19 +53,9 @@ class _ChatViewState extends State<ChatView> {
 						true
 						? _buildTextComposer()
 						: _buildInfoBox('Tap any speech bubble to react to what players are saying.')
-						// : _buildReactionComposer()
 				]),
-				_showOverlay == true ? _buildOverlay(_buildReactionComposer()) : Container()
-			]),
-			onVerticalDragDown: (DragDownDetails d) => closeKeyboard(d));
-	}
-
-	// TODO: optimize this...
-	void closeKeyboard(DragDownDetails d) {
-		// if (d.delta.distance > 20) {
-		FocusScope.of(context).requestFocus(new FocusNode());
-		SystemChannels.textInput.invokeMethod('TextInput.hide');
-		// }
+				_showOverlay == true ? _buildOverlay(_overlayType == 'react' ? _buildReactionComposer() : _buildReactionViewer()) : Container()
+			]);
 	}
 
 	Widget _buildInfoBox(String infoText){
@@ -183,17 +174,22 @@ class _ChatViewState extends State<ChatView> {
               }
             }
             // NOT YOUR TURN
-            // RESPOND PHASE
+            // SET DIFFICULTY
             if(_turn['turnPhase'] == 'difficulty') {
               return RatingButton(_turn);
             }
-
-            if(_turn['playerImageUrl'] != null){
+            // WAITING ON FRIEND
+            if(_turn['turnPhase'] == 'respond'){
               return _buildButton(_turn['playerImageUrl'], null,
                 'Waiting on...', 'Your friend ' + _turn['playerName'] + ' to finish their turn.');
-            } else{
-              return _buildButton(document['imageUrl'], null,
-                'Waiting on...', 'The next player to start their turn');
+            } else {
+              if(_turn['playerImageUrl'] != null && _turn['playerName'] != null) {
+                return _buildButton(_turn['playerImageUrl'], null,
+                  'Waiting on...', _turn['playerName'] + ' to take the next action.');
+              } else {
+                return _buildButton(document['imageUrl'], null,
+                  'Waiting on...', 'The next player to start their turn.');
+              }
             }
 					} else {
             if(globals.userState['requests'] == null || globals.userState['requests']?.contains(globals.gameState['code']) != true){
@@ -214,8 +210,48 @@ class _ChatViewState extends State<ChatView> {
 		}
 	}
 
+  Widget _buildReactionViewer() {
+    return StreamBuilder<QuerySnapshot>(
+    stream: Firestore.instance
+        .collection('Users')
+        .where('games.' + globals.gameState['id'], isEqualTo: true)
+        .snapshots(),
+    builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+      if (!snapshot.hasData) return const Text('Loading...', style: TextStyle(color: Colors.white));
+      List <Widget> reactions = [];
+      Map playerMap = {};
+      snapshot.data.documents.forEach((player){
+        playerMap[player.documentID] = player['profilePic'];
+      });
+      for(var key in _tappedBubble.data['reactions'].keys){
+        if(_tappedBubble.data['reactions'][key] is int) return Container(); // BACKWARDS COMPATIBLE
+        _tappedBubble.data['reactions'][key].forEach((playerId){
+          // Non-players just show gray unicorn
+          var playerProfilePic = playerMap[playerId] == null ? 'profile-placeholder.png' : playerMap[playerId];
+          reactions.add(
+            Stack(children: <Widget>[
+              Padding(padding: EdgeInsets.symmetric(horizontal: 10.0),
+                child: Container(width: 50.0, height: 50.0,
+                  decoration: BoxDecoration(border: Border.all(color: Colors.white, width: 1.0), shape: BoxShape.circle,
+                    image: DecorationImage(fit: BoxFit.cover,
+                      image: playerProfilePic.contains('http') ? CachedNetworkImageProvider(playerProfilePic) : AssetImage(playerProfilePic)
+              )))),
+              Positioned(top: 35.0, left: 10.0, 
+                child: Padding(padding: EdgeInsets.symmetric(horizontal: 10.0),
+                  child: GestureDetector(child: Container(child: Image.asset("assets/images/reaction-$key.png"), width: 30.0)))),
+            ]));
+        });
+      }
+      return Stack(children: <Widget>[Positioned(top: _tapDownDetails.globalPosition.dy - 120, 
+      child: Container(height: 80.0, width: 400.0, 
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          children: reactions)))]);
+    });
+  }
+
 	Widget _buildReactionComposer() {
-		return Stack(children: <Widget>[Positioned(top: _tapDownDetails.globalPosition.dy - 130, 
+		return Stack(children: <Widget>[Positioned(top: _tapDownDetails.globalPosition.dy - 100, 
 			//Column( children: <Widget>[Flexible(child: Row(children: <Widget>[Expanded(child: 
 			// child: Row(children: <Widget>[ Expanded(child: Container(height: 80.0, child: ListView(
 			child: Container(height: 80.0, width: 400.0, child: ListView(
@@ -247,16 +283,15 @@ class _ChatViewState extends State<ChatView> {
 			setState(() {
 			  _showOverlay = false;
 			});
-      // TODO: only do this if the user hasn't already reacted with this type on this bubble.
       _tappedBubble.reference.get().then((bubbleDoc) {
         if(bubbleDoc.data != null){
           if(bubbleDoc.data['reactions'] != null){
             if(bubbleDoc.data['reactions'][reactionType] != null)
-              bubbleDoc.data['reactions'][reactionType] += 1;
+              bubbleDoc.data['reactions'][reactionType] = bubbleDoc.data['reactions'][reactionType].add(globals.userState['userId']);
             else
-              bubbleDoc.data['reactions'][reactionType] = 1;
+              bubbleDoc.data['reactions'][reactionType] = [globals.userState['userId']];
           } else {
-            bubbleDoc.data['reactions'] = {reactionType: 1};
+            bubbleDoc.data['reactions'] = {reactionType: [globals.userState['userId']]};
           }
         }
       _tappedBubble.reference.updateData(bubbleDoc.data).then((onValue) {
@@ -264,6 +299,7 @@ class _ChatViewState extends State<ChatView> {
         var _gameId = globals.gameState['id'];
         final DocumentReference reactionsRef = Firestore.instance.collection('Games/$_gameId/Reactions').document(_userId);
         reactionsRef.get().then((reactionResult){
+          // TODO: give friend Gold coin, take it from user.
           if(reactionResult.data == null){
             reactionsRef.setData({ reactionType: 1 });
           } else {
@@ -273,7 +309,6 @@ class _ChatViewState extends State<ChatView> {
           }
         });
       });
-
       // This doesnt work for public games because public players dont have accesss to update the game.
       // final DocumentReference gameRef =
       // Firestore.instance.collection('Games').document(globals.gameState['id']);
@@ -285,14 +320,15 @@ class _ChatViewState extends State<ChatView> {
       //   gameRef.updateData(<String, dynamic>{ 'reactions': reactions });
       // });
     });
-		}
+	}
 
 	Widget _buildChatLog() {
 		var _gameId = globals.gameState['id'];
 		final now = DateTime.now();
 		final monthAgo = new DateTime(now.year, now.month, now.day - 30);
 		if (_gameId != null) {
-			return Expanded(
+			return Expanded(child: GestureDetector(
+        onVerticalDragDown: (DragDownDetails d) => closeKeyboard(d),
 				child: StreamBuilder<QuerySnapshot>(
 					stream: Firestore.instance
 						.collection('Games/$_gameId/Logs')
@@ -333,11 +369,9 @@ class _ChatViewState extends State<ChatView> {
                       child: Column(
                         children: <Widget>[
                           document['titleImageUrl'] != null ?
-                          CachedNetworkImage(
-                            placeholder: CircularProgressIndicator(),
-                            imageUrl: document['titleImageUrl'],
-                            height: 120.0,
-                            width: 120.0) : Container(),
+                          ( document['titleImageUrl'].contains('http') ? CachedNetworkImage(placeholder: CircularProgressIndicator(), imageUrl: document['titleImageUrl'], height: 120.0, width: 120.0) 
+                            : Container(width: 120.0, height: 120.0, decoration: BoxDecoration(image: DecorationImage(image: AssetImage(document['titleImageUrl']), fit: BoxFit.fill))))
+                          : Container(),
                           document['title'] != null ?
                           Padding(padding: EdgeInsets.only(top: 5.0, bottom: 10.0), child: Text(document['title'],
                             style: new TextStyle(
@@ -357,19 +391,32 @@ class _ChatViewState extends State<ChatView> {
                     onTapUp: (TapUpDetails details) => _onTapBubble(details, document)));
 								}
                 return Column(children: logItems);
-							});
-					}));
+            });
+					})));
 		} else {
 			return Expanded(child: Container());
 		}
 	}
 
+	// TODO: optimize this...
+	void closeKeyboard(DragDownDetails d) {
+		// if (d.delta.distance > 20) {
+		FocusScope.of(context).requestFocus(new FocusNode());
+		SystemChannels.textInput.invokeMethod('TextInput.hide');
+		// }
+	}
+  
 	void _onTapBubble(TapUpDetails details, DocumentSnapshot document) {
-		setState(() {
-			_showOverlay = true;
-				_tapDownDetails = details;
-					_tappedBubble = document;
-		});
+    setState(() {
+      _showOverlay = true;
+      if(document.data['reactions'] == null || !document.data['reactions'].toString().contains(globals.userState['userId'])) {
+        _overlayType = 'react';
+      } else {
+        _overlayType = 'view';
+      }
+      _tapDownDetails = details;
+      _tappedBubble = document;
+    });
 	}
 
 	void _handleJoinButtonPressed() {
@@ -414,12 +461,16 @@ class _ChatViewState extends State<ChatView> {
 							child: TextField(
 								style: TextStyle(color: Colors.white, fontSize: 20.0, fontFamily: 'LondrinaSolid'),
 								maxLines: null,
+                cursorColor: Colors.white,
+                cursorWidth: 3.0,
 								keyboardType: TextInputType.multiline,
 								controller: _textController,
 								onSubmitted: _handleSubmitted,
 								decoration: InputDecoration(
 									contentPadding: const EdgeInsets.all(20.0),
 									hintText: "Send a message",
+                  border: InputBorder.none,
+                  focusedBorder: InputBorder.none,
 									hintStyle: TextStyle(color: Colors.white)),
 							),
 						),
@@ -508,8 +559,8 @@ class _ChatViewState extends State<ChatView> {
 											borderRadius: new BorderRadius.circular(40.0)),
 										child: Row(
 											children: <Widget>[
-												CircleAvatar(
-													backgroundImage: NetworkImage(buttonImage)),
+                        CircleAvatar(
+													backgroundImage: buttonImage.contains('http') ? CachedNetworkImageProvider(buttonImage) : AssetImage(buttonImage)),
 												Expanded(
 													child: Padding(
 														padding: EdgeInsets.only(left: 10.0),
@@ -599,8 +650,7 @@ class ChatMessageListItem extends StatelessWidget {
 									color: Colors.black.withOpacity(.2))
 							],
 						),
-						child:
-							CircleAvatar(backgroundImage: NetworkImage(message.profileUrl)),
+						child: CircleAvatar(backgroundImage: message.profileUrl.contains('http') ? CachedNetworkImageProvider(message.profileUrl) : AssetImage(message.profileUrl))
 					),
 				],
 			);
@@ -619,8 +669,7 @@ class ChatMessageListItem extends StatelessWidget {
 									color: Colors.black.withOpacity(.2))
 							],
 						),
-						child:
-							CircleAvatar(backgroundImage: NetworkImage(message.profileUrl)),
+						child: CircleAvatar(backgroundImage: message.profileUrl.contains('http') ? CachedNetworkImageProvider(message.profileUrl) : AssetImage(message.profileUrl)),
 					),
 					Flexible(
 						child: Column(
@@ -740,8 +789,15 @@ class Bubble extends StatelessWidget {
 			List<Widget> reactionsListTiles = [];
 
 			for(var key in reactions.keys){
+        var reactionCount;
+        // BACKWARDS COMPATIBLE - changed reactions from storing an int to a array of userIds.
+        if(reactions[key] is int){
+          reactionCount = reactions[key].toString();
+        } else {
+          reactionCount = reactions[key].length.toString();
+        }
 				reactionsListTiles.add(Container(child: Image.asset('assets/images/reaction-' + key + '.png'), height: 30.0));
-				reactionsListTiles.add(Padding(padding: EdgeInsets.only(right: 10.0, left: 0.0, top: 9.0), child: Text("${reactions[key]}", style: TextStyle(color: type != null ? Colors.black : Colors.white, fontWeight: FontWeight.w400, fontSize: 10.0))));
+				reactionsListTiles.add(Padding(padding: EdgeInsets.only(right: 10.0, left: 0.0, top: 9.0), child: Text(reactionCount, style: TextStyle(color: type == 'characterAction' ? Colors.black : Colors.white, fontWeight: FontWeight.w400, fontSize: 10.0))));
 					// ListTile(
 					// // leading: Container(child: Image.asset('assets/images/reaction-' + key + '.png'), height: 20.0),
 					// title: Text("${reactions[key]}",
@@ -755,261 +811,3 @@ class Bubble extends StatelessWidget {
 			return Container(height: 20.0, child: Row(children: reactionsListTiles));
 		}
 }
-
-// Widget _buildPeggFriendBox(BuildContext context, DocumentSnapshot document) {
-// return Container(
-// decoration: BoxDecoration(color: const Color(0xFF4C6296)),
-// child: Container(
-// // margin: const EdgeInsets.only(
-// // bottom: 10.0, left: 10.0, right: 10.0, top: 10.0),
-// // decoration: BoxDecoration(
-// // color: const Color(0x22FFFFFF),
-// // borderRadius: BorderRadius.all(Radius.circular(50.0))),
-// // foregroundDecoration: BoxDecoration(color: const Color(0xFF000000), borderRadius: BorderRadius.all(Radius.circular(50.0))),
-// padding: EdgeInsets.all(10.0),
-// child: Row(children: <Widget>[
-// Expanded(
-// child: Column(
-// children: <Widget>[
-// // Text(
-// // "Your Turn!",
-// // textAlign: TextAlign.left,
-// // style: TextStyle(
-// // color: Colors.white,
-// // fontWeight: FontWeight.w800,
-// // letterSpacing: 0.5,
-// // fontSize: 18.0,
-// // ),
-// // ),
-// Padding(
-// padding: EdgeInsets.all(5.0),
-// child: RaisedButton(
-// padding: EdgeInsets.all(10.0),
-// // padding: EdgeInsets.symmetric(
-// // horizontal: 60.0, vertical: 20.0),
-// onPressed: () => Application.router.navigateTo(
-// context,
-// 'peggFriend?answerId=' +
-// document['turn']['answerId'],
-// transition: TransitionType.fadeIn),
-// color: const Color(0xFF00b0ff),
-// shape: RoundedRectangleBorder(
-// borderRadius: new BorderRadius.circular(40.0)),
-// child: Row(
-// children: <Widget>[
-// CircleAvatar(
-// backgroundImage: NetworkImage(
-// document['turn']['peggeeProfileUrl'])),
-// Expanded(
-// child: Padding(
-// padding: EdgeInsets.only(left: 10.0),
-// child: Text(
-// "Pegg " +
-// document['turn']['peggeeName'],
-// style: TextStyle(
-// fontSize: 22.0,
-// color: Colors.white,
-// fontWeight: FontWeight.w800,
-// ))))
-// ],
-// ))),
-// // Text(
-// // "Guess which answer " +
-// // document['turn']['peggeeName'] +
-// // " picked.",
-// // style: TextStyle(
-// // color: Colors.white,
-// // // fontWeight: FontWeight.w800,
-// // letterSpacing: 0.5,
-// // fontSize: 12.0,
-// // ),
-// // )
-// ],
-// ),
-// ),
-// // Container(
-// // width: 100.0,
-// // height: 100.0,
-// // decoration: BoxDecoration(
-// // // color: Colors.black,
-// // image: DecorationImage(
-// // image: NetworkImage(document['turn']['peggeeProfileUrl']),
-// // // fit: BoxFit.cover,
-// // ),
-// // ),
-// // ),
-// ])));
-// }
-
-// Widget _buildPeggeeWaitingBox(
-// BuildContext context, DocumentSnapshot document) {
-// return Container(
-// decoration: BoxDecoration(color: const Color(0xFF4C6296)),
-// child: Container(
-// margin: const EdgeInsets.only(
-// bottom: 10.0, left: 10.0, right: 10.0, top: 10.0),
-// decoration: BoxDecoration(
-// color: const Color(0x22FFFFFF),
-// borderRadius: BorderRadius.all(Radius.circular(50.0))),
-// // foregroundDecoration: BoxDecoration(color: const Color(0xFF000000), borderRadius: BorderRadius.all(Radius.circular(50.0))),
-// padding: EdgeInsets.all(10.0),
-// child: Row(children: <Widget>[
-// Container(
-// width: 70.0,
-// height: 70.0,
-// decoration: BoxDecoration(
-// // color: Colors.black,
-// borderRadius: BorderRadius.all(Radius.circular(50.0)),
-// image: DecorationImage(
-// image: NetworkImage(document['turn']['peggeeProfileUrl']),
-// // fit: BoxFit.cover,
-// ),
-// ),
-// ),
-// Expanded(
-// child: Column(
-// children: <Widget>[
-// Text(
-// "Waiting on...",
-// textAlign: TextAlign.left,
-// style: TextStyle(
-// color: Colors.white,
-// fontWeight: FontWeight.w800,
-// letterSpacing: 0.5,
-// fontSize: 22.0,
-// ),
-// ),
-// Text(
-// "your friends to pegg you.",
-// style: TextStyle(
-// color: Colors.white,
-// // fontWeight: FontWeight.w800,
-// letterSpacing: 0.5,
-// fontSize: 14.0,
-// ),
-// ),
-// ],
-// ),
-// ),
-// ])));
-// }
-
-// Widget _buildPeggerWaitingBox(
-// BuildContext context, DocumentSnapshot document) {
-// return Container(
-// margin: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 0.0),
-// color: const Color(0xFF00B0FF),
-// child: Row(children: <Widget>[
-// Expanded(
-// child: Column(
-// children: <Widget>[
-// Text(
-// "Waiting on...",
-// textAlign: TextAlign.left,
-// style: TextStyle(
-// color: Colors.white,
-// fontWeight: FontWeight.w800,
-// letterSpacing: 0.5,
-// fontSize: 22.0,
-// ),
-// ),
-// Text(
-// "your friends to pegg " +
-// document['turn']['peggeeName'] +
-// ".",
-// style: TextStyle(
-// color: Colors.white,
-// // fontWeight: FontWeight.w800,
-// letterSpacing: 0.5,
-// fontSize: 14.0,
-// ),
-// ),
-// //TODO: NUDGE BUTTON
-// // Padding(
-// // padding: EdgeInsets.all(10.0),
-// // child: FlatButton(
-// // key: null,
-// // onPressed: () => Application.router.navigateTo(context,
-// // 'peggFriend?answerId=' + document['answerId'],
-// // transition: TransitionType.fadeIn),
-// // color: const Color(0xFF00B0FF),
-// // child: Text("Pegg " + document['peggeeName'],
-// // style: TextStyle(
-// // fontSize: 16.0,
-// // color: Colors.white,
-// // fontWeight: FontWeight.w800,
-// // )))),
-// ],
-// ),
-// ),
-// Container(
-// width: 70.0,
-// height: 70.0,
-// decoration: BoxDecoration(
-// // color: Colors.black,
-// image: DecorationImage(
-// image: NetworkImage(document['turn']['peggeeProfileUrl']),
-// // fit: BoxFit.cover,
-// ),
-// ),
-// ),
-// ]));
-// }
-
-// Widget _buildInviteFriendsBox(
-// BuildContext context, DocumentSnapshot document) {
-// return Row(children: <Widget>[
-// Expanded(
-// child: Container(
-// height: 70.0,
-// decoration: BoxDecoration(
-// color: Color(0xFF00b0ff),
-// boxShadow: <BoxShadow>[
-// BoxShadow(
-// color: Colors.black12,
-// blurRadius: 10.0,
-// offset: Offset(0.0, -10.0),
-// ),
-// ],
-// ),
-// child: RaisedButton.icon(
-// icon: const Icon(Icons.add, size: 25.0, color: Colors.white),
-// shape: new RoundedRectangleBorder(
-// borderRadius: new BorderRadius.circular(0.0)),
-// onPressed: () => Application.router.navigateTo(
-// context, 'inviteFriends?code=' + document['code'],
-// transition: TransitionType.fadeIn),
-// color: const Color(0xFF00B0FF),
-// label: Text("Invite Friends", //+ document['peggeeName'],
-// style: TextStyle(
-// fontSize: 25.0,
-// color: Colors.white,
-// fontWeight: FontWeight.w800,
-// )))))
-// ]);
-// }
-
-// Widget _buildJoinButton() {
-// return Container(
-// child: Row(children: <Widget>[
-// Expanded(
-// child: GestureDetector(
-// child: Container(
-// height: 60.0,
-// margin: EdgeInsets.only(bottom: 10.0, left: 10.0, right: 10.0),
-// padding: EdgeInsets.only(top: 15.0),
-// decoration: BoxDecoration(
-// color: const Color(0xFF00B0FF),
-// borderRadius: BorderRadius.all(Radius.circular(50.0))),
-// child: Text(
-// "Request to Join",
-// textAlign: TextAlign.center,
-// style: TextStyle(
-// fontSize: 22.0,
-// fontWeight: FontWeight.w800,
-// color: Colors.white),
-// )),
-// onTap: _handleJoinButtonPressed,
-// ))
-// ]));
-// }

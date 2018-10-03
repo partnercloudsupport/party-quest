@@ -19,7 +19,7 @@ class UserProfileState extends State<UserProfilePage> {
 	@override
 	void initState() {
 		super.initState();
-		_profilePic = globals.userState['loginStatus'] == 'loggedIn' ? globals.userState['profilePic'] : "https://firebasestorage.googleapis.com/v0/b/party-quest-dev.appspot.com/o/profile-placeholder.png?alt=media&token=35a5323c-0b10-4332-a8c2-355d26e950a8";
+		_profilePic = globals.userState['profilePic'];
     if(globals.userState['name'] != '') _textController.text = globals.userState['name'];
   }
 
@@ -62,119 +62,114 @@ class UserProfileState extends State<UserProfilePage> {
 	}
 
 
-		Widget _buildProfilePic(){
-			return Column(children: <Widget>[ Container(
-				width: 190.0,
-				height: 190.0,
-					margin: const EdgeInsets.only(top: 0.0, bottom: 10.0),
-				decoration: BoxDecoration(
-					shape: BoxShape.circle,
-					image: DecorationImage(
-						fit: BoxFit.cover,
-						image: CachedNetworkImageProvider(
-							_downloadUrl == null
-								? _profilePic
-								: _downloadUrl))))]);
-		}
+  Widget _buildProfilePic(){
+    var profileUrl = _downloadUrl == null ? _profilePic : _downloadUrl;
+    return Column(children: <Widget>[ Container(
+      width: 190.0,
+      height: 190.0,
+        margin: const EdgeInsets.only(top: 0.0, bottom: 10.0),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        image: DecorationImage(
+          fit: BoxFit.cover,
+          image: profileUrl.contains('http') ? CachedNetworkImageProvider(profileUrl) : AssetImage(profileUrl)
+      )))]);
+  }
 
-			Widget _buildNameField(){
-				return Container(
-			height: 50.0,
-			margin: EdgeInsets.symmetric(vertical: 20.0, horizontal: 20.0),
-			padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 10.0),
-			child: TextField(
-				maxLines: null,
-				keyboardType: TextInputType.text,
-				controller: _textController,
-				style: TextStyle(fontSize: 20.0, color: Colors.white, fontFamily: 'LondrinaSolid'),
-				// onChanged: _handleMessageChanged,
+  Widget _buildNameField(){
+    return Container(height: 50.0,
+      margin: EdgeInsets.symmetric(vertical: 20.0, horizontal: 20.0),
+      padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 10.0),
+      child: TextField(
+        maxLines: null,
+        keyboardType: TextInputType.text,
+        controller: _textController,
+        style: TextStyle(fontSize: 20.0, color: Colors.white, fontFamily: 'LondrinaSolid'),
+        // onChanged: _handleMessageChanged,
         onChanged: _handleTextFieldChange,
-				// onSubmitted: _handleSubmitted,
-				decoration: InputDecoration.collapsed(
-					hintStyle: TextStyle(fontSize: 20.0, color: const Color(0x99FFFFFF)),
-					hintText: globals.userState['name'] == ''
-						? "Enter your name."
-						: globals.userState['name']),
-			),
-			decoration: BoxDecoration(
-				color: const Color(0x33FFFFFF),
-				borderRadius: BorderRadius.circular(40.0)),
-		);
-			}
+        // onSubmitted: _handleSubmitted,
+        decoration: InputDecoration.collapsed(
+          hintStyle: TextStyle(fontSize: 20.0, color: const Color(0x99FFFFFF)),
+          hintText: globals.userState['name'] == ''
+            ? "Enter your name."
+            : globals.userState['name']),
+      ),
+      decoration: BoxDecoration(
+        color: const Color(0x33FFFFFF),
+        borderRadius: BorderRadius.circular(40.0)),
+    );
+  }
 
-		Widget _buildDoneButton(){
-			return Padding(padding: EdgeInsets.symmetric(horizontal: 40.0), child: RaisedButton(
-			onPressed: _buttonEnabled ? _handleSubmitted : null,
-			color: const Color(0xFF00b0ff),
-				padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
-				shape: RoundedRectangleBorder(
-				borderRadius: BorderRadius.circular(40.0)),
-			child: Text(
-				"Done",
-				style: TextStyle(
-					fontSize: 20.0,
-					color: Colors.white,
-					fontWeight: FontWeight.w800
-					),
-			)));
-		}
+  Widget _buildDoneButton(){
+    return Padding(padding: EdgeInsets.symmetric(horizontal: 40.0), child: RaisedButton(
+    onPressed: _buttonEnabled ? _handleSubmitted : null,
+    color: const Color(0xFF00b0ff),
+      padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+      shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(40.0)),
+    child: Text(
+      "Done",
+      style: TextStyle(
+        fontSize: 20.0,
+        color: Colors.white,
+        fontWeight: FontWeight.w800
+        ),
+    )));
+  }
 
-		Widget _buildPhotoButtons(){
-			return Row(children: <Widget>[ Expanded(child: Padding(padding: EdgeInsets.only(left: 20.0, right: 10.0, top: 10.0),
-				child: RaisedButton.icon(
-				onPressed: () => _uploadImage('pick'),
-				color: const Color(0xFF00b0ff),
-				shape: RoundedRectangleBorder(
-					borderRadius: new BorderRadius.circular(40.0)),
-						icon: Icon(Icons.photo_album, color: Colors.white),
-						label: Text(
-					"Choose",
-					style: TextStyle(
-						fontSize: 20.0,
-						color: Colors.white,
-						fontWeight: FontWeight.w800
-					))
-						))),
-						Expanded(child: Padding(padding: EdgeInsets.only(right: 20.0, left: 10.0, top: 10.0), child: RaisedButton.icon(
-							elevation: 4.0,
-							highlightElevation: 50.0,
-							// padding: EdgeInsets.all(10.0),
-							// onPressed: null,
-							onPressed: () => _uploadImage('take'),
-							color: const Color(0xFF00b0ff),
-							shape: RoundedRectangleBorder(
-								borderRadius: new BorderRadius.circular(40.0)),
-									icon: Icon(Icons.camera_alt, color: Colors.white),
-							label: Text(
-								"Take",
-								style: TextStyle(
-									fontSize: 20.0,
-									color: Colors.white,
-									fontWeight: FontWeight.w800,
-								)))
-								))
-							]);
-		}
+  Widget _buildPhotoButtons(){
+    return Row(children: <Widget>[ Expanded(child: Padding(padding: EdgeInsets.only(left: 20.0, right: 10.0, top: 10.0),
+      child: RaisedButton.icon(
+      onPressed: () => _uploadImage('pick'),
+      color: const Color(0xFF00b0ff),
+      shape: RoundedRectangleBorder(
+        borderRadius: new BorderRadius.circular(40.0)),
+          icon: Icon(Icons.photo_album, color: Colors.white),
+          label: Text(
+        "Choose",
+        style: TextStyle(
+          fontSize: 20.0,
+          color: Colors.white,
+          fontWeight: FontWeight.w800
+        ))
+          ))),
+          Expanded(child: Padding(padding: EdgeInsets.only(right: 20.0, left: 10.0, top: 10.0), child: RaisedButton.icon(
+            elevation: 4.0,
+            highlightElevation: 50.0,
+            // padding: EdgeInsets.all(10.0),
+            // onPressed: null,
+            onPressed: () => _uploadImage('take'),
+            color: const Color(0xFF00b0ff),
+            shape: RoundedRectangleBorder(
+              borderRadius: new BorderRadius.circular(40.0)),
+                icon: Icon(Icons.camera_alt, color: Colors.white),
+            label: Text(
+              "Take",
+              style: TextStyle(
+                fontSize: 20.0,
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+        )))))]);
+  }
 
 	Future<Null> _uploadImage(String type) async {
 		var imageFile;
 		if(type == 'take'){
-		imageFile = await ImagePicker.pickImage(
-		source: ImageSource.camera, maxHeight: 300.0, maxWidth: 300.0);
-			} else {
+		  imageFile = await ImagePicker.pickImage(
+		    source: ImageSource.camera, maxHeight: 300.0, maxWidth: 300.0);
+		} else {
 			imageFile = await ImagePicker.pickImage(
-		source: ImageSource.gallery, maxHeight: 300.0, maxWidth: 300.0);
+		    source: ImageSource.gallery, maxHeight: 300.0, maxWidth: 300.0);
 			}
-				if(imageFile != null){
-		var userId = globals.userState['userId'];
-		var ref = FirebaseStorage.instance.ref().child('profilePics/$userId.jpg');
-		var uploadTask = ref.putFile(imageFile);
-		var downloadUrl = (await uploadTask.future).downloadUrl;
-		setState(() {
-			_downloadUrl = downloadUrl.toString();
-		});
-
-			}
+		if(imageFile != null){
+      var userId = globals.userState['userId'];
+      var ref = FirebaseStorage.instance.ref().child('profilePics/$userId.jpg');
+      var uploadTask = ref.putFile(imageFile);
+      var downloadUrl = (await uploadTask.future).downloadUrl;
+      setState(() {
+        _downloadUrl = downloadUrl.toString();
+      });
+		}
 	}
 
   void _handleTextFieldChange(String text){
