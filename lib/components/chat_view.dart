@@ -30,14 +30,16 @@ class _ChatViewState extends State<ChatView> {
 	DocumentSnapshot _tappedBubble;
 
 	_ChatViewState() {
-		globals.gameState.changes.listen((changes) {
-			// print(changes);
-			// TODO only call setState once... not for every change of gameState
-			setState(() {
-				_showOverlay = false;
-        _overlayType = '';
-			});
-		});
+    _showOverlay = false;
+    _overlayType = '';
+		// globals.gameState.changes.listen((changes) {
+		// 	// print(changes);
+		// 	// TODO only call setState once... not for every change of gameState
+		// 	setState(() {
+		// 		_showOverlay = false;
+    //     _overlayType = '';
+		// 	});
+		// });
 	}
 	final TextEditingController _textController = TextEditingController();
 
@@ -227,7 +229,7 @@ class _ChatViewState extends State<ChatView> {
         if(_tappedBubble.data['reactions'][key] is int) return Container(); // BACKWARDS COMPATIBLE
         _tappedBubble.data['reactions'][key].forEach((playerId){
           // Non-players just show gray unicorn
-          var playerProfilePic = playerMap[playerId] == null ? 'profile-placeholder.png' : playerMap[playerId];
+          var playerProfilePic = playerMap[playerId] == null ? '/assets/images/profile-placeholder.png' : playerMap[playerId];
           reactions.add(
             Stack(children: <Widget>[
               Padding(padding: EdgeInsets.symmetric(horizontal: 10.0),
@@ -286,9 +288,11 @@ class _ChatViewState extends State<ChatView> {
       _tappedBubble.reference.get().then((bubbleDoc) {
         if(bubbleDoc.data != null){
           if(bubbleDoc.data['reactions'] != null){
-            if(bubbleDoc.data['reactions'][reactionType] != null)
-              bubbleDoc.data['reactions'][reactionType] = bubbleDoc.data['reactions'][reactionType].add(globals.userState['userId']);
-            else
+            if(bubbleDoc.data['reactions'][reactionType] != null && !(bubbleDoc.data['reactions'][reactionType] is int)){
+              var newReactionsList = bubbleDoc.data['reactions'][reactionType].toList();
+              newReactionsList.add(globals.userState['userId']);
+              bubbleDoc.data['reactions'][reactionType] = newReactionsList;
+            } else
               bubbleDoc.data['reactions'][reactionType] = [globals.userState['userId']];
           } else {
             bubbleDoc.data['reactions'] = {reactionType: [globals.userState['userId']]};

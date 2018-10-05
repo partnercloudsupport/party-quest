@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:party_quest/globals.dart' as globals;
-import 'package:image_picker/image_picker.dart';
+// import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
@@ -154,13 +154,13 @@ class UserProfileState extends State<UserProfilePage> {
 
 	Future<Null> _uploadImage(String type) async {
 		var imageFile;
-		if(type == 'take'){
-		  imageFile = await ImagePicker.pickImage(
-		    source: ImageSource.camera, maxHeight: 300.0, maxWidth: 300.0);
-		} else {
-			imageFile = await ImagePicker.pickImage(
-		    source: ImageSource.gallery, maxHeight: 300.0, maxWidth: 300.0);
-			}
+		// if(type == 'take'){
+		//   imageFile = await ImagePicker.pickImage(
+		//     source: ImageSource.camera, maxHeight: 300.0, maxWidth: 300.0);
+		// } else {
+		// 	imageFile = await ImagePicker.pickImage(
+		//     source: ImageSource.gallery, maxHeight: 300.0, maxWidth: 300.0);
+		// 	}
 		if(imageFile != null){
       var userId = globals.userState['userId'];
       var ref = FirebaseStorage.instance.ref().child('profilePics/$userId.jpg');

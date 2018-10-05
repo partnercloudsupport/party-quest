@@ -61,7 +61,9 @@ exports.removePlayer = functions.https.onCall((data, context) => {
         turn['playerImageUrl'] = null;
         turn['playerName'] = null;
       }
-      return gameRef.update({ 'players': players, 'turn': turn }).then(() => {
+      // deactivate player's character
+      gameData['characters'][data.userId]['inactive'] = true;
+      return gameRef.update({ 'players': players, 'turn': turn, 'characters': gameData['characters'] }).then(() => {
         // Remove user from User.games
         return userRef.get().then(userResult => {
           var userData = userResult.data()

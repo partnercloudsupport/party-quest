@@ -15,12 +15,18 @@ apply plugin: 'com.android.application'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
 android {
+    signingConfigs {
+        config {
+            keyAlias 'partyquest'
+            keyPassword 'foss_escapism_unquote'
+            storeFile file('/Users/augman/.android/partyquest.keystore')
+            storePassword 'foss_escapism_unquote'
+        }
+    }
     compileSdkVersion 27
-
     lintOptions {
         disable 'InvalidPackage'
     }
-
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId "us.gratzi.partyquest"
@@ -31,12 +37,11 @@ android {
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
-
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.config
         }
     }
 }
@@ -50,6 +55,7 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
     implementation 'com.google.firebase:firebase-core:16.0.1'
+    implementation 'com.google.firebase:firebase-auth:16.0.4'
 }
 
 apply plugin: 'com.google.gms.google-services'

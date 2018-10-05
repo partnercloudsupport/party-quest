@@ -222,7 +222,8 @@ class _AccountDrawerState extends State<AccountDrawer> {
             String characterNames = '';
             if(game['characters'] != null){
               for(var key in game['characters'].keys){
-                characterNames += game['characters'][key]['characterName'] + ', ';
+                if(game['characters'][key]['inactive'] != true)
+                  characterNames += game['characters'][key]['characterName'] + ', ';
               }
             }
             labelListTiles.add(new ListTile(
