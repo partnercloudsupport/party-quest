@@ -6,6 +6,7 @@ import '../components/account_drawer.dart';
 import 'package:party_quest/globals.dart' as globals;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:convert';
 
 class HomePage extends StatefulWidget {
 	@override
@@ -127,7 +128,7 @@ class HomePageState extends State<HomePage> {
 		globals.gameState['genre'] = game['genre'];
 		globals.gameState['code'] = game['code'];
 		globals.gameState['creator'] = game['creator'];
-		globals.gameState['players'] = game['players'].toString();
+		globals.gameState['players'] = json.encode(game['players']);
 		// Navigator.pop(context);
 	}
 

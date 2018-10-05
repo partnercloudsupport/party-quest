@@ -11,6 +11,7 @@ import 'pages/home_page.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'dart:convert';
 
 final FirebaseMessaging _firebaseMessaging = new FirebaseMessaging();
 final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -76,7 +77,7 @@ class PartyQuestState extends State<PartyQuest> {
     globals.gameState['name'] = gameData['name'];
     globals.gameState['code'] = gameData['code'];
     globals.gameState['creator'] = gameData['creator'];
-    globals.gameState['players'] = gameData['players'];
+    globals.gameState['players'] = json.encode(gameData['players']);
   }
 
   @override

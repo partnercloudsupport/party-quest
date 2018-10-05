@@ -226,6 +226,7 @@ class _AccountDrawerState extends State<AccountDrawer> {
                   characterNames += game['characters'][key]['characterName'] + ', ';
               }
             }
+            
             labelListTiles.add(new ListTile(
               leading: CachedNetworkImage(
                   placeholder: CircularProgressIndicator(),
