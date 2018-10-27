@@ -10,7 +10,7 @@ class PickCharacterPage extends StatefulWidget {
 }
 
 class PickCharacterState extends State<PickCharacterPage> {
-	PageController _characterController = PageController();
+	PageController _characterController = PageController(); //viewportFraction: 0.7, keepPage: false
 	PageController _pageController = PageController();
 	TextEditingController _textControllerName = TextEditingController();
 	TextEditingController _textControllerIntro = TextEditingController();
@@ -186,7 +186,7 @@ class PickCharacterState extends State<PickCharacterPage> {
 			return Container(
 				padding: EdgeInsets.symmetric(horizontal: 20.0),
 				child: Column(children: <Widget>[ 
-				Container(height: 350.0, child: Image(height: 200.0, image: AssetImage("assets/images/" + document.documentID + ".png"))),
+				Image(height: 250.0, image: AssetImage("assets/images/" + document.documentID + ".png")),
         // CharacterAnimation(document['characterFileName'], document['spriteX'], document['spriteY'], document['spriteCount'])), 
 				Text(
 					document['name'],
@@ -254,9 +254,10 @@ class PickCharacterState extends State<PickCharacterPage> {
         gameRef.get().then((gameResult) {
           var characters = gameResult['characters'] == null ? {} : gameResult['characters'];
           characters[globals.userState['userId']] = {
-            'characterId': _selectedCharacter.documentID,
+            'characterClass': _selectedCharacter['name'],
             'characterName': _textControllerName.text,
-            'HP': 20,
+            'backstory': { 'level1': _textControllerIntro.text },
+            'HP': 10,
             'XP': 0,
             'skills': {
               'dexterity': _selectedCharacter['dexterity'],

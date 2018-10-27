@@ -14,7 +14,7 @@ import 'pages/joinGame_page.dart';
 import 'pages/userProfile_page.dart';
 import 'pages/myGames_page.dart';
 import 'pages/inviteFriends_page.dart';
-import 'pages/pickScenario_page.dart';
+// import 'pages/pickScenario_page.dart';
 import 'pages/pickCharacter_page.dart';
 import 'pages/pickResponse_page.dart';
 import 'pages/pickRoll_page.dart';
@@ -32,7 +32,7 @@ class Routes {
     router.define('createGame', handler: createGameHandler);
     router.define('joinGame', handler: joinGameHandler);
     router.define('inviteFriends', handler: inviteFriendsHandler);
-    router.define('pickScenario', handler: pickScenarioHandler);
+    // router.define('pickScenario', handler: pickScenarioHandler);
     router.define('pickAction', handler: pickActionHandler);
     router.define('pickCharacter', handler: pickCharacterHandler);
     router.define('phoneAuth', handler: phoneAuthHandler);
@@ -74,10 +74,10 @@ class Routes {
     return new AuthScreen();
   });
 
-  static var pickScenarioHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {
-    // String answerId = params["answerId"]?.first;
-    return new PickScenarioPage();
-  });
+  // static var pickScenarioHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {
+  //   // String answerId = params["answerId"]?.first;
+  //   return new PickScenarioPage();
+  // });
 
   static var inviteFriendsHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {
     String code = params["code"]?.first;

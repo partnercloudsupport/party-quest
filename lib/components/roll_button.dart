@@ -26,16 +26,16 @@ class _RollButtonState extends State<RollButton> {
   Timer _timer1;
   Timer _timer2;
   dynamic outcomePossibilities = {'win': [
-      {'title': 'You did it... but just barely.', 'description': "You earn 0XP.", 'chat': ' barely succeeded. +0XP', 'XP': 0},
-      {'title': 'Success.', 'description': 'You earn 1XP.', 'chat': ' succeeded. +1XP', 'XP': 1},
-      {'title': 'Great success.', 'description': 'You earn 2XP.', 'chat': ' succeeded greatly! +2XP', 'XP': 2},
-      {'title': 'CRITICAL SUCCESS!', 'description': 'You earn 3XP.', 'chat': ' got a CRITICAL SUCCESS! +3XP', 'XP': 3}
+      {'title': 'You did it... but just barely.', 'description': "You earn 1XP.", 'chat': ' barely succeeded. +1XP', 'XP': 1},
+      {'title': 'Success.', 'description': 'You earn 2XP.', 'chat': ' succeeded. +2XP', 'XP': 2},
+      {'title': 'Great success.', 'description': 'You earn 3XP.', 'chat': ' succeeded greatly! +3XP', 'XP': 3},
+      {'title': 'CRITICAL SUCCESS!', 'description': 'You earn 4XP.', 'chat': ' got a CRITICAL SUCCESS! +4XP', 'XP': 4}
     ], 
     'fail': [
-      {'title': 'You failed... but just barely.','description': "You lose 0HP.", 'chat': ' barely failed. -0HP', 'HP': 0},
-      {'title': 'Failure.', 'description': "You lose 1HP.", 'chat': ' failed. -1HP', 'HP': -1},
-      {'title': 'Horrible fail.', 'description': "You lose 2HP.", 'chat': ' failed horribly! -2HP', 'HP': -2},
-      {'title': 'CRITICAL FAILURE!', 'description': "You lose 3HP.", 'chat': " got a CRITICAL FAIURE! -3HP", 'HP': -3},
+      {'title': 'You failed... but just barely.','description': "You lose 1HP.", 'chat': ' barely failed. -1HP', 'HP': 1},
+      {'title': 'Failure.', 'description': "You lose 2HP.", 'chat': ' failed. -2HP', 'HP': -2},
+      {'title': 'Horrible fail.', 'description': "You lose 3HP.", 'chat': ' failed horribly! -3HP', 'HP': -3},
+      {'title': 'CRITICAL FAILURE!', 'description': "You lose 4HP.", 'chat': " got a CRITICAL FAIURE! -4HP", 'HP': -4},
     ]};
 
 	@override
@@ -154,6 +154,18 @@ class _RollButtonState extends State<RollButton> {
         widget._characters[globals.userState['userId']]['HP'] += outcomePossibilities[winFail][index]['HP'];
       else
         widget._characters[globals.userState['userId']]['XP'] += outcomePossibilities[winFail][index]['XP'];
+
+      // Has player died?
+      if(widget._characters[globals.userState['userId']]['HP'] <= 0) {
+        Firestore.instance.collection('Games/$_gameId/Logs').document()
+        .setData(<String, dynamic>{
+          'text': widget._turn['characterName'] + ' is dead!',
+          'type': 'narration',
+          'color': 'FF694F',
+          'dts': DateTime.now(),
+          'userId': globals.userState['userId']
+        });
+      }
       // UPDATE Game.turn
       var turns = [widget._turn, {
         'dts': DateTime.now(), 

@@ -92,8 +92,13 @@ exports.acceptRequest = functions.https.onCall((data, context) => {
       // Add user to Game.players
       var players = gameData['players']
       players[data.userId] = true;
+      // reactivate player's character
+      if(gameData['characters'][data.userId] != null){
+        // console.log('set inactive to false' + gameData['characters'][data.userId]);
+        gameData['characters'][data.userId]['inactive'] = false;
+      }
       // console.log("players: " + players);
-      return gameRef.update({ 'players': players }).then(() => {
+      return gameRef.update({ 'players': players, 'characters': gameData['characters'] }).then(() => {
         // Add game to User.games
         return userRef.get().then(userResult => {
           var userData = userResult.data()

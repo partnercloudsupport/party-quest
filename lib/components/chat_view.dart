@@ -25,7 +25,7 @@ class _ChatViewState extends State<ChatView> {
 
 	bool _showOverlay = false;
   String _overlayType = '';
-  Map _turn;
+  Map _turn, _characters;
 	TapUpDetails _tapDownDetails;
 	DocumentSnapshot _tappedBubble;
 
@@ -113,9 +113,20 @@ class _ChatViewState extends State<ChatView> {
 					if (!snapshot.hasData) return new Text("Loading");
 					var document = snapshot.data;
 					if (document['players'][globals.userState['userId']] == true) {
-						var characters = document['characters'];
+						_characters = document['characters'];
+            _turn = document['turn'];
+            //PICK A SCENARIO
+            // this only happens if the user failed to pick it on game creation (got distracted and closed the app, eg)
+						// if (_turn == null || _turn['scenario'] == null) {  
+						// 	Function onPressed = () => Application.router.navigateTo(
+						// 		context, 'pickScenario',
+						// 		transition: TransitionType.fadeIn);
+						// 	return _buildButton(document['imageUrl'], onPressed,
+						// 	'Pick a Scenario', 'Set the stage for your party quest.');
+						// }
+
             //PICK A CHARACTER
-						if (characters == null || characters[globals.userState['userId']] == null) {
+						if (_characters == null || _characters[globals.userState['userId']] == null) {
 							Function pickCharacter = () => Application.router.navigateTo(
 								context, 'pickCharacter',
 								transition: TransitionType.fadeIn);
@@ -123,24 +134,20 @@ class _ChatViewState extends State<ChatView> {
 								'Pick a character...', 'to play as in this story!');
 						}
             
-            //PICK A SCENARIO
-						_turn = document['turn'];
-						if (_turn == null || _turn['scenario'] == null) {  
-							Function onPressed = () => Application.router.navigateTo(
-								context, 'pickScenario',
-								transition: TransitionType.fadeIn);
-							return _buildButton(document['imageUrl'], onPressed,
-							'Pick a Scenario', 'Set the stage for your party quest.');
-						}
+            // GAME OVER
+            if(_turn['turnPhase'] == 'gameOver'){
+              return _buildButton(document['imageUrl'], null,
+                'Game over, man...', 'You all died. Mourn the dead and move on.');
+            }
 
             //INVITE SOMEONE
-            if (document['players'].length == 1) {
-							Function pickCharacter = () => Application.router.navigateTo(
-								context, 'inviteFriends?code=' + document['code'],
-								transition: TransitionType.fadeIn);
-							return _buildButton(document['imageUrl'], pickCharacter,
-								'Invite a friend!', 'Get your party together.');
-						}
+            // if (document['players'].length == 1) {
+						// 	Function pickCharacter = () => Application.router.navigateTo(
+						// 		context, 'inviteFriends?code=' + document['code'],
+						// 		transition: TransitionType.fadeIn);
+						// 	return _buildButton(document['imageUrl'], pickCharacter,
+						// 		'Invite a friend!', 'Get your party together.');
+						// }
 
             // YOUR TURN
             if(_turn['playerId'] == globals.userState['userId']){
@@ -164,7 +171,7 @@ class _ChatViewState extends State<ChatView> {
               }
               // ROLL PHASE
               if(_turn['turnPhase'] == 'roll'){
-                return RollButton(_turn, characters);
+                return RollButton(_turn, _characters);
               }
               // RESPOND PHASE
               if(_turn['turnPhase'] == 'respond') {
@@ -180,6 +187,19 @@ class _ChatViewState extends State<ChatView> {
             if(_turn['turnPhase'] == 'difficulty') {
               return RatingButton(_turn);
             }
+
+            DateTime now = DateTime.now();
+            DateTime threeHoursAgo = DateTime(now.year, now.month, now.day, now.hour - 3);
+            if(_turn['dts'].isBefore(threeHoursAgo)) {
+              if(_turn['playerImageUrl'] != null && _turn['playerName'] != null) {
+                return _buildButton(_turn['playerImageUrl'], () => _skipTurn(snapshot.data.reference, _turn['playerId']),
+                  'Skip turn...', _turn['playerName'] + ' hasnt played in over three hours.');
+              } else {
+                return _buildButton(document['imageUrl'], () => _skipTurn(snapshot.data.reference, _turn['playerId']),
+                  'Skip turn...', 'Player inactive for over three hours.');
+              }
+            }
+
             // WAITING ON FRIEND
             if(_turn['turnPhase'] == 'respond'){
               return _buildButton(_turn['playerImageUrl'], null,
@@ -211,6 +231,46 @@ class _ChatViewState extends State<ChatView> {
 			return Expanded(child: Container());
 		}
 	}
+
+  void _skipTurn(DocumentReference docRef, String playerId){
+    docRef.get().then((gameResult) {
+      String nextPlayerId, nextPlayerName, nextPlayerImageUrl;
+      List<dynamic> sortedPlayerIds = gameResult['players'].keys.toList()..sort();
+      int playerIndex = sortedPlayerIds.indexOf(playerId);
+      if(playerIndex < sortedPlayerIds.length-1){
+        nextPlayerId = sortedPlayerIds[playerIndex+1];
+      } else {
+        nextPlayerId = sortedPlayerIds[0];
+      }
+      nextPlayerName = gameResult['characters'][nextPlayerId] != null ? gameResult['characters'][nextPlayerId]['characterName'] : null;
+      nextPlayerImageUrl = gameResult['characters'][nextPlayerId] != null ? gameResult['characters'][nextPlayerId]['imageUrl'] : null;
+      var turns = [gameResult['turn'], {
+        'playerId': nextPlayerId,
+        'dts': DateTime.now(), 
+        'turnPhase': 'act',
+        'playerImageUrl': nextPlayerImageUrl,
+        'playerName': nextPlayerName}
+      ];
+      var combinedTurns = turns.reduce((map1, map2) => map1..addAll(map2));
+      docRef.updateData(<String, dynamic>{
+        'turn': combinedTurns
+      });
+
+      FirebaseDatabase.instance.reference().child('push').push().set(<String, dynamic>{
+        'title': "It's your turn!",
+        'message': "Your friends are waiting on you to continue the story!",
+        'friendId': nextPlayerId,
+        'gameId': globals.gameState['id'],
+        'genre': globals.gameState['genre'],
+        'name': globals.gameState['name'],
+        'gameTitle': globals.gameState['title'],
+        'code': globals.gameState['code'],
+        'players': globals.gameState['players'],
+        'creator': globals.gameState['creator']
+      });
+
+    });
+  }
 
   Widget _buildReactionViewer() {
     return StreamBuilder<QuerySnapshot>(
@@ -256,7 +316,7 @@ class _ChatViewState extends State<ChatView> {
 		return Stack(children: <Widget>[Positioned(top: _tapDownDetails.globalPosition.dy - 100, 
 			//Column( children: <Widget>[Flexible(child: Row(children: <Widget>[Expanded(child: 
 			// child: Row(children: <Widget>[ Expanded(child: Container(height: 80.0, child: ListView(
-			child: Container(height: 80.0, width: 400.0, child: ListView(
+			child: Container(height: 80.0, width: MediaQuery.of(context).size.width, child: ListView(
 				scrollDirection: Axis.horizontal,
 				children: <Widget>[
 					Padding(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:party_quest/globals.dart' as globals;
+import 'pickScenario_page.dart';
 import 'dart:math';
 import 'dart:convert';
 
@@ -14,7 +15,8 @@ class CreateGamePagesState extends State<CreateGamePages> {
 	final PageController _pageController = PageController();
 	final TextEditingController _textController = TextEditingController();
 	DocumentSnapshot _selectedGenre;
-	bool _isPublic;
+  DocumentSnapshot _selectedScenario;
+	bool _isPublic = false;
 
 	@override
 	Widget build(BuildContext context) {
@@ -37,14 +39,14 @@ class CreateGamePagesState extends State<CreateGamePages> {
 						image: AssetImage("assets/images/background-gradient.png"),
 						fit: BoxFit.fill)),
 				child: PageView(
-					children: [_buildCategories(), _buildDetailsForm()],
+					children: [_buildCategories(), PickScenarioPage(_selectedGenre, _selectScenario), _buildDetailsForm()],
 					physics: NeverScrollableScrollPhysics(),
 					controller: _pageController,
 				)));
 	}
 
 	Widget _buildDetailsForm() {
-		return _selectedGenre == null
+		return _selectedGenre == null || _selectedScenario == null
 			? Container()
 			: Center(
 				child: ListView(children: <Widget>[
@@ -57,8 +59,8 @@ class CreateGamePagesState extends State<CreateGamePages> {
 							? CachedNetworkImage(
 								placeholder: CircularProgressIndicator(),
 								imageUrl: _selectedGenre['imageUrl'],
-								height: 100.0,
-								width: 100.0,
+								height: 120.0,
+								width: 120.0,
 								)
 							: Container(),
 					),
@@ -68,8 +70,17 @@ class CreateGamePagesState extends State<CreateGamePages> {
 					child: Text(
 					_selectedGenre['name'],
 					style: TextStyle(
-						fontSize: 22.0,
+						fontSize: 26.0,
 						color: Colors.white,
+						fontWeight: FontWeight.w800),
+				)),
+        Center(
+					// margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+					child: Text(
+					_selectedScenario['title'],
+					style: TextStyle(
+						fontSize: 22.0,
+						color: Colors.white70,
 						fontWeight: FontWeight.w800),
 				)),
 				Container(
@@ -97,13 +108,10 @@ class CreateGamePagesState extends State<CreateGamePages> {
 					margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
 					child: Row(children: <Widget>[
 					Expanded(
-						child: Text(
-						'Private',
-						textAlign: TextAlign.right,
-						style: TextStyle(color: Colors.white),
+						child: Text('Private', textAlign: TextAlign.right, style: TextStyle(color: Colors.white),
 					)),
 					Switch(
-						value: false,
+						value: _isPublic,
 						inactiveTrackColor: Colors.white70,
 						onChanged: _toggleIsPublic,
 					),
@@ -123,7 +131,7 @@ class CreateGamePagesState extends State<CreateGamePages> {
 								child: new Text(
 									"Let's Play!",
 									style: new TextStyle(
-										fontSize: 18.0,
+										fontSize: 20.0,
 										color: Colors.white,
 										fontWeight: FontWeight.w800,
 									),)))
@@ -131,10 +139,13 @@ class CreateGamePagesState extends State<CreateGamePages> {
 	}
 
 	void _toggleIsPublic(bool isPublic) {
-		_isPublic = isPublic;
+		setState((){
+      _isPublic = isPublic;
+    });
 	}
 
 	void _handleSubmitted(String text) {
+    Navigator.pop(context);
 		_textController.clear();
 		var userId = globals.userState['userId'];
 		var code = _generateRandomCode(5);
@@ -151,17 +162,18 @@ class CreateGamePagesState extends State<CreateGamePages> {
 			'players': {userId: true},
 			'isPublic': _isPublic,
 			'dts': DateTime.now(),
-			'turn': {'dts': DateTime.now()}
+			'turn': {
+        'playerId': globals.userState['userId'],
+        'turnPhase': 'act',
+        'scenario': _selectedScenario.data['title'],
+        'dts': DateTime.now(),
+      }
 		});
 
-    Navigator.pop(context);
 		//UPDATE User.games
-		var userRef = Firestore.instance
-			.collection('Users')
-			.document(globals.userState['userId']);
+		var userRef = Firestore.instance.collection('Users').document(globals.userState['userId']);
 		userRef.get().then((snapshot) {
-			Map userGames =
-				snapshot.data['games'] == null ? new Map() : snapshot.data['games'];
+			Map userGames = snapshot.data['games'] == null ? new Map() : snapshot.data['games'];
 			userGames[game.documentID] = true;
 			userRef.updateData(<String, dynamic>{
 				'games': userGames,
@@ -175,10 +187,9 @@ class CreateGamePagesState extends State<CreateGamePages> {
 				globals.gameState['creator'] = userId;
 				globals.gameState['players'] = json.encode({userId: true});
 
-        //CREATE Intro story line
-        final DocumentReference newChatAnswer =
-            Firestore.instance.collection('Games/' + game.documentID + '/Logs').document();
-        newChatAnswer.setData(<String, dynamic>{
+        // ADD Intro story line
+        Firestore.instance.collection('Games/${game.documentID}/Logs')
+        .document().setData(<String, dynamic>{
           'text': _selectedGenre['introStoryline'],
           'type': 'narration',
           'title': _selectedGenre['name'],
@@ -188,10 +199,31 @@ class CreateGamePagesState extends State<CreateGamePages> {
           'profileUrl': globals.userState['profilePic'],
           'userName': globals.userState['name'],
         });
-        final DocumentReference newReactionsCollection =
-            Firestore.instance.collection('Games/' + game.documentID + '/Reactions').document(globals.userState['userId']);
-        newReactionsCollection.setData(<String, dynamic>{'love': 1});
-			});
+        // ADD initital love reaction to creator
+        Firestore.instance.collection('Games/${game.documentID}/Reactions')
+        .document(globals.userState['userId'])
+        .setData(<String, dynamic>{'love': 1});
+				
+        // ADD Scenario to Chat Logs
+        Firestore.instance.collection('Games/${game.documentID}/Logs')
+        .document().setData(<String, dynamic>{
+          'text': _selectedScenario.data['description'],
+          'type': 'narration',
+          'dts': DateTime.now(),
+          'profileUrl': globals.userState['profilePic'],
+          'userName': globals.userState['name'],
+          'userId': globals.userState['userId']
+        });
+        // UPDATE Synopsis
+        Firestore.instance.collection('Games/${game.documentID}/Synopsis')
+        .document().setData(<String, dynamic>{
+            'text': _selectedScenario.data['description'],
+            'dts': DateTime.now(),
+            'profileUrl': globals.userState['profilePic'],
+            'userName': globals.userState['name'],
+            'userId': globals.userState['userId']
+          });
+      });
 		});
 	}
 
@@ -266,7 +298,7 @@ class CreateGamePagesState extends State<CreateGamePages> {
 														textAlign: TextAlign.left,
 														style: TextStyle(
 															color: Colors.white70,
-															fontWeight: FontWeight.w100,
+															fontWeight: FontWeight.w400,
 															fontSize: 16.0)),
 												])),
 										Container(
@@ -288,7 +320,7 @@ class CreateGamePagesState extends State<CreateGamePages> {
 																borderRadius:
 																	new BorderRadius.circular(
 																		10.0)),
-															onPressed: () => _nextPage(document),
+															onPressed: () => print('a tap'),
 															color: const Color(0xFF48B5FB),
 															child: Text(
 																"Coming Soon",
@@ -323,7 +355,14 @@ class CreateGamePagesState extends State<CreateGamePages> {
 										// ))),
 									],
 								)),
-							onTap: () => _nextPage(document),
+							onTap: (){
+                if (document['type'] == 'free') {
+                  setState(() {
+                    _selectedGenre = document;
+                  });
+                  _pageController.animateToPage(1, duration: Duration(milliseconds: 1000), curve: Curves.elasticOut);
+                }
+              },
 						);
 					},
 				);
@@ -336,13 +375,10 @@ class CreateGamePagesState extends State<CreateGamePages> {
 			duration: Duration(milliseconds: 1000), curve: Curves.elasticOut);
 	}
 
-	void _nextPage(DocumentSnapshot document) {
-		if (document['type'] == 'free') {
-			setState(() {
-				_selectedGenre = document;
-			});
-			_pageController.animateToPage(1,
-				duration: Duration(milliseconds: 1000), curve: Curves.elasticOut);
-		}
-	}
+	void _selectScenario(BuildContext context, DocumentSnapshot document) {
+    setState(() {
+      _selectedScenario = document;
+    });
+    _pageController.animateToPage(2, duration: Duration(milliseconds: 1000), curve: Curves.elasticOut);
+  }
 }

@@ -41,7 +41,8 @@ class PickResponseState extends State<PickResponsePage> {
             _buildCharacterList(),
             _buildDescriptionField(), 
             _buildSubmitButton(context),
-            _buildSuggestions()])))])
+            // _buildSuggestions()
+            ])))])
         ));
 	}
 
@@ -52,8 +53,9 @@ class PickResponseState extends State<PickResponsePage> {
 			builder: (BuildContext context, AsyncSnapshot snapshot) {
         if(snapshot.hasData){
           for(var key in snapshot.data['characters'].keys){
-            characterWidgets.add(_buildCharacterWidget(key, snapshot.data['characters'][key]));
-            // characterWidgets.add(_buildCharacterWidget(snapshot.data['characters'][key]));
+            if(snapshot.data['characters'][key]['inactive'] != true) {
+              characterWidgets.add(_buildCharacterWidget(key, snapshot.data['characters'][key]));
+            }
           }
           return Container(height: 80.0, child: ListView(children: characterWidgets, scrollDirection: Axis.horizontal));
         } else {
@@ -70,7 +72,7 @@ class PickResponseState extends State<PickResponsePage> {
           height: 50.0,
 					decoration: BoxDecoration(
 					image: DecorationImage(
-							image: AssetImage("assets/images/" + character['characterId'] + ".png"),
+							image: AssetImage(character['imageUrl']),
 							fit: BoxFit.contain,
 						))),
         Text(character['characterName'], style: TextStyle(color: Colors.white))
@@ -97,7 +99,7 @@ class PickResponseState extends State<PickResponsePage> {
 
   Widget _buildDescriptionField(){
     return Container(
-				height: 100.0,
+				height: 150.0,
 				margin: EdgeInsets.symmetric(horizontal: 10.0),
 				padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 10.0),
 				child: TextField(
@@ -150,6 +152,17 @@ class PickResponseState extends State<PickResponsePage> {
     }
   }      
 
+  String _getNextPlayer(Map characters, List<dynamic> playerList, int pointer, int counter) {
+    int currentIndex = pointer < playerList.length - 1 ? pointer + 1 : 0;
+    String nextPlayerId = playerList[currentIndex];
+    if(characters[nextPlayerId]['HP'] > 0)
+      return nextPlayerId;
+    else if(counter == playerList.length - 1)
+      return "All players are dead.";
+    else
+      return _getNextPlayer(characters, playerList, currentIndex + 1, counter++);
+  }
+
 	void _handleSubmitted(BuildContext context) {
     Navigator.pop(context);
 		var _gameId = globals.gameState['id'];
@@ -165,45 +178,30 @@ class PickResponseState extends State<PickResponsePage> {
     final DocumentReference gameRef =
         Firestore.instance.collection('Games').document(_gameId);
     gameRef.get().then((gameResult) {
-      String nextPlayerId, nextPlayerName, nextPlayerImageUrl;
+      String nextPlayerName, nextPlayerImageUrl;
+      //Get Next player
       List<dynamic> sortedPlayerIds = gameResult['players'].keys.toList()..sort();
       int playerIndex = sortedPlayerIds.indexOf(globals.userState['userId']);
-      if(playerIndex < sortedPlayerIds.length-1){
-        nextPlayerId = sortedPlayerIds[playerIndex+1];
-      } else {
-        nextPlayerId = sortedPlayerIds[0];
-      }
-      nextPlayerName = gameResult['characters'][nextPlayerId] != null ? gameResult['characters'][nextPlayerId]['characterName'] : null;
-      nextPlayerImageUrl = gameResult['characters'][nextPlayerId] != null ? gameResult['characters'][nextPlayerId]['imageUrl'] : null;
-      var turns = [gameResult['turn'], {
-        'playerId': nextPlayerId,
-        'dts': DateTime.now(), 
-        'turnPhase': 'act',
-        'playerImageUrl': nextPlayerImageUrl,
-        'playerName': nextPlayerName}
-      ];
-      var combinedTurns = turns.reduce((map1, map2) => map1..addAll(map2));
-      gameRef.updateData(<String, dynamic>{
-        'turn': combinedTurns
-      });
-      FirebaseDatabase.instance.reference().child('push').push().set(<String, dynamic>{
-        'title': "It's your turn!",
-        'message': "Your friends are waiting on you to continue the story!",
-        'friendId': nextPlayerId,
-        'gameId': globals.gameState['id'],
-        'genre': globals.gameState['genre'],
-        'name': globals.gameState['name'],
-        'gameTitle': globals.gameState['title'],
-        'code': globals.gameState['code'],
-        'players': globals.gameState['players'],
-        'creator': globals.gameState['creator']
-      });
-
-      _pushIds.forEach((pushId) {
+      String nextPlayerId = _getNextPlayer(gameResult['characters'], sortedPlayerIds, playerIndex, 0);
+      if(gameResult['characters'][nextPlayerId] != null){
+        // It's the next players turn
+        nextPlayerName = gameResult['characters'][nextPlayerId]['characterName'];
+        nextPlayerImageUrl = gameResult['characters'][nextPlayerId]['imageUrl'];     
+        var turns = [gameResult['turn'], {
+          'playerId': nextPlayerId,
+          'dts': DateTime.now(), 
+          'turnPhase': 'act',
+          'playerImageUrl': nextPlayerImageUrl,
+          'playerName': nextPlayerName}
+        ];
+        var combinedTurns = turns.reduce((map1, map2) => map1..addAll(map2));
+        gameRef.updateData(<String, dynamic>{
+          'turn': combinedTurns
+        });
         FirebaseDatabase.instance.reference().child('push').push().set(<String, dynamic>{
-          'title': "You're been tagged in the story.",
-          'message': "Check out what's new in " + globals.gameState['title'],
-          'friendId': pushId,
+          'title': "It's your turn!",
+          'message': "Your friends are waiting on you to continue the story!",
+          'friendId': nextPlayerId,
           'gameId': globals.gameState['id'],
           'genre': globals.gameState['genre'],
           'name': globals.gameState['name'],
@@ -212,7 +210,45 @@ class PickResponseState extends State<PickResponsePage> {
           'players': globals.gameState['players'],
           'creator': globals.gameState['creator']
         });
-      });
+        _pushIds.forEach((pushId) {
+          FirebaseDatabase.instance.reference().child('push').push().set(<String, dynamic>{
+            'title': "You're been tagged in the story.",
+            'message': "Check out what's new in " + globals.gameState['title'],
+            'friendId': pushId,
+            'gameId': globals.gameState['id'],
+            'genre': globals.gameState['genre'],
+            'name': globals.gameState['name'],
+            'gameTitle': globals.gameState['title'],
+            'code': globals.gameState['code'],
+            'players': globals.gameState['players'],
+            'creator': globals.gameState['creator']
+          });
+        });
+      } else {
+        // Everyone's dead
+        var turns = [gameResult['turn'], {
+          'dts': DateTime.now(),
+          'turnPhase': 'gameOver'}
+        ];
+        var combinedTurns = turns.reduce((map1, map2) => map1..addAll(map2));
+        gameRef.updateData(<String, dynamic>{
+          'turn': combinedTurns
+        });
+        sortedPlayerIds.forEach((pushId) {
+          FirebaseDatabase.instance.reference().child('push').push().set(<String, dynamic>{
+            'title': "Game over!",
+            'message': "Check out what how everyone died and start a new game.",
+            'friendId': pushId,
+            'gameId': globals.gameState['id'],
+            'genre': globals.gameState['genre'],
+            'name': globals.gameState['name'],
+            'gameTitle': globals.gameState['title'],
+            'code': globals.gameState['code'],
+            'players': globals.gameState['players'],
+            'creator': globals.gameState['creator']
+          });
+        });
+      }
     });
 	}
 }

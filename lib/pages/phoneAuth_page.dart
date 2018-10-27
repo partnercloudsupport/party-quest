@@ -102,7 +102,7 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   // Styling
-  final decorationStyle = TextStyle(color: Colors.grey[50], fontSize: 18.0);
+  final decorationStyle = TextStyle(color: Colors.grey[50], fontSize: 22.0);
   final hintStyle = TextStyle(color: Colors.white24);
 
   //
@@ -360,7 +360,7 @@ class _AuthScreenState extends State<AuthScreen> {
           .of(context)
           .textTheme
           .subhead
-          .copyWith(fontSize: 18.0, color: Colors.white),
+          .copyWith(fontSize: 22.0, color: Colors.white),
       inputDecoration: InputDecoration(
         isDense: false,
         enabled: this.status == AuthStatus.PHONE_AUTH,
@@ -390,7 +390,7 @@ class _AuthScreenState extends State<AuthScreen> {
           .of(context)
           .textTheme
           .subhead
-          .copyWith(fontSize: 18.0, color: Colors.white),
+          .copyWith(fontSize: 22.0, color: Colors.white),
       inputDecoration: InputDecoration(
         isDense: false,
         enabled: this.status == AuthStatus.PHONE_AUTH,

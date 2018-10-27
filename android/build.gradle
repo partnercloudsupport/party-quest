@@ -17,6 +17,10 @@ allprojects {
             if (requested.group == 'com.google.firebase') {
                 details.useVersion "15.+"
             }
+            if (details.requested.group == 'com.android.support'
+                    && !details.requested.name.contains('multidex') ) {
+                details.useVersion "27.1.0"
+            }
         }
     }
     repositories {
