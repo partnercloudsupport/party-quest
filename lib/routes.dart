@@ -18,6 +18,7 @@ import 'pages/inviteFriends_page.dart';
 import 'pages/pickCharacter_page.dart';
 import 'pages/pickResponse_page.dart';
 import 'pages/pickRoll_page.dart';
+import 'components/chat_view.dart';
 import 'pages/pickAction_page.dart';
 import 'pages/phoneAuth_page.dart';
 
@@ -31,6 +32,7 @@ class Routes {
     router.define('userProfile', handler: userProfilePageHandler);
     router.define('createGame', handler: createGameHandler);
     router.define('joinGame', handler: joinGameHandler);
+    router.define('openGame', handler: openGameHandler);
     router.define('inviteFriends', handler: inviteFriendsHandler);
     // router.define('pickScenario', handler: pickScenarioHandler);
     router.define('pickAction', handler: pickActionHandler);
@@ -52,6 +54,11 @@ class Routes {
 
   static var joinGameHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {
     return new JoinGamePage();
+  });
+
+  static var openGameHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {
+    String gameId = params["gameId"]?.first;
+    return new ChatView(gameId);
   });
 
   static var pickCharacterHandler = new Handler(handlerFunc: (BuildContext context, Map<String, List<String>> params) {

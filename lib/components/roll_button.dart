@@ -53,9 +53,12 @@ class _RollButtonState extends State<RollButton> {
 	@override
 	Widget build(BuildContext context) {
     return Container(
-			decoration: BoxDecoration(color: const Color(0xFF4C6296)),
+      height: 200.0,
+			decoration: BoxDecoration(image: DecorationImage(image: AssetImage('assets/images/bottom-clouds.png'), fit: BoxFit.fitHeight)),
+			// decoration: BoxDecoration(color: Theme.of(context).accentColor),
 			child: Container(
-				padding: EdgeInsets.only(top: 5.0, left: 10.0, right: 10.0),
+				// padding: EdgeInsets.only(top: 5.0, left: 10.0, right: 10.0),
+				padding: EdgeInsets.only(top: 50.0, left: 10.0, right: 10.0),
 				child: Row(children: <Widget>[
 					Expanded(
 						child: Column(
@@ -68,7 +71,7 @@ class _RollButtonState extends State<RollButton> {
 										padding: EdgeInsets.all(10.0),
 										// onPressed: null,
 										onPressed: _buttonPressed? null : _handleButtonTapped,
-										color: const Color(0xFF00b0ff),
+										color: Theme.of(context).buttonColor,
 										shape: RoundedRectangleBorder(
 											borderRadius: new BorderRadius.circular(40.0)),
 										child: Row(

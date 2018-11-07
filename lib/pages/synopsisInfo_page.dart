@@ -122,9 +122,9 @@ class _SynopsisInfoPageState extends State<SynopsisInfoPage> {
 						// Theme.of(context).platform == TargetPlatform.iOS
 						// ?
 						BoxDecoration(
-							color: const Color(0xFF4C6296),
+							color: Theme.of(context).primaryColor,
 							border: Border(
-								top: BorderSide(color: const Color(0xFF4C6296)))))
+								top: BorderSide(color: Theme.of(context).primaryColor))))
 				// : null),
 				));
 	}

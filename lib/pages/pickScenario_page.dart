@@ -10,21 +10,20 @@ class PickScenarioPage extends StatelessWidget {
 	Widget build(BuildContext context) {
     return (genre == null)
 			? Container() :
-		  Scaffold(body: 
       Container(
-				decoration: BoxDecoration(
-					image: DecorationImage(
-						image: AssetImage("assets/images/background-gradient.png"),
-						fit: BoxFit.fill)),
+				// decoration: BoxDecoration(
+				// 	image: DecorationImage(
+				// 		image: AssetImage("assets/images/background-purple.png"),
+				// 		fit: BoxFit.fill)),
         child: Column(children: <Widget>[
-          Text(
-            "Pick a Scenario",
-            style:
-              TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 30.0),
-          ),
+          // Text(
+          //   "Pick a Scenario",
+          //   style:
+          //     TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 30.0),
+          // ),
           Expanded(
             child: _buildPickScenario())
-      ])));
+      ]));
 	}
 
 	Widget _buildPickScenario() {
@@ -46,7 +45,7 @@ class PickScenarioPage extends StatelessWidget {
                   margin: EdgeInsets.symmetric(horizontal: 20.0, vertical: 5.0),
                   padding: EdgeInsets.only(top: 10.0),
                   decoration: BoxDecoration(
-												color: Color(0xFF333366),
+												color: Color(0xFF7336AE),
 												shape: BoxShape.rectangle,
 												borderRadius: BorderRadius.circular(8.0),
 												boxShadow: <BoxShadow>[

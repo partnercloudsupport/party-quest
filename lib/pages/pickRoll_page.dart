@@ -51,7 +51,7 @@ class PickRollPage extends StatelessWidget {
 				padding: const EdgeInsets.only(top: 20.0),
 				child: RaisedButton(
 					padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 50.0),
-						color: const Color(0xFF00b0ff),
+						color: Theme.of(context).buttonColor,
 						shape: new RoundedRectangleBorder(
 							borderRadius:
 								new BorderRadius.circular(

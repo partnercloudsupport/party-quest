@@ -32,7 +32,7 @@ class JoinGamePage extends StatelessWidget {
 				leading: new IconButton(
 					icon: new Icon(Icons.close, color: Colors.white),
 					onPressed: () => Navigator.pop(context)),
-				backgroundColor: const Color(0xFF00073F),
+				backgroundColor: Theme.of(context).primaryColor,
 				title: new Text("Join Game",
 					style: new TextStyle(
 						color: Colors.white,
@@ -45,7 +45,7 @@ class JoinGamePage extends StatelessWidget {
 				width: 500.0,
 				decoration: BoxDecoration(
 					image: DecorationImage(
-						image: AssetImage("assets/images/background-gradient.png"),
+						image: AssetImage("assets/images/background-purple.png"),
 						fit: BoxFit.fill)),
 				child: Column(children: <Widget>[
 					Row(children: <Widget>[
@@ -97,7 +97,7 @@ class JoinGamePage extends StatelessWidget {
               padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
 							key: null,
 							onPressed: () => _handleCodeSubmitted(_textController.text, context),
-							color: const Color(0xFF00b0ff),
+							color: Theme.of(context).buttonColor,
 							shape: new RoundedRectangleBorder(
 								borderRadius:
 									new BorderRadius.circular(

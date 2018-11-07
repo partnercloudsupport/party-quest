@@ -56,7 +56,10 @@ class _PlayersInfoPageState extends State<PlayersInfoPage> with SingleTickerProv
         var canRomove = player.documentID != widget._gameInfo.data['creator'] && globals.userState['userId'] == widget._gameInfo.data['creator'];
         labelListTiles.add(Padding(padding: EdgeInsets.symmetric(vertical: 10.0), child: ListTile(
           isThreeLine: true,
-          leading:  CircleAvatar(radius: 25.0, backgroundImage: player['profilePic'].contains('http') ? CachedNetworkImageProvider(player['profilePic']) : AssetImage("${player['profilePic']}")),
+          leading:  CircleAvatar(
+            radius: 25.0, 
+            backgroundColor: Colors.white.withOpacity(.3),
+            backgroundImage: player['profilePic'].contains('http') ? CachedNetworkImageProvider(player['profilePic']) : AssetImage("${player['profilePic']}")),
           // Container(child: Stack(children: <Widget>[
           //     CircleAvatar(radius: 25.0, backgroundImage: player['profilePic'].contains('http') ? CachedNetworkImageProvider(player['profilePic']) : AssetImage("${player['profilePic']}")),
           //     character == null ? Container(width: 10.0) : Positioned(left: 5.0, top: 5.0, child: CircleAvatar(backgroundImage: character['imageUrl'].contains('http') ? CachedNetworkImageProvider(character['imageUrl']) : AssetImage("${character['imageUrl']}"))),              
@@ -104,7 +107,7 @@ class _PlayersInfoPageState extends State<PlayersInfoPage> with SingleTickerProv
 				padding: const EdgeInsets.only(bottom: 50.0),
 				child: RaisedButton(
 					padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 20.0),
-						color: const Color(0xFF00b0ff),
+						color: Theme.of(context).buttonColor,
 						shape: RoundedRectangleBorder(
 							borderRadius:
 								BorderRadius.circular(

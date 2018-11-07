@@ -25,9 +25,11 @@ class _RatingButtonState extends State<RatingButton> {
 	@override
 	Widget build(BuildContext context) {
     return Container(
-			decoration: BoxDecoration(color: const Color(0xFF4C6296)),
+      height: 200.0,
+			decoration: BoxDecoration(image: DecorationImage(image: AssetImage('assets/images/bottom-clouds.png'), fit: BoxFit.fitHeight)),
 			child: Column(children: <Widget>[
-        Padding(padding: EdgeInsets.symmetric(vertical: 10.0), child: Text('How difficult is that action?', style: TextStyle(fontSize: 22.0,color: Colors.white, fontWeight: FontWeight.w800))),
+        Padding(padding: EdgeInsets.only(top: 40.0, left: 10.0, right: 10.0),
+        child: Text('How difficult is that action?', style: TextStyle(fontSize: 22.0,color: Colors.white, fontWeight: FontWeight.w800))),
         Row(mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
@@ -46,7 +48,7 @@ class _RatingButtonState extends State<RatingButton> {
       child: Padding(padding: EdgeInsets.only(left: 5.0, right: 5.0), 
         child: RaisedButton(
           padding: EdgeInsets.symmetric(vertical: 10.0),
-          color: const Color(0xFF00b0ff),
+          color: Theme.of(context).buttonColor,
           shape: new RoundedRectangleBorder(
             borderRadius:
               new BorderRadius.circular(

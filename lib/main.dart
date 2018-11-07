@@ -96,10 +96,12 @@ class PartyQuestState extends State<PartyQuest> {
     return new MaterialApp(
       title: 'Pegg Party',
       theme: new ThemeData(
-          primaryColor: Colors.white,
+          primaryColor: const Color(0xFF32174D),
           fontFamily: 'LondrinaSolid',
           textTheme: TextTheme(title: TextStyle(letterSpacing: 1.2)) ,
           canvasColor: Colors.black,
+          buttonColor: const Color(0xFF00B0FF),
+          accentColor: const Color(0xFF601DAC),
           primaryColorLight: Colors.white.withOpacity(0.2)),
       onGenerateRoute: Application.router.generator,
       home: startPage,

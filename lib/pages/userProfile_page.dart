@@ -103,7 +103,7 @@ class UserProfileState extends State<UserProfilePage> {
   Widget _buildDoneButton(){
     return Padding(padding: EdgeInsets.symmetric(horizontal: 40.0), child: RaisedButton(
     onPressed: _buttonEnabled ? _handleSubmitted : null,
-    color: const Color(0xFF00b0ff),
+    color: Theme.of(context).buttonColor,
       padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
       shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(40.0)),
@@ -121,7 +121,7 @@ class UserProfileState extends State<UserProfilePage> {
     return Row(children: <Widget>[ Expanded(child: Padding(padding: EdgeInsets.only(left: 20.0, right: 10.0, top: 10.0),
       child: RaisedButton.icon(
       onPressed: () => _uploadImage('pick'),
-      color: const Color(0xFF00b0ff),
+      color: Theme.of(context).buttonColor,
       shape: RoundedRectangleBorder(
         borderRadius: new BorderRadius.circular(40.0)),
           icon: Icon(Icons.photo_album, color: Colors.white),
@@ -139,7 +139,7 @@ class UserProfileState extends State<UserProfilePage> {
             // padding: EdgeInsets.all(10.0),
             // onPressed: null,
             onPressed: () => _uploadImage('take'),
-            color: const Color(0xFF00b0ff),
+            color: Theme.of(context).buttonColor,
             shape: RoundedRectangleBorder(
               borderRadius: new BorderRadius.circular(40.0)),
                 icon: Icon(Icons.camera_alt, color: Colors.white),

@@ -52,7 +52,7 @@ class SplashPageState extends State<SplashPage> {
 					onPressed: () => Application.router.navigateTo(
 						context, 'phoneAuth',
 						transition: TransitionType.fadeIn),
-					color: const Color(0xFF00b0ff),
+					color: Theme.of(context).buttonColor,
 					shape: RoundedRectangleBorder(
 						borderRadius: new BorderRadius.circular(40.0)),
 					child: Text(

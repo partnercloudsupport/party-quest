@@ -1,4 +1,5 @@
 const functions = require('firebase-functions');
+const _ = require('underscore');
 
 // // Create and Deploy Your First Cloud Functions
 // // https://firebase.google.com/docs/functions/write-firebase-functions
@@ -39,6 +40,45 @@ admin.initializeApp();
 //     return null;
 //   }
 // });
+
+exports.reactionChange = functions.firestore
+  .document('Games/{gameId}/Reactions/{authorId}')
+  .onWrite((change, context) => {
+    var authorId = context.params.authorId;
+    var gameId = context.params.gameId;
+    var beforeData = change.before.data();
+    var afterData = change.after.data();
+    // console.log(beforeData);
+    // console.log(afterData);
+    var diff = _.omit(afterData, function(v,k) { return beforeData[k] === v; });
+    var reactionType = _.keys(diff)[0]; // we only care about one reaction (shouldnt be more than one)
+    if(reactionType != null) {
+      // Increment User.totalReactions and User.reactions[reactionType]
+      var userRef = admin.firestore().collection('Users').doc(authorId);
+      var userPromise = userRef.get().then((userResult) => {
+        var reactions = userResult.data()['reactions'];
+        var totalReactions = userResult.data()['totalReactions'];
+        if(reactions == null) reactions = {};
+        reactions[reactionType] == null ? reactions[reactionType] = 1 : reactions[reactionType]++;
+        totalReactions == null ? totalReactions = 1 : totalReactions++;
+        return userRef.update({'reactions': reactions, 'totalReactions': totalReactions});
+      });
+
+      // Increment Game.totalReactions
+      var gameRef = admin.firestore().collection('Games').doc(gameId);
+      var gamePromise = gameRef.get().then((gameResult) => {
+        var reactions = gameResult.data()['reactions'];
+        var totalReactions = gameResult.data()['totalReactions'];
+        if(reactions == null) reactions = {};
+        reactions[reactionType] == null ? reactions[reactionType] = 1 : reactions[reactionType]++;
+        totalReactions == null ? totalReactions = 1 : totalReactions++;
+        return gameRef.update({'reactions': reactions, 'totalReactions': totalReactions});
+      });
+
+      return Promise.all([gamePromise, userPromise]);
+    }
+  });
+
 
 exports.removePlayer = functions.https.onCall((data, context) => {
   // console.log("uid: " + context.auth.uid);

@@ -22,7 +22,7 @@ class PickResponseState extends State<PickResponsePage> {
 				leading: new IconButton(
 					icon: new Icon(Icons.close, color: Colors.white),
 					onPressed: () => Navigator.pop(context)),
-				backgroundColor: const Color(0xFF00073F),
+				backgroundColor: Theme.of(context).primaryColor,
 				elevation: -1.0,
 				title: new Text(
 					"What happens next?",
@@ -32,7 +32,7 @@ class PickResponseState extends State<PickResponsePage> {
 			body: Container(
 				decoration: BoxDecoration(
 					image: DecorationImage(
-						image: AssetImage("assets/images/background-gradient.png"),
+						image: AssetImage("assets/images/background-purple.png"),
 						fit: BoxFit.fill)),
 				child: 
         Column( children: <Widget>[Expanded(
@@ -124,7 +124,7 @@ class PickResponseState extends State<PickResponsePage> {
 				padding: const EdgeInsets.only(top: 20.0),
 				child: RaisedButton(
 					padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 50.0),
-						color: const Color(0xFF00b0ff),
+						color: Theme.of(context).buttonColor,
 						shape: new RoundedRectangleBorder(
 							borderRadius:
 								new BorderRadius.circular(

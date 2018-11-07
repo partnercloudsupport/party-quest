@@ -26,7 +26,7 @@ class CreateGamePagesState extends State<CreateGamePages> {
 				leading: new IconButton(
 					icon: new Icon(Icons.close, color: Colors.white),
 					onPressed: () => Navigator.pop(context)),
-				backgroundColor: const Color(0xFF00073F),
+				backgroundColor: Theme.of(context).primaryColor,
 				elevation: -1.0,
 				title: new Text(
 					"Create a Game",
@@ -36,7 +36,7 @@ class CreateGamePagesState extends State<CreateGamePages> {
 			body: Container(
 				decoration: BoxDecoration(
 					image: DecorationImage(
-						image: AssetImage("assets/images/background-gradient.png"),
+						image: AssetImage("assets/images/background-purple.png"),
 						fit: BoxFit.fill)),
 				child: PageView(
 					children: [_buildCategories(), PickScenarioPage(_selectedGenre, _selectScenario), _buildDetailsForm()],
@@ -122,7 +122,7 @@ class CreateGamePagesState extends State<CreateGamePages> {
 					margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
 					child: RaisedButton(
 							padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 20.0),
-								color: const Color(0xFF00b0ff),
+								color: Theme.of(context).buttonColor,
 								shape: new RoundedRectangleBorder(
 									borderRadius:
 										new BorderRadius.circular(
@@ -162,6 +162,7 @@ class CreateGamePagesState extends State<CreateGamePages> {
 			'players': {userId: true},
 			'isPublic': _isPublic,
 			'dts': DateTime.now(),
+      'totalReactions': 0,
 			'turn': {
         'playerId': globals.userState['userId'],
         'turnPhase': 'act',
@@ -269,14 +270,14 @@ class CreateGamePagesState extends State<CreateGamePages> {
 											padding: EdgeInsets.only(
 												top: 20.0, left: 65.0, right: 20.0),
 											decoration: BoxDecoration(
-												color: Color(0xFF333366),
+												color: Color(0xFF7336AE),
 												shape: BoxShape.rectangle,
 												borderRadius: BorderRadius.circular(8.0),
 												boxShadow: <BoxShadow>[
 													BoxShadow(
 														color: Colors.black12,
 														blurRadius: 10.0,
-														offset: Offset(0.0, 10.0),
+														offset: Offset(-10.0, 10.0),
 													),
 												],
 											),

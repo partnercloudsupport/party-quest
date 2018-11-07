@@ -13,7 +13,7 @@ class InviteFriendsPage extends StatelessWidget {
 				leading: new IconButton(
 					icon: new Icon(Icons.close, color: Colors.white),
 					onPressed: () => Navigator.pop(context)),
-				backgroundColor: const Color(0xFF00073F),
+				backgroundColor: Theme.of(context).primaryColor,
 				elevation: -1.0,
 				title: new Text(
 					"Invite Friends",
@@ -23,18 +23,18 @@ class InviteFriendsPage extends StatelessWidget {
 			body: Container(
 				decoration: BoxDecoration(
 					image: DecorationImage(
-						image: AssetImage("assets/images/background-gradient.png"),
+						image: AssetImage("assets/images/background-purple.png"),
 						fit: BoxFit.fill)),
 				child: 
 					Container(
 						child: Align(
 		        alignment: Alignment.topCenter, 
             child: Column(children: <Widget>[
-              Text('Your game code: ', style: TextStyle(fontSize: 20.0, color: Colors.white)),
+              Padding(padding: EdgeInsets.all(10.0), child: Text('Your game code: ', style: TextStyle(fontSize: 20.0, color: Colors.white))),
               Text(code, style: TextStyle(fontSize: 40.0, color: Colors.white)),
               RaisedButton(
 							padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 20.0),
-								color: const Color(0xFF00b0ff),
+								color: Theme.of(context).buttonColor,
 								shape: new RoundedRectangleBorder(
 									borderRadius:
 										new BorderRadius.circular(

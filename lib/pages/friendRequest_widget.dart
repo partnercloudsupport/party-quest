@@ -26,7 +26,10 @@ class _FriendRequestState extends State<FriendRequest> {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-        leading: CircleAvatar(radius: 25.0, backgroundImage: widget.friend['profilePic'].contains('http') ? CachedNetworkImageProvider(widget.friend['profilePic']) : AssetImage(widget.friend['profilePic'])),
+        leading: CircleAvatar(
+          backgroundColor: Colors.white.withOpacity(.3),
+          radius: 25.0, 
+          backgroundImage: widget.friend['profilePic'].contains('http') ? CachedNetworkImageProvider(widget.friend['profilePic']) : AssetImage(widget.friend['profilePic'])),
         // CircleAvatar(
         //     backgroundImage: NetworkImage(widget.friend['profilePic'])),
         title:
@@ -36,7 +39,7 @@ class _FriendRequestState extends State<FriendRequest> {
             ? FlatButton(
                 key: null,
                 onPressed: _isButtonDisabled? null : () => _handleRequestApproved(widget.friend.documentID),
-                color: const Color(0xFF00b0ff),
+                color: Theme.of(context).buttonColor,
                 child: new Text(
                   _isButtonDisabled? "Loading..." :"Approve",
                   style: new TextStyle(

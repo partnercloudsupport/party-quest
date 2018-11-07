@@ -43,7 +43,7 @@ class _InfoPageState extends State<InfoPage> with SingleTickerProviderStateMixin
   Widget build(BuildContext context) {
     AppBar appBar = AppBar(
       leading: IconButton(icon: Icon(Icons.arrow_back, color: Colors.white), onPressed: () => Navigator.of(context).pop()), 
-      backgroundColor: const Color(0xFF00073F),
+      backgroundColor: Theme.of(context).primaryColor,
       elevation: -1.0,
       title: Text("Game Info", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
     );
@@ -55,7 +55,7 @@ class _InfoPageState extends State<InfoPage> with SingleTickerProviderStateMixin
             decoration: BoxDecoration(
               image: DecorationImage(
                   image: AssetImage(
-                      "assets/images/background-gradient.png"),
+                      "assets/images/background-purple.png"),
                   fit: BoxFit.fill)),
             child: _gameId == '' ? Container() : _buildTabsDetails()
           ));
@@ -66,6 +66,7 @@ class _InfoPageState extends State<InfoPage> with SingleTickerProviderStateMixin
       controller: _tabController,
       unselectedLabelColor: const Color(0x66FFFFFF),
       labelColor: const Color(0xFFFFFFFF),
+      indicatorColor: Colors.white,
       indicatorSize: TabBarIndicatorSize.tab,
       tabs: <Tab>[
         Tab(child: Text('Characters', style: TextStyle(fontSize: 20.0))),
