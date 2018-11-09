@@ -33,20 +33,31 @@ class HomePageState extends State<HomePage> {
 			// backgroundColor: Colors.white,
 			// drawer: AccountDrawer(), // left side
 			appBar: AppBar(
-				// toolbarOpacity: 0.0,
-        title: Row(children: <Widget>[
-          Expanded(child: Text('Party', style: TextStyle(color: Colors.white, fontSize: 30.0), textAlign: TextAlign.right,)),
-          Container(width: 40.0, child: Image.asset('assets/images/20D20.png')),
-          Expanded(child: Text('Quest', style: TextStyle(color: Colors.white, fontSize: 30.0)))
-        ]),
+        elevation: 20.0,
+        title:
+          Container(
+            // height: 200.0,
+            child: 
+            Row(children: <Widget>[
+            Expanded(child: Text('Party', style: TextStyle(color: Colors.white, fontSize: 30.0), textAlign: TextAlign.right,)),
+            Container(width: 40.0, child: Image.asset('assets/images/20D20.png')),
+            Expanded(child: Text('Quest', style: TextStyle(color: Colors.white, fontSize: 30.0)))])
+          // , decoration: BoxDecoration(
+          //   image: DecorationImage(
+          //     image: AssetImage("assets/images/header-gradient.png"),
+          //     fit: BoxFit.fitWidth)),
+          )
+        ,
         bottom: TabBar(
             labelPadding: EdgeInsets.all(0.0),
             labelColor: Colors.white,
-            indicatorColor: Colors.white,
+            labelStyle: TextStyle(fontSize: 30.0, fontFamily: 'LondrinaSolid'),
+            unselectedLabelStyle: TextStyle(fontSize: 20.0, fontFamily: 'LondrinaSolid'),
+            indicatorColor: Colors.white.withOpacity(0.0),
               tabs: [
-                Tab(child: Text('Players', style: TextStyle(fontSize: 20.0),)), //icon: Icon(Icons.people, color: Colors.white)),
-                Tab(child: Text('Games', style: TextStyle(fontSize: 20.0),)), //icon: Icon(Icons.bubble_chart, color: Colors.white)),
-                Tab(child: Text('Profile', style: TextStyle(fontSize: 20.0),)), //icon: Icon(Icons.person, color: Colors.white)),
+                Tab(child: Text('Players')), //icon: Icon(Icons.people, color: Colors.white)),
+                Tab(child: Text('Games')), //icon: Icon(Icons.bubble_chart, color: Colors.white)),
+                Tab(child: Text('Profile')), //icon: Icon(Icons.person, color: Colors.white)),
               ],
             ),
 				// leading: IconButton(
@@ -72,7 +83,7 @@ class HomePageState extends State<HomePage> {
 				decoration: BoxDecoration(
 					image: DecorationImage(
 					// image: AssetImage("assets/images/$_gameType.jpg"),
-					image: AssetImage("assets/images/background-purple.png"),
+					image: AssetImage("assets/images/background-cosmos.png"),
 					fit: BoxFit.cover,
 					// colorFilter: ColorFilter.mode(
 					// Colors.black.withOpacity(0.9), BlendMode.dstATop)
@@ -218,8 +229,8 @@ class HomePageState extends State<HomePage> {
 		)]),
       Row(children: <Widget>[
         Expanded(child: Padding(padding: EdgeInsets.only(left: 0.0, right: 0.0), child: RaisedButton(
-          elevation: 4.0,
-          highlightElevation: 0.0,
+          // elevation: 0.0,
+          // highlightElevation: 0.0,
           padding: EdgeInsets.all(10.0),
           // onPressed: null,
           onPressed: (){

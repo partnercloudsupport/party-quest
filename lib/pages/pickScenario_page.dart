@@ -13,7 +13,7 @@ class PickScenarioPage extends StatelessWidget {
       Container(
 				// decoration: BoxDecoration(
 				// 	image: DecorationImage(
-				// 		image: AssetImage("assets/images/background-purple.png"),
+				// 		image: AssetImage("assets/images/background-cosmos.png"),
 				// 		fit: BoxFit.fill)),
         child: Column(children: <Widget>[
           // Text(

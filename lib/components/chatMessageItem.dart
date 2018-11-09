@@ -5,15 +5,15 @@ import 'package:party_quest/globals.dart' as globals;
 import 'package:cached_network_image/cached_network_image.dart';
 
 class ChatMessageListItem extends StatelessWidget {
+  final int index;
+  final Function onTap;
   final DocumentSnapshot document;
-	ChatMessageListItem(this.document);
+	ChatMessageListItem(this.index, this.document, this.onTap);
 
 	Widget build(BuildContext context) {
-    if(document['type'] == 'narration'){
-      return _buildNarratorBubble();
-    } else {
-      return _buildUserBubble();
-    }
+     return GestureDetector(
+        child: document['type'] == 'narration' ? _buildNarratorBubble() : _buildUserBubble(),
+        onTapUp: (TapUpDetails details) => onTap(details, document));
   }
 
   Widget _buildNarratorBubble(){

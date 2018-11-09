@@ -86,6 +86,7 @@ class _FancyFabState extends State<FancyFab>
     return Container(
       child: FloatingActionButton(
         backgroundColor: Theme.of(context).buttonColor,
+        foregroundColor: Colors.white,
         heroTag: 'Create',
         onPressed: () => Application.router
           .navigateTo(context, 'createGame', transition: TransitionType.fadeIn),
@@ -99,6 +100,7 @@ class _FancyFabState extends State<FancyFab>
     return Container(
       child: FloatingActionButton(
         backgroundColor: Theme.of(context).buttonColor,
+        foregroundColor: Colors.white,
         heroTag: 'Join',
         onPressed: () => Application.router
           .navigateTo(context, 'joinGame', transition: TransitionType.fadeIn),
@@ -115,6 +117,7 @@ class _FancyFabState extends State<FancyFab>
         onPressed: animate,
         tooltip: 'Toggle',
         child: AnimatedIcon(
+          color: Colors.white,
           icon: AnimatedIcons.add_event,
           progress: _animateIcon,
         ),

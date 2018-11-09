@@ -23,7 +23,7 @@ class InviteFriendsPage extends StatelessWidget {
 			body: Container(
 				decoration: BoxDecoration(
 					image: DecorationImage(
-						image: AssetImage("assets/images/background-purple.png"),
+						image: AssetImage("assets/images/background-cosmos.png"),
 						fit: BoxFit.fill)),
 				child: 
 					Container(

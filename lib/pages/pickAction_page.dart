@@ -49,7 +49,7 @@ class _PickActionPageState extends State<PickActionPage> with SingleTickerProvid
 			body: Container(
 				decoration: BoxDecoration(
 					image: DecorationImage(
-						image: AssetImage("assets/images/background-purple.png"),
+						image: AssetImage("assets/images/background-cosmos.png"),
 						fit: BoxFit.fill)),
 				child: _buildBody()));
 	}

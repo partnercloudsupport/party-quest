@@ -32,7 +32,7 @@ class PickResponseState extends State<PickResponsePage> {
 			body: Container(
 				decoration: BoxDecoration(
 					image: DecorationImage(
-						image: AssetImage("assets/images/background-purple.png"),
+						image: AssetImage("assets/images/background-cosmos.png"),
 						fit: BoxFit.fill)),
 				child: 
         Column( children: <Widget>[Expanded(

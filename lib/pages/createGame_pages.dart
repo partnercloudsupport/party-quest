@@ -36,7 +36,7 @@ class CreateGamePagesState extends State<CreateGamePages> {
 			body: Container(
 				decoration: BoxDecoration(
 					image: DecorationImage(
-						image: AssetImage("assets/images/background-purple.png"),
+						image: AssetImage("assets/images/background-cosmos.png"),
 						fit: BoxFit.fill)),
 				child: PageView(
 					children: [_buildCategories(), PickScenarioPage(_selectedGenre, _selectScenario), _buildDetailsForm()],
@@ -270,7 +270,7 @@ class CreateGamePagesState extends State<CreateGamePages> {
 											padding: EdgeInsets.only(
 												top: 20.0, left: 65.0, right: 20.0),
 											decoration: BoxDecoration(
-												color: Color(0xFF7336AE),
+												color: Theme.of(context).accentColor,
 												shape: BoxShape.rectangle,
 												borderRadius: BorderRadius.circular(8.0),
 												boxShadow: <BoxShadow>[

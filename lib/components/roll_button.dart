@@ -7,12 +7,12 @@ import 'dart:math';
 import 'dart:core';
 
 class RollButton extends StatefulWidget {
-  RollButton(Map turn, Map characters){
-    this._turn = turn;
-    this._characters = characters;
-  }
-  Map _turn;
-  Map _characters;
+  final Map _turn;
+  final Map _characters;
+  final Function _isActivatedCallback;
+  final String _activeAction;
+  RollButton(this._turn, this._characters, this._activeAction, this._isActivatedCallback);
+
 	@override
 	_RollButtonState createState() => new _RollButtonState();
 }
@@ -52,60 +52,69 @@ class _RollButtonState extends State<RollButton> {
 
 	@override
 	Widget build(BuildContext context) {
-    return Container(
-      height: 200.0,
-			decoration: BoxDecoration(image: DecorationImage(image: AssetImage('assets/images/bottom-clouds.png'), fit: BoxFit.fitHeight)),
-			// decoration: BoxDecoration(color: Theme.of(context).accentColor),
-			child: Container(
-				// padding: EdgeInsets.only(top: 5.0, left: 10.0, right: 10.0),
-				padding: EdgeInsets.only(top: 50.0, left: 10.0, right: 10.0),
-				child: Row(children: <Widget>[
-					Expanded(
-						child: Column(
-							children: <Widget>[
-								Padding(
-									padding: EdgeInsets.all(5.0),
-									child: RaisedButton(
-										elevation: 4.0,
-										highlightElevation: 50.0,
-										padding: EdgeInsets.all(10.0),
-										// onPressed: null,
-										onPressed: _buttonPressed? null : _handleButtonTapped,
-										color: Theme.of(context).buttonColor,
-										shape: RoundedRectangleBorder(
-											borderRadius: new BorderRadius.circular(40.0)),
-										child: Row(
-											children: <Widget>[
-												_buttonPressed? imageRotator : Container(width: 50.0, child: Image.asset('assets/images/20D20.png')),
-												Expanded(
-													child: Padding(
-														padding: EdgeInsets.only(left: 10.0),
-														child: Column(
-															crossAxisAlignment:
-																CrossAxisAlignment.start,
-															children: <Widget>[
-																Text(_buttonPressed? (_rolling? 'Rolling...' : _rollOutcomeTitle) : 'Roll the dice!',
-																	style: TextStyle(
-																		fontSize: 22.0,
-																		color: Colors.white,
-																		fontWeight: FontWeight.w800,
-																	)),
-																Text(
-																	_buttonPressed? (_rolling? 'Cross those fingers!' : _rollOutcomeDescription) : 'Find out if you succeed or fail.',
-																	style: TextStyle(
-																		color: Colors.white,
-																		// fontWeight: FontWeight.w800,
-																		letterSpacing: 0.5,
-																		fontSize: 14.0,
-																	),
-																)
-															])))
-											],
-										))),
-							],
-						),
-					),
-				])));
+    return widget._activeAction == 'chat' ?
+      Container(height: 70.0, child: RaisedButton(
+      elevation: 4.0,
+      highlightElevation: 50.0,
+      padding: EdgeInsets.all(0.0),
+      // onPressed: null,
+      onPressed: widget._isActivatedCallback,
+      color: Theme.of(context).buttonColor,
+      shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(40.0)),
+      child: Container(
+        child: CircleAvatar(
+          radius: 20.0,
+            backgroundColor: Colors.white.withOpacity(.3),
+            backgroundImage: AssetImage('assets/images/20D20.png')),
+      )))
+    :
+    Row(children: <Widget>[
+      Expanded(
+        child: Column(
+          children: <Widget>[
+            Padding(
+              padding: EdgeInsets.only(top: 15.0, left: 0.0, right: 0.0),
+              child: RaisedButton(
+                elevation: 4.0,
+                highlightElevation: 50.0,
+                padding: EdgeInsets.all(10.0),
+                // onPressed: null,
+                onPressed: _buttonPressed? null : _handleButtonTapped,
+                color: Theme.of(context).buttonColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(40.0)),
+                child: Row(
+                  children: <Widget>[
+                    _buttonPressed? imageRotator : Container(width: 50.0, child: Image.asset('assets/images/20D20.png')),
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.only(left: 10.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(_buttonPressed? (_rolling? 'Rolling...' : _rollOutcomeTitle) : 'Roll the dice!',
+                              style: TextStyle(
+                                fontSize: 22.0,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                              )),
+                            Text(
+                              _buttonPressed? (_rolling? 'Cross those fingers!' : _rollOutcomeDescription) : 'Find out if you succeed or fail.',
+                              style: TextStyle(
+                                color: Colors.white,
+                                // fontWeight: FontWeight.w800,
+                                letterSpacing: 0.5,
+                                fontSize: 14.0,
+                              ),
+                            )
+                          ])))
+                  ],
+                ))),
+          ],
+        ),
+      ),
+    ]);
 	}
 
 	void _handleButtonTapped() {

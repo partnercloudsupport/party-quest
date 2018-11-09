@@ -12,6 +12,7 @@ import 'package:flutter/services.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final FirebaseMessaging _firebaseMessaging = new FirebaseMessaging();
 final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -96,12 +97,12 @@ class PartyQuestState extends State<PartyQuest> {
     return new MaterialApp(
       title: 'Pegg Party',
       theme: new ThemeData(
-          primaryColor: const Color(0xFF32174D),
+          primaryColor: const Color(0xFF000636),
           fontFamily: 'LondrinaSolid',
           textTheme: TextTheme(title: TextStyle(letterSpacing: 1.2)) ,
           canvasColor: Colors.black,
           buttonColor: const Color(0xFF00B0FF),
-          accentColor: const Color(0xFF601DAC),
+          accentColor: const Color(0xFF2F318A),
           primaryColorLight: Colors.white.withOpacity(0.2)),
       onGenerateRoute: Application.router.generator,
       home: startPage,
@@ -116,6 +117,7 @@ class PartyQuestState extends State<PartyQuest> {
 
   Future _signIn() async {
     final FirebaseUser currentUser = await _auth.currentUser();
+    globals.prefs = await SharedPreferences.getInstance();
     globals.userState['loginStatus'] = 'loggingIn';
     if(currentUser != null) {
       if(currentUser.phoneNumber != null) {

@@ -5,7 +5,9 @@ import 'package:firebase_database/firebase_database.dart';
 
 class RatingButton extends StatefulWidget {
   final Map _turn;
-  RatingButton(Map turn): this._turn = turn;
+  final String _activeAction;
+  final Function _isActivatedCallback;
+  RatingButton(this._turn, this._activeAction, this._isActivatedCallback);
 	@override
 	_RatingButtonState createState() => new _RatingButtonState();
 }
@@ -24,12 +26,26 @@ class _RatingButtonState extends State<RatingButton> {
 
 	@override
 	Widget build(BuildContext context) {
-    return Container(
-      height: 200.0,
-			decoration: BoxDecoration(image: DecorationImage(image: AssetImage('assets/images/bottom-clouds.png'), fit: BoxFit.fitHeight)),
-			child: Column(children: <Widget>[
-        Padding(padding: EdgeInsets.only(top: 40.0, left: 10.0, right: 10.0),
-        child: Text('How difficult is that action?', style: TextStyle(fontSize: 22.0,color: Colors.white, fontWeight: FontWeight.w800))),
+    return widget._activeAction == 'chat' ?
+      Container(height: 70.0, child: RaisedButton(
+      elevation: 4.0,
+      highlightElevation: 50.0,
+      padding: EdgeInsets.all(0.0),
+      // onPressed: null,
+      onPressed: widget._isActivatedCallback,
+      color: Theme.of(context).buttonColor,
+      shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(40.0)),
+      child: Container(
+        child: CircleAvatar(
+          radius: 20.0,
+            backgroundColor: Colors.white.withOpacity(.3),
+            backgroundImage: AssetImage('assets/images/20D20.png')),
+      )))
+    :
+    Column(children: <Widget>[
+        Padding(padding: EdgeInsets.only(top: 20.0, left: 10.0, right: 10.0), child:
+        // Text('How difficult is that action?', style: TextStyle(fontSize: 22.0,color: Colors.white, fontWeight: FontWeight.w800)),
         Row(mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
@@ -37,9 +53,8 @@ class _RatingButtonState extends State<RatingButton> {
             _buildRatingButton(2, 'tricky'),
             _buildRatingButton(3, 'hard'),
             _buildRatingButton(4, 'brutal'),
-            _buildRatingButton(5, 'insane')])
-        ])
-            );
+            _buildRatingButton(5, 'insane')]))
+        ]);
     }
 
   Widget _buildRatingButton(int value, String description){

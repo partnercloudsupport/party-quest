@@ -36,7 +36,7 @@ class PickCharacterState extends State<PickCharacterPage> {
 			body: Container(
 				decoration: BoxDecoration(
 					image: DecorationImage(
-						image: AssetImage("assets/images/background-purple.png"),
+						image: AssetImage("assets/images/background-cosmos.png"),
 						fit: BoxFit.fill)),
 				child: PageView(
 					children: [_buildClassSelectorPage(context), _buildCharacterDetailsPage(context)],

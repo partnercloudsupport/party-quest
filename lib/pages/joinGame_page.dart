@@ -45,7 +45,7 @@ class JoinGamePage extends StatelessWidget {
 				width: 500.0,
 				decoration: BoxDecoration(
 					image: DecorationImage(
-						image: AssetImage("assets/images/background-purple.png"),
+						image: AssetImage("assets/images/background-cosmos.png"),
 						fit: BoxFit.fill)),
 				child: Column(children: <Widget>[
 					Row(children: <Widget>[

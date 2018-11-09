@@ -55,7 +55,7 @@ class _InfoPageState extends State<InfoPage> with SingleTickerProviderStateMixin
             decoration: BoxDecoration(
               image: DecorationImage(
                   image: AssetImage(
-                      "assets/images/background-purple.png"),
+                      "assets/images/background-cosmos.png"),
                   fit: BoxFit.fill)),
             child: _gameId == '' ? Container() : _buildTabsDetails()
           ));
