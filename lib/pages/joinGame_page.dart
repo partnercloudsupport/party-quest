@@ -117,7 +117,7 @@ class JoinGamePage extends StatelessWidget {
 	void _handleCodeSubmitted(String code, BuildContext context) async {
 		// QuerySnapshot snapshot = await Firestore.instance.collection('Games').where('code', isEqualTo: code).getDocuments();
 		// var channelName = snapshot.documents;
-		var userRef = Firestore.instance.collection('Users').document(globals.userState['userId']);
+		var userRef = Firestore.instance.collection('Users').document(globals.currentUser.documentID);
 		userRef.get().then((snapshot) {
 			Map userRequests = snapshot.data['requests'];
 			if(userRequests == null) userRequests = {};

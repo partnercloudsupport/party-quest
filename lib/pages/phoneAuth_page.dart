@@ -11,6 +11,7 @@ import 'package:party_quest/components/logger.dart';
 // import 'package:phone_auth/routes/main_screen.dart';
 import 'package:party_quest/components/maskedTextField.dart';
 import 'package:party_quest/components/reactive_refresh_indicator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
 
 enum AuthStatus { SOCIAL_AUTH, PHONE_AUTH, SMS_AUTH, PROFILE_AUTH }
@@ -269,15 +270,13 @@ class _AuthScreenState extends State<AuthScreen> {
 
   _finishSignIn(FirebaseUser user) async {
     var userRef = Firestore.instance.collection('Users').document(user.uid);
+    globals.prefs = await SharedPreferences.getInstance();
     globals.userState['loginStatus'] = 'loggingIn';
     userRef.get().then((userResult) {
       if (userResult.data != null) {
         // Existing User
         globals.userState['loginStatus'] = 'loggedIn';
-        globals.userState['userId'] = user.uid;
-        globals.userState['profilePic'] = userResult.data['profilePic'];
-        globals.userState['requests'] = userResult.data['requests'].toString();
-        globals.userState['name'] = userResult.data['name'];
+        globals.currentUser = userResult;
         Navigator.pop(context);
       } 
       else {
@@ -287,9 +286,9 @@ class _AuthScreenState extends State<AuthScreen> {
         var data = {'name': randomName, 'profilePic': randomProfilePic};
         userRef.setData(data).then((onValue) {
           globals.userState['loginStatus'] = 'loggedIn';
-          globals.userState['userId'] = user.uid;
-          globals.userState['name'] = randomName;
-          globals.userState['profilePic'] = randomProfilePic;
+          userRef.get().then((newUser){
+            globals.currentUser = newUser;
+          });
           Navigator.pop(context);
         });
       }

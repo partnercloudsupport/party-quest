@@ -11,7 +11,6 @@ import 'pages/home_page.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 final FirebaseMessaging _firebaseMessaging = new FirebaseMessaging();
@@ -72,13 +71,10 @@ class PartyQuestState extends State<PartyQuest> {
   }
 
   void _loadGame(Map gameData){
-    globals.gameState['id'] = gameData['gameId'];
-    globals.gameState['genre'] = gameData['genre'];
-    globals.gameState['title'] = gameData['gameTitle'];
-    globals.gameState['name'] = gameData['name'];
-    globals.gameState['code'] = gameData['code'];
-    globals.gameState['creator'] = gameData['creator'];
-    globals.gameState['players'] = json.encode(gameData['players']);
+    Firestore.instance.collection('Games/${gameData['gameId']}').document().get().then((game) {
+      globals.currentGame = game;
+      Application.router.navigateTo(context, 'openGame?gameId=' + game.documentID, transition: TransitionType.fadeIn);
+    });
   }
 
   @override
@@ -103,6 +99,8 @@ class PartyQuestState extends State<PartyQuest> {
           canvasColor: Colors.black,
           buttonColor: const Color(0xFF00B0FF),
           accentColor: const Color(0xFF2F318A),
+          errorColor: Colors.red,
+          selectedRowColor: Colors.green,
           primaryColorLight: Colors.white.withOpacity(0.2)),
       onGenerateRoute: Application.router.generator,
       home: startPage,
@@ -125,10 +123,11 @@ class PartyQuestState extends State<PartyQuest> {
         userRef.get().then((snapshot) {
           if (snapshot.data != null) {
             globals.userState['loginStatus'] = 'loggedIn';
-            globals.userState['userId'] = currentUser.uid;
-            globals.userState['profilePic'] = snapshot.data['profilePic'];
-            globals.userState['requests'] = snapshot.data['requests'].toString();
-            globals.userState['name'] = snapshot.data['name'];
+            globals.currentUser = snapshot;
+            // globals.currentUser.documentID = currentUser.uid;
+            // globals.currentUser.data['profilePic'] = snapshot.data['profilePic'];
+            // globals.currentUser.data['requests'] = snapshot.data['requests'].toString();
+            // globals.currentUser.data['name'] = snapshot.data['name'];
           } else {
             globals.userState['loginStatus'] = 'notLoggedIn';
           }
@@ -159,17 +158,14 @@ class PartyQuestState extends State<PartyQuest> {
 
     final FirebaseUser currentUser = await _auth.currentUser();
     assert(user.uid == currentUser.uid);
-    globals.userState['userId'] = user.uid;
     var userRef = Firestore.instance.collection('Users').document(user.uid);
     globals.userState['loginStatus'] = 'loggingIn';
     userRef.get().then((snapshot) {
       if (snapshot.data != null) { //snapshot.data != null
         if (snapshot.data['profilePic'] != null) {
-          globals.userState['profilePic'] = snapshot.data['profilePic'];
+          globals.currentUser = snapshot;
           globals.userState['loginStatus'] = 'loggedIn';
-          globals.userState['requests'] = snapshot.data['requests'].toString();
         }
-        globals.userState['name'] = snapshot.data['name'];
       } 
       else {
         globals.userState['loginStatus'] = 'notLoggedIn';

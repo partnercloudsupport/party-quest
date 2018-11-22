@@ -49,7 +49,7 @@ class PickResponseState extends State<PickResponsePage> {
   Widget _buildCharacterList(){
     List<Widget> characterWidgets = [];
     return FutureBuilder(
-			future: Firestore.instance.collection('Games').document(globals.gameState['id']).get(),
+			future: Firestore.instance.collection('Games').document(globals.currentGame.documentID).get(),
 			builder: (BuildContext context, AsyncSnapshot snapshot) {
         if(snapshot.hasData){
           for(var key in snapshot.data['characters'].keys){
@@ -165,14 +165,14 @@ class PickResponseState extends State<PickResponsePage> {
 
 	void _handleSubmitted(BuildContext context) {
     Navigator.pop(context);
-		var _gameId = globals.gameState['id'];
+		var _gameId = globals.currentGame.documentID;
     Firestore.instance.collection('Games/$_gameId/Logs').document()
     .setData(<String, dynamic>{
       'text': _textController.text,
       'type': 'narration',
       'dts': DateTime.now(),
-      'userId': globals.userState['userId'],
-			'userName': globals.userState['name']
+      'userId': globals.currentUser.documentID,
+			'userName': globals.currentUser.data['name']
     });
     // UPDATE Game.turn
     final DocumentReference gameRef =
@@ -181,7 +181,7 @@ class PickResponseState extends State<PickResponsePage> {
       String nextPlayerName, nextPlayerImageUrl;
       //Get Next player
       List<dynamic> sortedPlayerIds = gameResult['players'].keys.toList()..sort();
-      int playerIndex = sortedPlayerIds.indexOf(globals.userState['userId']);
+      int playerIndex = sortedPlayerIds.indexOf(globals.currentUser.documentID);
       String nextPlayerId = _getNextPlayer(gameResult['characters'], sortedPlayerIds, playerIndex, 0);
       if(gameResult['characters'][nextPlayerId] != null){
         // It's the next players turn
@@ -202,26 +202,26 @@ class PickResponseState extends State<PickResponsePage> {
           'title': "It's your turn!",
           'message': "Your friends are waiting on you to continue the story!",
           'friendId': nextPlayerId,
-          'gameId': globals.gameState['id'],
-          'genre': globals.gameState['genre'],
-          'name': globals.gameState['name'],
-          'gameTitle': globals.gameState['title'],
-          'code': globals.gameState['code'],
-          'players': globals.gameState['players'],
-          'creator': globals.gameState['creator']
+          'gameId': globals.currentGame.documentID,
+          // 'genre': globals.currentGame.data['genre'],
+          // 'name': globals.currentGame.data['name'],
+          // 'gameTitle': globals.currentGame.data['title'],
+          // 'code': globals.currentGame.data['code'],
+          // 'players': globals.currentGame.data['players'],
+          // 'creator': globals.currentGame.data['creator']
         });
         _pushIds.forEach((pushId) {
           FirebaseDatabase.instance.reference().child('push').push().set(<String, dynamic>{
             'title': "You're been tagged in the story.",
-            'message': "Check out what's new in " + globals.gameState['title'],
+            'message': "Check out what's new in " + globals.currentGame.data['title'],
             'friendId': pushId,
-            'gameId': globals.gameState['id'],
-            'genre': globals.gameState['genre'],
-            'name': globals.gameState['name'],
-            'gameTitle': globals.gameState['title'],
-            'code': globals.gameState['code'],
-            'players': globals.gameState['players'],
-            'creator': globals.gameState['creator']
+            'gameId': globals.currentGame.documentID,
+            // 'genre': globals.currentGame.data['genre'],
+            // 'name': globals.currentGame.data['name'],
+            // 'gameTitle': globals.currentGame.data['title'],
+            // 'code': globals.currentGame.data['code'],
+            // 'players': globals.currentGame.data['players'],
+            // 'creator': globals.currentGame.data['creator']
           });
         });
       } else {
@@ -239,13 +239,13 @@ class PickResponseState extends State<PickResponsePage> {
             'title': "Game over!",
             'message': "Check out what how everyone died and start a new game.",
             'friendId': pushId,
-            'gameId': globals.gameState['id'],
-            'genre': globals.gameState['genre'],
-            'name': globals.gameState['name'],
-            'gameTitle': globals.gameState['title'],
-            'code': globals.gameState['code'],
-            'players': globals.gameState['players'],
-            'creator': globals.gameState['creator']
+            'gameId': globals.currentGame.documentID,
+            // 'genre': globals.currentGame.data['genre'],
+            // 'name': globals.currentGame.data['name'],
+            // 'gameTitle': globals.currentGame.data['title'],
+            // 'code': globals.currentGame.data['code'],
+            // 'players': globals.currentGame.data['players'],
+            // 'creator': globals.currentGame.data['creator']
           });
         });
       }

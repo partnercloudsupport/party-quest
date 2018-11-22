@@ -147,7 +147,7 @@ class CreateGamePagesState extends State<CreateGamePages> {
 	void _handleSubmitted(String text) {
     Navigator.pop(context);
 		_textController.clear();
-		var userId = globals.userState['userId'];
+		var userId = globals.currentUser.documentID;
 		var code = _generateRandomCode(5);
 		//CREATE Game
 		final DocumentReference game =
@@ -164,7 +164,7 @@ class CreateGamePagesState extends State<CreateGamePages> {
 			'dts': DateTime.now(),
       'totalReactions': 0,
 			'turn': {
-        'playerId': globals.userState['userId'],
+        'playerId': globals.currentUser.documentID,
         'turnPhase': 'act',
         'scenario': _selectedScenario.data['title'],
         'dts': DateTime.now(),
@@ -172,21 +172,22 @@ class CreateGamePagesState extends State<CreateGamePages> {
 		});
 
 		//UPDATE User.games
-		var userRef = Firestore.instance.collection('Users').document(globals.userState['userId']);
+		var userRef = Firestore.instance.collection('Users').document(globals.currentUser.documentID);
 		userRef.get().then((snapshot) {
 			Map userGames = snapshot.data['games'] == null ? new Map() : snapshot.data['games'];
 			userGames[game.documentID] = true;
 			userRef.updateData(<String, dynamic>{
 				'games': userGames,
 			}).then((value) {
-				globals.gameState['id'] = game.documentID;
-				globals.gameState['genre'] = _selectedGenre.documentID;
-				globals.gameState['name'] = _selectedGenre['name'];
-				globals.gameState['title'] = text;
-				// globals.gameState['isPublic'] = _isPublic;
-				globals.gameState['code'] = code;
-				globals.gameState['creator'] = userId;
-				globals.gameState['players'] = json.encode({userId: true});
+        // TODO: Redirect to My Games and show the game they just created...
+				// globals.currentGame.data['id'] = game.documentID;
+				// globals.currentGame.data['genre'] = _selectedGenre.documentID;
+				// globals.currentGame.data['name'] = _selectedGenre['name'];
+				// globals.currentGame.data['title'] = text;
+				// // globals.currentGame.data['isPublic'] = _isPublic;
+				// globals.currentGame.data['code'] = code;
+				// globals.currentGame.data['creator'] = userId;
+				// globals.currentGame.data['players'] = json.encode({userId: true});
 
         // ADD Intro story line
         Firestore.instance.collection('Games/${game.documentID}/Logs')
@@ -196,13 +197,13 @@ class CreateGamePagesState extends State<CreateGamePages> {
           'title': _selectedGenre['name'],
           'titleImageUrl': _selectedGenre['imageUrl'],
           'dts': DateTime.now(),
-          'userId': globals.userState['userId'],
-          'profileUrl': globals.userState['profilePic'],
-          'userName': globals.userState['name'],
+          'userId': globals.currentUser.documentID,
+          'profileUrl': globals.currentUser.data['profilePic'],
+          'userName': globals.currentUser.data['name'],
         });
         // ADD initital love reaction to creator
         Firestore.instance.collection('Games/${game.documentID}/Reactions')
-        .document(globals.userState['userId'])
+        .document(globals.currentUser.documentID)
         .setData(<String, dynamic>{'love': 1});
 				
         // ADD Scenario to Chat Logs
@@ -211,18 +212,18 @@ class CreateGamePagesState extends State<CreateGamePages> {
           'text': _selectedScenario.data['description'],
           'type': 'narration',
           'dts': DateTime.now(),
-          'profileUrl': globals.userState['profilePic'],
-          'userName': globals.userState['name'],
-          'userId': globals.userState['userId']
+          'profileUrl': globals.currentUser.data['profilePic'],
+          'userName': globals.currentUser.data['name'],
+          'userId': globals.currentUser.documentID
         });
         // UPDATE Synopsis
         Firestore.instance.collection('Games/${game.documentID}/Synopsis')
         .document().setData(<String, dynamic>{
             'text': _selectedScenario.data['description'],
             'dts': DateTime.now(),
-            'profileUrl': globals.userState['profilePic'],
-            'userName': globals.userState['name'],
-            'userId': globals.userState['userId']
+            'profileUrl': globals.currentUser.data['profilePic'],
+            'userName': globals.currentUser.data['name'],
+            'userId': globals.currentUser.documentID
           });
       });
 		});

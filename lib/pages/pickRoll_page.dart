@@ -68,13 +68,13 @@ class PickRollPage extends StatelessWidget {
 
 	void _handleSubmitted(BuildContext context) {
     Navigator.pop(context);
-		var _gameId = globals.gameState['id'];
+		var _gameId = globals.currentGame.documentID;
     Firestore.instance.collection('Games/$_gameId/Logs').document()
     .setData(<String, dynamic>{
       'text': _textController.text,
       'type': 'narration',
       'dts': DateTime.now(),
-      'userId': globals.userState['userId']
+      'userId': globals.currentUser.documentID
     });
     // UPDATE Game.turn
     final DocumentReference gameRef =
@@ -82,7 +82,7 @@ class PickRollPage extends StatelessWidget {
     gameRef.get().then((gameResult) {
       String nextPlayerId;
       List<dynamic> sortedPlayerIds = gameResult['players'].keys.toList()..sort();
-      int playerIndex = sortedPlayerIds.indexOf(globals.userState['userId']);
+      int playerIndex = sortedPlayerIds.indexOf(globals.currentUser.documentID);
       if(playerIndex < sortedPlayerIds.length-1){
         nextPlayerId = sortedPlayerIds[playerIndex+1];
       } else {

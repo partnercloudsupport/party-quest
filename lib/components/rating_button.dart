@@ -82,16 +82,16 @@ class _RatingButtonState extends State<RatingButton> {
   }
 
   void _handleRatingSubmitted(int value, String description){
-      String _gameId = globals.gameState['id'];
+      String _gameId = globals.currentGame.documentID;
     	Firestore.instance.collection('Games/$_gameId/Logs').document()
       .setData(<String, dynamic>{
         'text': 'That sounds ' + description + '.',
         'title': 'Difficulty Check',
         'type': 'difficulty',
         'dts': DateTime.now(),
-        'profileUrl': globals.userState['profilePic'],
-        'userId': globals.userState['userId'],
-				'userName': globals.userState['name']
+        'profileUrl': globals.currentUser.data['profilePic'],
+        'userId': globals.currentUser.documentID,
+				'userName': globals.currentUser.data['name']
       });
       var turns = [widget._turn, {
         'turnPhase': 'roll', 
@@ -106,15 +106,15 @@ class _RatingButtonState extends State<RatingButton> {
       });
       FirebaseDatabase.instance.reference().child('push').push().set(<String, dynamic>{
         'title': "Time for you to roll...",
-        'message': globals.userState['name'] + " said your action was " + description + "!",
+        'message': globals.currentUser.data['name'] + " said your action was " + description + "!",
         'friendId': widget._turn['playerId'],
-        'gameId': globals.gameState['id'],
-        'genre': globals.gameState['genre'],
-        'name': globals.gameState['name'],
-        'gameTitle': globals.gameState['title'],
-        'code': globals.gameState['code'],
-        'players': globals.gameState['players'],
-        'creator': globals.gameState['creator']
+        'gameId': globals.currentGame.documentID,
+        // 'genre': globals.currentGame.data['genre'],
+        // 'name': globals.currentGame.data['name'],
+        // 'gameTitle': globals.currentGame.data['title'],
+        // 'code': globals.currentGame.data['code'],
+        // 'players': globals.currentGame.data['players'],
+        // 'creator': globals.currentGame.data['creator']
       });
   }
 }

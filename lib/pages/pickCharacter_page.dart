@@ -165,7 +165,7 @@ class PickCharacterState extends State<PickCharacterPage> {
 		return StreamBuilder<QuerySnapshot>(
 			stream: Firestore.instance
 				.collection('Characters')
-				.where('genre', isEqualTo: globals.gameState['genre'])
+				.where('genre', isEqualTo: globals.currentGame.data['genre'])
 				.snapshots(),
 			builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
 				if (!snapshot.hasData) return const Text('Loading...');
@@ -226,17 +226,17 @@ class PickCharacterState extends State<PickCharacterPage> {
 
 	void _handleCharacterSubmit(BuildContext context) {
 		Navigator.pop(context);
-		var _gameId = globals.gameState['id'];
+		var _gameId = globals.currentGame.documentID;
     // ADD Narration to Chat Logs
 		final DocumentReference newNarration = Firestore.instance.collection('Games/$_gameId/Logs').document();
 		newNarration.setData(<String, dynamic>{
 			'text': 'A ' + _selectedCharacter['name'] + ' joins the party.' + '\\n' + _textControllerIntro.text, // + _selectedCharacter['description']
 			'type': 'narration',
 			'dts': DateTime.now(),
-			'userId': globals.userState['userId'],
+			'userId': globals.currentUser.documentID,
       'titleImageUrl': "assets/images/" + _selectedCharacter.documentID + ".png",
       'title': _textControllerName.text,
-			'userName': globals.userState['name']
+			'userName': globals.currentUser.data['name']
 		});
 		// ADD Character to Chat Logs
 		// final DocumentReference newChat = Firestore.instance.collection('Games/$_gameId/Logs').document();
@@ -246,14 +246,14 @@ class PickCharacterState extends State<PickCharacterPage> {
 		// 	'type': 'characterAction',
 		// 	'dts': DateTime.now(),
 		// 	'profileUrl': _selectedCharacter['imageUrl'],
-		// 	'userId': globals.userState['userId']
+		// 	'userId': globals.currentUser.documentID
 		// });
     // UPDATE Logs.turn
     final DocumentReference gameRef =
       Firestore.instance.collection('Games').document(_gameId);
         gameRef.get().then((gameResult) {
           var characters = gameResult['characters'] == null ? {} : gameResult['characters'];
-          characters[globals.userState['userId']] = {
+          characters[globals.currentUser.documentID] = {
             'characterClass': _selectedCharacter['name'],
             'characterName': _textControllerName.text,
             'backstory': { 'level1': _textControllerIntro.text },

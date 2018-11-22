@@ -45,7 +45,7 @@ class PickScenarioPage extends StatelessWidget {
                   margin: EdgeInsets.symmetric(horizontal: 20.0, vertical: 5.0),
                   padding: EdgeInsets.only(top: 10.0),
                   decoration: BoxDecoration(
-												color: Color(0xFF7336AE),
+												color: Theme.of(context).accentColor,
 												shape: BoxShape.rectangle,
 												borderRadius: BorderRadius.circular(8.0),
 												boxShadow: <BoxShadow>[

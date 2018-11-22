@@ -40,7 +40,7 @@ class ChatMessageListItem extends StatelessWidget {
 
   Widget _buildUserBubble(){
 		var chatItem;
-		if (document['userId'] != globals.userState['userId']) {
+		if (document['userId'] != globals.currentUser.documentID) {
 			chatItem = Row(
 				crossAxisAlignment: CrossAxisAlignment.start,
 				children: [

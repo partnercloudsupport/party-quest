@@ -2,8 +2,12 @@ library party_quest.globals;
 // import 'package:camera/camera.dart';
 import 'package:observable/observable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 SharedPreferences prefs;
-ObservableMap userState = toObservable({'loginStatus': '', 'userId': '', 'name': '', 'profilePic': ''});
-ObservableMap gameState = toObservable({'id': '', 'genre': '', 'name': '', 'title': '', 'isPublic': '', 'code': ''});
-// List<CameraDescription> cameras;
+QuerySnapshot myGames;
+QuerySnapshot topGames;
+var playersList;
+ObservableMap userState = toObservable({'loginStatus': ''});
+DocumentSnapshot currentGame;
+DocumentSnapshot currentUser;

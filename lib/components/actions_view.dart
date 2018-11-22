@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../application.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:party_quest/globals.dart' as globals;
 import '../components/rating_button.dart';
@@ -81,7 +82,7 @@ class _ActionsViewState extends State<ActionsView> with SingleTickerProviderStat
 					(BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
 					if (!snapshot.hasData) return new Text("Loading");
 					var document = snapshot.data;
-					if (document['players'][globals.userState['userId']] == true) {
+					if (document['players'][globals.currentUser.documentID] == true) {
 						_characters = document['characters'];
             _turn = document['turn'];
             //PICK A SCENARIO
@@ -95,7 +96,7 @@ class _ActionsViewState extends State<ActionsView> with SingleTickerProviderStat
 						// }
 
             //PICK A CHARACTER
-						if (_characters == null || _characters[globals.userState['userId']] == null) {
+						if (_characters == null || _characters[globals.currentUser.documentID] == null) {
 							Function pickCharacter = () => Application.router.navigateTo(
 								context, 'pickCharacter',
 								transition: TransitionType.fadeIn);
@@ -119,14 +120,14 @@ class _ActionsViewState extends State<ActionsView> with SingleTickerProviderStat
 						// }
 
             // YOUR TURN
-            if(_turn['playerId'] == globals.userState['userId']){
+            if(_turn['playerId'] == globals.currentUser.documentID){
               // ACT PHASE
               if (_turn['turnPhase'] == 'act') {
                 Function onPressed = () => Application.router.navigateTo(
                   context, 'pickAction',
                   transition: TransitionType.fadeIn);
-                  return _buildButton(globals.userState['profilePic'], onPressed,
-                    'What do you do?', "It's your turn, " + globals.userState['name'] + '.');
+                  return _buildButton(globals.currentUser.data['profilePic'], onPressed,
+                    'What do you do?', "It's your turn, " + globals.currentUser.data['name'] + '.');
               }
               // DIFFICULTY
               if(_turn['turnPhase'] == 'difficulty') {
@@ -183,7 +184,7 @@ class _ActionsViewState extends State<ActionsView> with SingleTickerProviderStat
               }
             }
 					} else {
-            if(globals.userState['requests'] == null || globals.userState['requests']?.contains(globals.gameState['code']) != true){
+            if(globals.currentUser.data['requests'] == null || globals.currentUser.data['requests'].toString().contains(globals.currentGame.data['code']) != true){
               //request not sent
               return _buildButton(
                 document['imageUrl'],
@@ -236,7 +237,7 @@ class _ActionsViewState extends State<ActionsView> with SingleTickerProviderStat
           color: Theme.of(context).primaryColor,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40.0)),
           child: 
-            globals.gameState['players']?.contains(globals.userState['userId']) == false ?
+            globals.currentGame.data['players'].toString().contains(globals.currentUser.documentID) == false ?
             Text("You must join this game to chat.", style: TextStyle(color: Colors.white, fontSize: 20.0, fontWeight: FontWeight.w400)) :
           Row(children: <Widget>[
 						Expanded(
@@ -327,7 +328,7 @@ class _ActionsViewState extends State<ActionsView> with SingleTickerProviderStat
 	}
 
 	void _handleTextSubmitted(String text) {
-		var gameId = globals.gameState['id'];
+		var gameId = globals.currentGame.documentID;
 		_textController.clear();
 		if (text.length > 0) {
 			final DocumentReference document =
@@ -335,9 +336,9 @@ class _ActionsViewState extends State<ActionsView> with SingleTickerProviderStat
 			document.setData(<String, dynamic>{
 				'text': text,
 				'dts': DateTime.now(),
-				'profileUrl': globals.userState['profilePic'],
-				'userName': globals.userState['name'],
-				'userId': globals.userState['userId']
+				'profileUrl': globals.currentUser.data['profilePic'],
+				'userName': globals.currentUser.data['name'],
+				'userId': globals.currentUser.documentID
 			}).then((onValue) => widget.textSubmittedCallback());
 		}
 	}
@@ -390,47 +391,57 @@ class _ActionsViewState extends State<ActionsView> with SingleTickerProviderStat
         'title': "It's your turn!",
         'message': "Your friends are waiting on you to continue the story!",
         'friendId': nextPlayerId,
-        'gameId': globals.gameState['id'],
-        'genre': globals.gameState['genre'],
-        'name': globals.gameState['name'],
-        'gameTitle': globals.gameState['title'],
-        'code': globals.gameState['code'],
-        'players': globals.gameState['players'],
-        'creator': globals.gameState['creator']
+        'gameId': globals.currentGame.documentID
+        // 'genre': globals.currentGame.data['genre'],
+        // 'name': globals.currentGame.data['name'],
+        // 'gameTitle': globals.currentGame.data['title'],
+        // 'code': globals.currentGame.data['code'],
+        // 'players': globals.currentGame.data['players'],
+        // 'creator': globals.currentGame.data['creator']
       });
 
     });
   }
 
 
-	void _handleJoinButtonPressed() {
-    var userRef = Firestore.instance.collection('Users').document(globals.userState['userId']);
+	void _handleJoinButtonPressed() async{
+    await CloudFunctions.instance
+      .call(functionName: 'createRequest', parameters: <String, dynamic>{
+        'creatorId': globals.currentGame.data['creator'],
+        'userName': globals.currentUser.data['name'],
+        'gameTitle': globals.currentGame.data['title'],
+        'gameId': globals.currentGame.documentID,
+        'dts': DateTime.now(),
+        'profileUrl': globals.currentUser.data['profilePic'],
+        'requestType': 'joinGame'
+    });
+    var userRef = Firestore.instance.collection('Users').document(globals.currentUser.documentID);
 		userRef.get().then((snapshot) {
 			Map userRequests = snapshot.data['requests'] == null
 				? new Map()
 				: snapshot.data['requests'];
-			userRequests[globals.gameState['code']] = true;
+			userRequests[globals.currentGame.documentID] = true;
 			userRef.updateData(<String, dynamic>{
 				'requests': userRequests,
 			});
-      globals.userState['requests'] = userRequests.toString();
-      // setState(() {
-      //   // just trigger a new build
-      //   _showOverlay = false;
-      // });
+      globals.currentUser.data['requests'] = userRequests.toString();
+      setState(() {
+        // just trigger a new build
+        // _showOverlay = false;
+      });
     });
-    FirebaseDatabase.instance.reference().child('push').push().set(<String, dynamic>{
-      'title': "New request to join the party!",
-      'message': globals.userState['name'] + " would like to join " + globals.gameState['title'] + '.',
-      'friendId': globals.gameState['creator'],
-      'gameId': globals.gameState['id'],
-      'genre': globals.gameState['genre'],
-      'name': globals.gameState['name'],
-      'gameTitle': globals.gameState['title'],
-      'code': globals.gameState['code'],
-      'players': globals.gameState['players'],
-      'creator': globals.gameState['creator']
-    });
+    // FirebaseDatabase.instance.reference().child('push').push().set(<String, dynamic>{
+    //   'title': "New request to join the party!",
+    //   'message': globals.currentUser.data['name'] + " would like to join " + globals.currentGame.data['title'] + '.',
+    //   'friendId': globals.currentGame.data['creator'],
+    //   'gameId': globals.currentGame.documentID,
+    //   // 'genre': globals.currentGame.data['genre'],
+    //   // 'name': globals.currentGame.data['name'],
+    //   // 'gameTitle': globals.currentGame.data['title'],
+    //   // 'code': globals.currentGame.data['code'],
+    //   // 'players': globals.currentGame.data['players'],
+    //   // 'creator': globals.currentGame.data['creator']
+    // });
 
 	}
 

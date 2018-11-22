@@ -27,7 +27,7 @@ class _ChatViewState extends State<ChatView> {
 	}
 
 	bool _showOverlay = false;
-  bool _showJumpButton = true;
+  bool _showJumpButton = false;
 
 	TapUpDetails _tapUpDetails;
 	DocumentSnapshot _tappedBubble;
@@ -43,6 +43,9 @@ class _ChatViewState extends State<ChatView> {
     } else {
       _listViewController = ScrollController(initialScrollOffset: 0.0);
     }
+    if(currentOffset == 0.0) {
+      _showJumpButton = true;
+    }
   }    
 
 	@override
@@ -56,7 +59,7 @@ class _ChatViewState extends State<ChatView> {
 			// drawer: AccountDrawer(), // left side
 			appBar: AppBar(
         elevation: 50.0,
-        title: Text(globals.gameState['title'], style: TextStyle(color: Colors.white, fontSize: 30.0)),
+        title: Text(globals.currentGame.data['title'], style: TextStyle(color: Colors.white, fontSize: 30.0)),
         backgroundColor: Theme.of(context).primaryColor,
         leading: IconButton(
 					icon: Icon(Icons.close, color: Colors.white),
@@ -64,7 +67,7 @@ class _ChatViewState extends State<ChatView> {
         actions: <Widget>[
 					IconButton(
 						icon: Icon(
-							Icons.info_outline,
+							Icons.people,
 							color: Colors.white,
 						),
 						tooltip: 'Info about this Game.',
@@ -89,7 +92,7 @@ class _ChatViewState extends State<ChatView> {
             :
             Align(alignment: Alignment.bottomCenter, child: ActionsView(widget.gameId, _scrollToEnd)),
             // Align(alignment: Alignment.bottomCenter, child: 
-            // globals.gameState['players']?.contains(globals.userState['userId']) == true
+            // globals.currentGame.data['players']?.contains(globals.currentUser.documentID) == true
             //   ? _buildTextComposer()
             //   : _buildInfoBox('Tap any speech bubble to react to what players are saying.')),
             _showOverlay == true ? _buildOverlay(ReactionsView(_tappedBubble, _tapUpDetails, _onCloseOverlay)) : Container()
@@ -237,8 +240,8 @@ class _ChatViewState extends State<ChatView> {
 			children: <Widget>[
 				Expanded(
 					child: Padding(
-						padding: username == globals.userState['name'] ? EdgeInsets.only(left: 15.0, top: 10.0) : EdgeInsets.only(right: 15.0, top: 10.0),
-						child: Column(crossAxisAlignment: username == globals.userState['name'] ? CrossAxisAlignment.start : CrossAxisAlignment.end, children: <Widget>[Text(
+						padding: username == globals.currentUser.data['name'] ? EdgeInsets.only(left: 15.0, top: 10.0) : EdgeInsets.only(right: 15.0, top: 10.0),
+						child: Column(crossAxisAlignment: username == globals.currentUser.data['name'] ? CrossAxisAlignment.start : CrossAxisAlignment.end, children: <Widget>[Text(
 							username,
 							textAlign: TextAlign.right,
 							style: TextStyle(

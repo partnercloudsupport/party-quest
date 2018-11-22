@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'playersInfo_page.dart';
+// import 'playersInfo_page.dart';
 import 'charactersInfo_page.dart';
-import 'synopsisInfo_page.dart';
+// import 'synopsisInfo_page.dart';
 import 'package:party_quest/globals.dart' as globals;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
@@ -13,15 +13,15 @@ class InfoPage extends StatefulWidget {
 }
 
 class _InfoPageState extends State<InfoPage> with SingleTickerProviderStateMixin {
-	TabController _tabController;
+	// TabController _tabController;
   DocumentSnapshot _gameInfo;
   QuerySnapshot _gamePlayers;
   QuerySnapshot _gameReactions;
   String _gameId;
-  double _appBarHeight;
+  // double _appBarHeight;
 
   _InfoPageState() {
-    _gameId = globals.gameState['id'];
+    _gameId = globals.currentGame.documentID;
     if(_gameId == '') return; 
     Future.wait([_getGameInfo(), _getGamePlayers(), _getGameReactions()])
     .then((List responses) {
@@ -36,7 +36,7 @@ class _InfoPageState extends State<InfoPage> with SingleTickerProviderStateMixin
   @override
 	void initState() {
 		super.initState();
-		_tabController = TabController(vsync: this, length: 4);
+		// _tabController = TabController(vsync: this, length: 4);
 	}
 
   @override
@@ -44,10 +44,10 @@ class _InfoPageState extends State<InfoPage> with SingleTickerProviderStateMixin
     AppBar appBar = AppBar(
       leading: IconButton(icon: Icon(Icons.arrow_back, color: Colors.white), onPressed: () => Navigator.of(context).pop()), 
       backgroundColor: Theme.of(context).primaryColor,
-      elevation: -1.0,
-      title: Text("Game Info", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+      elevation: 50.0,
+      title: Text("Characters", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 25.0)),
     );
-    _appBarHeight = appBar.preferredSize.height;
+    // _appBarHeight = appBar.preferredSize.height;
     return Scaffold(
         backgroundColor: Colors.white,
         appBar: appBar,
@@ -57,41 +57,41 @@ class _InfoPageState extends State<InfoPage> with SingleTickerProviderStateMixin
                   image: AssetImage(
                       "assets/images/background-cosmos.png"),
                   fit: BoxFit.fill)),
-            child: _gameId == '' ? Container() : _buildTabsDetails()
+            child: _gameId == '' ? Container() : CharactersInfoPage(_gameInfo, _gamePlayers, _gameReactions)
           ));
   }
 
-  Widget _buildTabsDetails(){
-    TabBar tabBar = TabBar(
-      controller: _tabController,
-      unselectedLabelColor: const Color(0x66FFFFFF),
-      labelColor: const Color(0xFFFFFFFF),
-      indicatorColor: Colors.white,
-      indicatorSize: TabBarIndicatorSize.tab,
-      tabs: <Tab>[
-        Tab(child: Text('Characters', style: TextStyle(fontSize: 20.0))),
-        Tab(child: Text('Players', style: TextStyle(fontSize: 20.0))),
-        Tab(child: Text('Synopsis', style: TextStyle(fontSize: 20.0))),
-        ]
-      );
-		return
-      Column(
-      // direction: Axis.vertical,
-      children: <Widget>[
-			    tabBar,
-          Expanded(child: TabBarView(
-            controller: _tabController,
-            children: //myTabs.map((Tab tab) {
-              <Widget> [
-                CharactersInfoPage(_gameInfo),
-                PlayersInfoPage(_gameInfo, _gamePlayers, _gameReactions),
-                SynopsisInfoPage()
-                // Container(child: Padding(padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0), child: Text('Write notes, rules, or events from the story you want to keep track of.', style: TextStyle(color: const Color(0xFFFFFFFF), fontSize: 20.0)))),
-              ]
-            // }).toList(),
-          )),
-			]);
-		}
+  // Widget _buildTabsDetails(){
+  //   TabBar tabBar = TabBar(
+  //     controller: _tabController,
+  //     unselectedLabelColor: const Color(0x66FFFFFF),
+  //     labelColor: const Color(0xFFFFFFFF),
+  //     indicatorColor: Colors.white,
+  //     indicatorSize: TabBarIndicatorSize.tab,
+  //     tabs: <Tab>[
+  //       Tab(child: Text('Characters', style: TextStyle(fontSize: 20.0))),
+  //       Tab(child: Text('Players', style: TextStyle(fontSize: 20.0))),
+  //       Tab(child: Text('Synopsis', style: TextStyle(fontSize: 20.0))),
+  //       ]
+  //     );
+	// 	return
+  //     Column(
+  //     // direction: Axis.vertical,
+  //     children: <Widget>[
+	// 		    tabBar,
+  //         Expanded(child: TabBarView(
+  //           controller: _tabController,
+  //           children: //myTabs.map((Tab tab) {
+  //             <Widget> [
+  //               CharactersInfoPage(_gameInfo),
+  //               PlayersInfoPage(_gameInfo, _gamePlayers, _gameReactions),
+  //               SynopsisInfoPage()
+  //               // Container(child: Padding(padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0), child: Text('Write notes, rules, or events from the story you want to keep track of.', style: TextStyle(color: const Color(0xFFFFFFFF), fontSize: 20.0)))),
+  //             ]
+  //           // }).toList(),
+  //         )),
+	// 		]);
+	// 	}
 
     Future<QuerySnapshot> _getGameReactions(){
       var reactions = Firestore.instance.collection('Games/$_gameId/Reactions');

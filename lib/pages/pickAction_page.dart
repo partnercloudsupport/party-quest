@@ -55,12 +55,12 @@ class _PickActionPageState extends State<PickActionPage> with SingleTickerProvid
 	}
 
 	Widget _buildBody() {
-		var _gameId = globals.gameState['id'];
+		var _gameId = globals.currentGame.documentID;
 			return FutureBuilder(
 			future: Firestore.instance.collection('Games').document(_gameId).get(),
 			builder: (BuildContext context, AsyncSnapshot snapshot) {
 				if(snapshot.hasData){
-				  _characterData = snapshot.data['characters'][globals.userState['userId']];
+				  _characterData = snapshot.data['characters'][globals.currentUser.documentID];
           _turnData = snapshot.data['turn'];
           List<Widget> pageWidgets = [];
           pageWidgets
@@ -215,7 +215,7 @@ class _PickActionPageState extends State<PickActionPage> with SingleTickerProvid
 
   void _handleSubmitted(){
       Navigator.pop(context);
-		  var _gameId = globals.gameState['id'];
+		  var _gameId = globals.currentGame.documentID;
       var chosenSkill = _skills[_tabController.index];
       var chosenSkillPower = _characterData['skills'][chosenSkill];
 			Firestore.instance.collection('Games/$_gameId/Logs').document()
@@ -225,21 +225,21 @@ class _PickActionPageState extends State<PickActionPage> with SingleTickerProvid
         'type': 'characterAction',
         'dts': DateTime.now(),
         'profileUrl': _characterData['imageUrl'],
-        'userId': globals.userState['userId'],
-			  'userName': globals.userState['name'],
+        'userId': globals.currentUser.documentID,
+			  'userName': globals.currentUser.data['name'],
       });
 			// Firestore.instance.collection('Games/$_gameId/Logs').document()
       // .setData(<String, dynamic>{
       //   'text': _characterData['characterName'] + outcomeText,
       //   'type': 'narration',
       //   'dts': DateTime.now(),
-      //   'userId': globals.userState['userId']
+      //   'userId': globals.currentUser.documentID
       // });
       var turns = [_turnData, {
         'turnPhase': 'difficulty', 
         'dts': DateTime.now(), 
-        'playerImageUrl': globals.userState['profilePic'],
-        'playerName': globals.userState['name'],
+        'playerImageUrl': globals.currentUser.data['profilePic'],
+        'playerName': globals.currentUser.data['name'],
         'characterName': _characterData['characterName'],
         'skill': chosenSkill,
         'skillPower': chosenSkillPower
@@ -250,23 +250,22 @@ class _PickActionPageState extends State<PickActionPage> with SingleTickerProvid
       turn.updateData(<String, dynamic>{
         'turn': combinedTurns
       });
-      Map players = json.decode(globals.gameState['players']);
-      for(var key in players.keys){
-        if(key != globals.userState['userId']){
+      
+      globals.currentGame.data['players'].forEach((key, value){
+        if(key != globals.currentUser.documentID){
           FirebaseDatabase.instance.reference().child('push').push().set(<String, dynamic>{
             'title': "Difficulty Check!",
-            'message': globals.userState['name'] + " is attempting something in " + globals.gameState['title'] + '.',
+            'message': globals.currentUser.data['name'] + " is attempting something in " + globals.currentGame.data['title'] + '.',
             'friendId': key,
-            'gameId': globals.gameState['id'],
-            'genre': globals.gameState['genre'],
-            'name': globals.gameState['name'],
-            'gameTitle': globals.gameState['title'],
-            'code': globals.gameState['code'],
-            'players': globals.gameState['players'],
-            'creator': globals.gameState['creator']
+            'gameId': globals.currentGame.documentID,
+            // 'genre': globals.currentGame.data['genre'],
+            // 'name': globals.currentGame.data['name'],
+            // 'gameTitle': globals.currentGame.data['title'],
+            // 'code': globals.currentGame.data['code'],
+            // 'players': globals.currentGame.data['players'],
+            // 'creator': globals.currentGame.data['creator']
           });
         }
-      }
-
+      });
     }
 }

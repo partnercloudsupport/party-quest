@@ -23,14 +23,14 @@ class _SynopsisInfoPageState extends State<SynopsisInfoPage> {
 		return 
 				Column(children: <Widget>[
 					_buildSynopsis(),
-					globals.gameState['players']?.contains(globals.userState['userId']) == true
+					globals.currentGame.data['players'].toString().contains(globals.currentUser.documentID) == true
 						? _buildTextComposer()
 						: Container()
 				]);
 	}
 
 	Widget _buildSynopsis() {
-		var _gameId = globals.gameState['id'];
+		var _gameId = globals.currentGame.documentID;
 		final now = DateTime.now();
 		final monthAgo = new DateTime(now.year, now.month, now.day - 30);
 		if (_gameId != null) {
@@ -130,7 +130,7 @@ class _SynopsisInfoPageState extends State<SynopsisInfoPage> {
 	}
 
 	void _handleSubmitted(String text) {
-		var _gameId = globals.gameState['id'];
+		var _gameId = globals.currentGame.documentID;
 		_textController.clear();
 		if (text.length > 0) {
 			final DocumentReference document =
@@ -138,9 +138,9 @@ class _SynopsisInfoPageState extends State<SynopsisInfoPage> {
 			document.setData(<String, dynamic>{
 				'text': text,
 				'dts': DateTime.now(),
-				'profileUrl': globals.userState['profilePic'],
-				'userName': globals.userState['name'],
-				'userId': globals.userState['userId']
+				'profileUrl': globals.currentUser.data['profilePic'],
+				'userName': globals.currentUser.data['name'],
+				'userId': globals.currentUser.documentID
 			});
 		}
 	}
@@ -151,8 +151,8 @@ class _SynopsisInfoPageState extends State<SynopsisInfoPage> {
 			children: <Widget>[
 				Expanded(
 					child: Padding(
-						padding: username == globals.userState['name'] ? EdgeInsets.only(left: 15.0, top: 10.0) : EdgeInsets.only(right: 15.0, top: 10.0),
-						child: Column(crossAxisAlignment: username == globals.userState['name'] ? CrossAxisAlignment.start : CrossAxisAlignment.end, children: <Widget>[Text(
+						padding: username == globals.currentUser.data['name'] ? EdgeInsets.only(left: 15.0, top: 10.0) : EdgeInsets.only(right: 15.0, top: 10.0),
+						child: Column(crossAxisAlignment: username == globals.currentUser.data['name'] ? CrossAxisAlignment.start : CrossAxisAlignment.end, children: <Widget>[Text(
 							username,
 							textAlign: TextAlign.right,
 							style: TextStyle(

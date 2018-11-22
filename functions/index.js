@@ -11,8 +11,9 @@ const _ = require('underscore');
 
 const admin = require('firebase-admin');
 admin.initializeApp();
+const db = admin.firestore();
 
-// exports.onPlayerAdded = functions.firestore
+// exports.onPlayerAdded = functions.firestore  
 //   .document('Games/{gameId}')
 //   .onWrite((change, context) => {
 //     console.log(change.after.data());
@@ -22,7 +23,7 @@ admin.initializeApp();
 // exports.turnChange = functions.firestore.document('Games/{gameId}/Logs/{logId}').onCreate((snap, context) => {
 //   const newLog = snap.data();
 //   if (newLog.type == 'guess' || newLog.type == 'question') {
-//     var turnRef = admin.firestore().collection('Games/' + context.params.gameId + '/Logs').doc('Turn');
+//     var turnRef = db.collection('Games/' + context.params.gameId + '/Logs').doc('Turn');
 //     return turnRef.get().then((turnResult) => {
 //       var turnData = turnResult.data()
 //       // console.log(turnData);
@@ -54,7 +55,7 @@ exports.reactionChange = functions.firestore
     var reactionType = _.keys(diff)[0]; // we only care about one reaction (shouldnt be more than one)
     if(reactionType != null) {
       // Increment User.totalReactions and User.reactions[reactionType]
-      var userRef = admin.firestore().collection('Users').doc(authorId);
+      var userRef = db.collection('Users').doc(authorId);
       var userPromise = userRef.get().then((userResult) => {
         var reactions = userResult.data()['reactions'];
         var totalReactions = userResult.data()['totalReactions'];
@@ -65,7 +66,7 @@ exports.reactionChange = functions.firestore
       });
 
       // Increment Game.totalReactions
-      var gameRef = admin.firestore().collection('Games').doc(gameId);
+      var gameRef = db.collection('Games').doc(gameId);
       var gamePromise = gameRef.get().then((gameResult) => {
         var reactions = gameResult.data()['reactions'];
         var totalReactions = gameResult.data()['totalReactions'];
@@ -83,8 +84,8 @@ exports.reactionChange = functions.firestore
 exports.removePlayer = functions.https.onCall((data, context) => {
   // console.log("uid: " + context.auth.uid);
   console.log(data);
-  var gameRef = admin.firestore().collection('Games').doc(data.gameId);
-  var userRef = admin.firestore().collection('Users').doc(data.userId);
+  var gameRef = db.collection('Games').doc(data.gameId);
+  var userRef = db.collection('Users').doc(data.userId);
   return gameRef.get().then((gameResult) => {
     var gameData = gameResult.data()
     // console.log("creator: " + gameData['creator']);
@@ -118,44 +119,91 @@ exports.removePlayer = functions.https.onCall((data, context) => {
   });
 });
 
+exports.createRequest = functions.https.onCall((data, context) => {
+  var title, body, recipientId;
+  data.userId = context.auth.uid;
+  switch(data.requestType) {
+    case 'joinGame': 
+      title =  "New request to join the party!";
+      body = data.userName + " would like to join '" + data.gameTitle + "'";
+      recipientId = data.creatorId;
+      break;
+    default: return;
+  }
+  data.title = title;
+  data.body = body;
+  return db.collection('Users/' + recipientId + '/Inbox')
+    .add(data).then((docRef) => {
+      data.inboxId = docRef.id;
+      let payload = {
+        data: data,
+        notification: {
+            title: title,
+            body: body,
+            sound: 'default',
+            badge: '1'
+      }};
+      return sendPush(recipientId, payload);
+    })
+});
+
+
+exports.rejectRequest = functions.https.onCall((data, context) => {
+  // console.log("uid: " + context.auth.uid);
+  var userRef = db.collection('Users').doc(data.friendId);
+  var inboxRef = db.collection('Users').doc(data.userId).collection('Inbox').doc(data.inboxId);
+  return userRef.get().then(userResult => {
+    var userData = userResult.data()
+    var requests = userData['requests'];
+    requests[data.gameId] = null;
+    var batch = db.batch();
+    // Remove request from User.requests
+    // Delete inbox item
+    batch.update(userRef, { 'requests': requests });
+    batch.delete(inboxRef);
+    return batch.commit();
+  });
+});
 
 exports.acceptRequest = functions.https.onCall((data, context) => {
   // console.log("uid: " + context.auth.uid);
-  console.log(data);
-  var gameRef = admin.firestore().collection('Games').doc(data.gameId);
-  var userRef = admin.firestore().collection('Users').doc(data.userId);
-  return gameRef.get().then((gameResult) => {
-    var gameData = gameResult.data()
-    console.log("creator: " + gameData['creator']);
-    // Only the game creator can approve requests
-    if (gameData['creator'] == context.auth.uid) {
-      // Add user to Game.players
+  var gameRef = db.collection('Games').doc(data.gameId);
+  var userRef = db.collection('Users').doc(data.friendId);
+  var inboxRef = db.collection('Users').doc(data.userId).collection('Inbox').doc(data.inboxId);
+  return db.runTransaction(function(transaction) {
+    return transaction.getAll(gameRef, userRef).then(function(results) {
+      var gameData = results[0].data();
+      var userData = results[1].data();
+      //UPDATE GAME
+      if (gameData['creator'] != context.auth.uid) return null;  // Only the game creator can approve requests
       var players = gameData['players']
-      players[data.userId] = true;
-      // reactivate player's character
-      if(gameData['characters'][data.userId] != null){
-        // console.log('set inactive to false' + gameData['characters'][data.userId]);
-        gameData['characters'][data.userId]['inactive'] = false;
-      }
-      // console.log("players: " + players);
-      return gameRef.update({ 'players': players, 'characters': gameData['characters'] }).then(() => {
-        // Add game to User.games
-        return userRef.get().then(userResult => {
-          var userData = userResult.data()
-          var games = userData['games'] == null ? {} : userData['games'];
-          games[data.gameId] = true;
-          // console.log("games: " + games);
-          var requests = userData['requests'];
-          requests[data.code] = null;
-          // console.log("requests: " + requests);
-          return userRef.update({ 'games': games, 'requests': requests });
-        });
+      players[data.friendId] = true;
+      if(gameData['characters'][data.friendId] != null) gameData['characters'][data.friendId]['inactive'] = false; // player may be inactive (been removed)
+      // Add friend to Game.players
+      transaction.update(gameRef, { 'players': players, 'characters': gameData['characters'] });
+      //UPDATE USER
+      var games = userData['games'] == null ? {} : userData['games'];
+      games[data.gameId] = true;
+      var requests = userData['requests'];
+      requests[data.gameId] = null;
+      var batch = db.batch();
+      // Add game to friend's User.games
+      // Remove request from friend's User.requests
+      // Delete inbox item
+      batch.update(userRef, { 'games': games, 'requests': requests });
+      batch.delete(inboxRef);
+      batch.commit().then(() => {
+        let payload = {
+          data: data,
+          notification: {
+            title: "You've been accepted into the party.",
+            body: "Welcome to " + data.gameTitle + "!",
+            sound: 'default',
+            badge: '1' }};
+        sendPush(data.friendId, payload);
       });
-    } else {
-      return null;
-    }
+    });
   });
-  // res.send(Items[Math.floor(Math.random()*Items.length)]);
 });
 
 exports.sendPush = functions.database.ref('/push/{pushId}')
@@ -172,15 +220,19 @@ exports.sendPush = functions.database.ref('/push/{pushId}')
       data: pushData
     };
     // console.log(pushData.friendId)
-    return loadTokens(pushData.friendId).then(tokens => {
-      admin.messaging().sendToDevice(tokens, payload)
-      .then( results => {
+    return sendPush(pushData.userId, payload)
+      .then(results => {
         // Delete the push item
         console.log(results);
         snapshot.ref.remove()
       });
-  });
 });
+
+function sendPush(recipientId, payload){
+  return loadTokens(recipientId).then(tokens => {
+    admin.messaging().sendToDevice(tokens, payload)
+  });
+}
 
 function loadTokens(userId) {
   let dbRef = admin.database().ref('/deviceTokens/' + userId);

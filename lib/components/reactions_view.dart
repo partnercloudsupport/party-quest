@@ -37,7 +37,7 @@ class _ReactionsViewState extends State<ReactionsView> {
       StreamBuilder<QuerySnapshot>(
         stream: Firestore.instance
             .collection('Users')
-            .where('games.' + globals.gameState['id'], isEqualTo: true)
+            .where('games.' + globals.currentGame.documentID, isEqualTo: true)
             .snapshots(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (!snapshot.hasData) return const Text('Loading...', style: TextStyle(color: Colors.white));
@@ -85,7 +85,7 @@ class _ReactionsViewState extends State<ReactionsView> {
   }
 
 	Widget _buildReactionComposer() {
-    if(widget.messageData.data['userId'] != globals.userState['userId'] && !widget.messageData.data['reactions'].toString().contains(globals.userState['userId'])) {
+    if(widget.messageData.data['userId'] != globals.currentUser.documentID && !widget.messageData.data['reactions'].toString().contains(globals.currentUser.documentID)) {
       return Container(height: 80.0, width: MediaQuery.of(context).size.width, child: ListView(
           scrollDirection: Axis.horizontal,
           children: <Widget>[
@@ -121,18 +121,18 @@ class _ReactionsViewState extends State<ReactionsView> {
           if(bubbleDoc.data['reactions'] != null){
             if(bubbleDoc.data['reactions'][reactionType] != null && !(bubbleDoc.data['reactions'][reactionType] is int)){
               var newReactionsList = bubbleDoc.data['reactions'][reactionType].toList();
-              newReactionsList.add(globals.userState['userId']);
+              newReactionsList.add(globals.currentUser.documentID);
               bubbleDoc.data['reactions'][reactionType] = newReactionsList;
             } else
-              bubbleDoc.data['reactions'][reactionType] = [globals.userState['userId']];
+              bubbleDoc.data['reactions'][reactionType] = [globals.currentUser.documentID];
           } else {
-            bubbleDoc.data['reactions'] = {reactionType: [globals.userState['userId']]};
+            bubbleDoc.data['reactions'] = {reactionType: [globals.currentUser.documentID]};
           }
         }
         // UPDATE LOG MESSAGE
         widget.messageData.reference.updateData(bubbleDoc.data).then((onValue) {
           var authorId = bubbleDoc.data['userId'];
-          var gameId = globals.gameState['id'];
+          var gameId = globals.currentGame.documentID;
           // UPDATE GAME/REACTIONS
           final DocumentReference reactionsRef = Firestore.instance.collection('Games/$gameId/Reactions').document(authorId);
           reactionsRef.get().then((reactionResult){
@@ -180,7 +180,7 @@ class _ReactionsViewState extends State<ReactionsView> {
 
       // This doesnt work for public games because public players dont have accesss to update the game.
       // final DocumentReference gameRef =
-      // Firestore.instance.collection('Games').document(globals.gameState['id']);
+      // Firestore.instance.collection('Games').document(globals.currentGame.documentID);
       // gameRef.get().then((gameResult) {
       //   var reactions = gameResult['reactions'] == null ? {bubbleDoc.data['userId']: {reactionType: 0}} : gameResult['reactions'];
       //   if(reactions[bubbleDoc.data['userId']] == null) reactions[bubbleDoc.data['userId']] = {reactionType: 0};

@@ -12,20 +12,25 @@ class UserProfilePage extends StatefulWidget {
 }
 
 class UserProfileState extends State<UserProfilePage> {
-	String _downloadUrl, _profilePic;
-	final TextEditingController _textController = TextEditingController();
+	String _downloadUrl, _profilePic, _userName, _userIntro;
+	final TextEditingController _nameController = TextEditingController();
+	final TextEditingController _introController = TextEditingController();
   bool _buttonEnabled = false;
 
 	@override
 	void initState() {
 		super.initState();
-		_profilePic = globals.userState['profilePic'];
-    if(globals.userState['name'] != '') _textController.text = globals.userState['name'];
+		_profilePic = globals.currentUser.data['profilePic'];
+    _userName = globals.currentUser.data['name'];
+    _userIntro = globals.currentUser.data['intro'];
+    if(globals.currentUser.data['name'] != '') _nameController.text = globals.currentUser.data['name'];
+    if(globals.currentUser.data['intro'] != '') _introController.text = globals.currentUser.data['intro'];
   }
 
 	@override
 	void dispose() {
-		// controller?.dispose();
+		_nameController.dispose();
+		_introController.dispose();
 		super.dispose();
 	}
 
@@ -55,9 +60,10 @@ class UserProfileState extends State<UserProfilePage> {
 				child: ListView(children: <Widget>[
 					Padding(padding: EdgeInsets.all(10.0)),
 					_buildProfilePic(),
-						_buildPhotoButtons(),
-							_buildNameField(),
-								_buildDoneButton()])),
+					_buildPhotoButtons(),
+					_buildNameField(),
+          _buildIntroField(),
+					_buildDoneButton()])),
 		);
 	}
 
@@ -83,20 +89,46 @@ class UserProfileState extends State<UserProfilePage> {
       child: TextField(
         maxLines: null,
         keyboardType: TextInputType.text,
-        controller: _textController,
+        controller: _nameController,
         style: TextStyle(fontSize: 20.0, color: Colors.white, fontFamily: 'LondrinaSolid'),
         // onChanged: _handleMessageChanged,
         onChanged: _handleTextFieldChange,
         // onSubmitted: _handleSubmitted,
         decoration: InputDecoration.collapsed(
           hintStyle: TextStyle(fontSize: 20.0, color: const Color(0x99FFFFFF)),
-          hintText: globals.userState['name'] == ''
+          hintText: globals.currentUser.data['name'] == ''
             ? "Enter your name."
-            : globals.userState['name']),
+            : globals.currentUser.data['name']),
       ),
       decoration: BoxDecoration(
         color: const Color(0x33FFFFFF),
-        borderRadius: BorderRadius.circular(40.0)),
+        borderRadius: BorderRadius.circular(25.0)),
+    );
+  }
+
+
+  Widget _buildIntroField(){
+    return Container(height: 150.0,
+      margin: EdgeInsets.only(bottom: 20.0, right: 20.0, left: 20.0),
+      padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 20.0),
+      child: TextField(
+        maxLines: 5,
+        maxLength: 200,
+        keyboardType: TextInputType.text,
+        controller: _introController,
+        style: TextStyle(fontSize: 20.0, color: Colors.white, fontFamily: 'LondrinaSolid'),
+        // onChanged: _handleMessageChanged,
+        onChanged: _handleTextFieldChange,
+        // onSubmitted: _handleSubmitted,
+        decoration: InputDecoration.collapsed(
+          hintStyle: TextStyle(fontSize: 20.0, color: const Color(0x99FFFFFF)),
+          hintText: globals.currentUser.data['intro'] == null
+            ? "Tell us something about you."
+            : globals.currentUser.data['intro']),
+      ),
+      decoration: BoxDecoration(
+        color: const Color(0x33FFFFFF),
+        borderRadius: BorderRadius.circular(25.0)),
     );
   }
 
@@ -162,7 +194,7 @@ class UserProfileState extends State<UserProfilePage> {
 		    source: ImageSource.gallery, maxHeight: 300.0, maxWidth: 300.0);
 			}
 		if(imageFile != null){
-      var userId = globals.userState['userId'];
+      var userId = globals.currentUser.documentID;
       var ref = FirebaseStorage.instance.ref().child('profilePics/$userId.jpg');
       var uploadTask = ref.putFile(imageFile);
       var downloadUrl = (await uploadTask.future).downloadUrl;
@@ -173,7 +205,7 @@ class UserProfileState extends State<UserProfilePage> {
 	}
 
   void _handleTextFieldChange(String text){
-    if(_textController.text.length > 0){
+    if(_nameController.text != _userName || _introController.text != _userIntro){
       setState((){
         _buttonEnabled = true;
       });
@@ -185,38 +217,10 @@ class UserProfileState extends State<UserProfilePage> {
   }
 
 	void _handleSubmitted() {
-    var text = _textController.text;
-    _textController.clear();
-    final DocumentReference userRef = Firestore.instance
-      .collection('Users')
-      .document(globals.userState['userId']);
-    userRef.get().then((userResult) {
-      if(userResult.data != null){
-        // Existing user
-        userResult.data['name'] = text;
-        if (_downloadUrl != null)
-          userResult.data['profilePic'] = _downloadUrl;
-          userRef.updateData(userResult.data).then((onValue) {
-            globals.userState['name'] = text;
-            if (_downloadUrl != null) globals.userState['profilePic'] = _downloadUrl;
-            Navigator.pop(context);
-        });
-      } else {
-        // New user
-        var profileUrl = '';
-        if (_downloadUrl != null)
-          profileUrl = _downloadUrl;
-        else
-        	profileUrl = 'https://firebasestorage.googleapis.com/v0/b/party-quest-dev.appspot.com/o/profile-placeholder.png?alt=media&token=35a5323c-0b10-4332-a8c2-355d26e950a8';
-        userRef.setData(<String, dynamic>{
-          'name': text,
-          'profilePic': profileUrl
-        }).then((onValue) {
-          globals.userState['name'] = text;
-          globals.userState['profilePic'] = profileUrl;
-        });
-      }
-      Navigator.pop(context);
-    });
+    globals.currentUser.data['name'] = _nameController.text;
+    globals.currentUser.data['intro'] = _introController.text;
+    if (_downloadUrl != null) globals.currentUser.data['profilePic'] = _downloadUrl;
+    globals.currentUser.reference.updateData(globals.currentUser.data);
+    Navigator.pop(context);
 	}
 }

@@ -152,7 +152,7 @@ class _RollButtonState extends State<RollButton> {
       _rollOutcomeDescription = outcomePossibilities[winFail][index]['description'];
     });
     _timer2 = Timer(const Duration(milliseconds: 2000), () {
-      var _gameId = globals.gameState['id'];
+      var _gameId = globals.currentGame.documentID;
       // ADD Log
       Firestore.instance.collection('Games/$_gameId/Logs').document()
       .setData(<String, dynamic>{
@@ -160,22 +160,22 @@ class _RollButtonState extends State<RollButton> {
         'type': 'narration',
         'color': winFail == 'fail' ? 'FF694F' : '9deb00',
         'dts': DateTime.now(),
-        'userId': globals.userState['userId']
+        'userId': globals.currentUser.documentID
       });
       if(winFail == 'fail')
-        widget._characters[globals.userState['userId']]['HP'] += outcomePossibilities[winFail][index]['HP'];
+        widget._characters[globals.currentUser.documentID]['HP'] += outcomePossibilities[winFail][index]['HP'];
       else
-        widget._characters[globals.userState['userId']]['XP'] += outcomePossibilities[winFail][index]['XP'];
+        widget._characters[globals.currentUser.documentID]['XP'] += outcomePossibilities[winFail][index]['XP'];
 
       // Has player died?
-      if(widget._characters[globals.userState['userId']]['HP'] <= 0) {
+      if(widget._characters[globals.currentUser.documentID]['HP'] <= 0) {
         Firestore.instance.collection('Games/$_gameId/Logs').document()
         .setData(<String, dynamic>{
           'text': widget._turn['characterName'] + ' is dead!',
           'type': 'narration',
           'color': 'FF694F',
           'dts': DateTime.now(),
-          'userId': globals.userState['userId']
+          'userId': globals.currentUser.documentID
         });
       }
       // UPDATE Game.turn
